@@ -110,7 +110,7 @@ export class Army {
    */
   private slot(i: number, n: number, cx: number, halfW: number, out: { x: number; z: number }): void {
     const s = this.spacing(n);
-    const c = s / 1.7;
+    const c = (s * 1.3) / 1.7; // 1.3 = extra breathing room between troops
     const R = c * Math.sqrt(n + 1.5);
     const maxHalf = Math.max(0.8, halfW - 0.1);
     const sx = R > maxHalf ? maxHalf / R : 1;
