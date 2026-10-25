@@ -28,6 +28,9 @@ npm run typecheck
 npm run sim         # fairness simulation of the gate and fight generators
 ```
 
+## Coins
+Coins are earned by distance, by picking up the spinning coins laid between gate sets, and by playing the best gate. They buy skins, trails and upgrades.
+
 ## Upgrades
 Bought with coins on the Upgrades screen: **Double Speed** (1000 coins) unlocks the 2× button, and **Head Start** (15 levels, 100 m up to 800 m, each level costs about 30 % more) lets a run begin further along with an army sized for that distance. A head start does not add to score or coins; only what you run and the army you grow beyond the gift count.
 

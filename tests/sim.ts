@@ -84,7 +84,7 @@ for (let seed = 1; seed <= SEEDS; seed++) {
         // two bad decisions (about 60 % of the expected army) must lose; a small slip (88 %) must still win
         cliffTotal++;
         if (!simulateFight(Math.round(A * 0.6), it.enemies).cleared) twoBadLose++;
-        if (simulateFight(Math.round(A * (isBoss ? 0.95 : 0.9)), it.enemies).cleared) slipWins++;
+        if (simulateFight(Math.round(A * (isBoss ? 0.9 : 0.85)), it.enemies).cleared) slipWins++;
         critSum += it.critical;
       }
       if (it.s < 300) { earlyN++; earlyCrit += it.critical; }

@@ -11,6 +11,7 @@ import type { RunSummary } from './ui';
 import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
+import { CoinField } from './coins';
 import { evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
@@ -35,6 +36,13 @@ export class Game {
   private army: Army;
   private fx: Fx;
   private combat: CombatSim;
+  private coins: CoinField;
+  /** Test hook: sets where the crossing result was below best play. */
+  misses: Array<{ kind: string; s: number; A: number; result: number; best: number; idx: number }> = [];
+  private forecasting = false;
+  private coinFrom = 0; // start of the next free stretch where coins may be laid
+  private coinStreak = 0;
+  private lastPickT = -9;
   private ui: UI;
   private data: SaveData = load();
 
@@ -87,6 +95,7 @@ export class Game {
     this.army = new Army(this.world.scene);
     this.fx = new Fx(this.world.scene, this.world.camera, document.getElementById('popups')!);
     this.combat = new CombatSim(this.world.scene);
+    this.coins = new CoinField(this.world.scene);
     this.ui = new UI(
       () => this.data,
       () => save(this.data),
@@ -129,6 +138,13 @@ export class Game {
     this.ui.onMenu = () => this.toMenu();
     this.ui.onPause = () => this.pause();
     this.ui.onFast = () => this.setFast(!this.fast);
+    this.ui.onBoostHud = () => {
+      this.data.startOn = !this.data.startOn;
+      save(this.data);
+      this.ui.syncBoost();
+      const m = startMeters(this.data.startLevel);
+      this.ui.flashBanner(this.data.startOn ? `HEAD START +${m} m NEXT RUN` : 'HEAD START OFF', 1300);
+    };
     this.ui.onResume = () => this.resume();
     this.ui.onRestart = () => this.startRun(this.tutorial !== null);
     this.ui.onChange = () => this.applyCosmetics();
@@ -176,6 +192,9 @@ export class Game {
 
   // ------------------------------------------------------------------ run lifecycle
   private clearWorld(): void {
+    this.coins.clear();
+    this.coinFrom = 0;
+    this.forecasting = false;
     for (const v of this.viewOrder) {
       this.world.scene.remove(v.root);
       v.dispose();
@@ -224,6 +243,8 @@ export class Game {
     this.ui.showHud(true);
     this.ui.setArmy(this.army.count);
     this.ui.showFast(!tutorial && this.data.speedUnlocked);
+    this.ui.showBoostHud(!tutorial);
+    this.ui.syncBoost();
     this.ui.setDist(0);
     this.ui.setCoins(0);
     this.ui.flashBanner(tutorial ? 'TUTORIAL' : boost > 0 ? `HEAD START +${boost} m` : 'GO!', boost > 0 ? 1600 : 1000);
@@ -363,6 +384,19 @@ export class Game {
     this.ensureAhead();
     this.revealPending();
     this.processQueue();
+    if (!this.tutorial) {
+      const radius = Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
+      const got = this.coins.update(dt, this.time, this.playerS, this.army.x, radius, (x, sPos) => {
+        this.fx.burst(new THREE.Vector3(x, 1.2, -sPos), 0xffd54f, 7, 3.5);
+      });
+      if (got > 0) {
+        this.bonusCoins += got;
+        this.coinStreak = this.time - this.lastPickT < 0.7 ? this.coinStreak + got : got;
+        this.lastPickT = this.time;
+        sound.coin(this.coinStreak);
+      }
+    }
+    if (!this.inCombat && !this.tutorial) this.showForecast();
     if (this.inCombat) this.stepCombat(dt);
     else if (this.combatClearT > 0) {
       this.combatClearT -= dt;
@@ -393,6 +427,26 @@ export class Game {
     }
   }
 
+  /** Before a fight: show the army the fight needs (the cliff) against the army you have. */
+  private showForecast(): void {
+    const head = this.queue[0];
+    if (!head || head.type !== 'combat' || head.s - this.playerS > 95 || head.s - this.playerS < 0.5) {
+      if (this.forecasting) {
+        this.forecasting = false;
+        this.ui.setCombat(null);
+      }
+      return;
+    }
+    this.forecasting = true;
+    const A = this.army.count;
+    // enemies grow with an army that beats the reference, so the requirement does too
+    const need = Math.ceil(head.critical * Math.max(head.refArmy, A));
+    const ratio = A / Math.max(1, need);
+    const tone = ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger';
+    const word = tone === 'ok' ? 'SAFE' : tone === 'tight' ? 'CLOSE' : 'TOO WEAK';
+    this.ui.setCombat({ text: `${head.boss ? 'BOSS' : 'FIGHT'} AHEAD · ${word}\nARMY ${fmt(A)}  ·  NEED ${fmt(need)}`, frac: Math.min(1, ratio / 1.4), boss: head.boss, tone });
+  }
+
   private coinsEarned(): number {
     if (this.tutorial) return 0;
     return Math.floor((this.playerS - this.startDist) / CFG.metersPerCoin) + this.bonusCoins + Math.floor(this.kills / 2);
@@ -415,6 +469,15 @@ export class Game {
       const item = this.source.next(ref);
       if (!item) break;
       this.queue.push(item);
+      if (!this.tutorial) {
+        // coins in the free stretch between the previous item and this one (never inside a split zone or fight)
+        const half = CFG.splitZoneLength / 2;
+        const gates = item.type === 'gates';
+        const zoneFrom = item.s - (gates && item.split ? half : 0) - 1.4;
+        const zoneTo = item.s + (gates ? (item.split ? half : 0) + 1.4 : CFG.combatStopGap);
+        this.coins.spawnBetween(Math.max(this.coinFrom, this.playerS + 6), zoneFrom);
+        this.coinFrom = zoneTo;
+      }
       if (item.type === 'gates') {
         const v = new SetView(item);
         this.world.scene.add(v.root);
@@ -498,6 +561,10 @@ export class Game {
     if (this.tutorial && set.tutorialRequired && !set.tutorialRequired(A, result, idx)) {
       this.tutorialRewind(set.id);
       return;
+    }
+    if (!this.tutorial) {
+      const bst = bestResult(set, Math.max(1, A)).result;
+      if (result < bst * 0.999) this.misses.push({ kind: set.kind, s: Math.round(set.s), A, result, best: bst, idx });
     }
     this.army.setCount(result);
     const eff = idx >= 0 ? set.gates[idx].effect : null;

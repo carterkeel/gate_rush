@@ -18,6 +18,8 @@ export interface RunSummary {
   newBest: boolean;
 }
 
+const coinHtml = (n: number | string) => `<span class="coin"></span>${n}`;
+
 export class UI {
   onPlay = () => {};
   onTutorial = () => {};
@@ -25,6 +27,7 @@ export class UI {
   onMenu = () => {};
   onPause = () => {};
   onFast = () => {};
+  onBoostHud = () => {};
   onUpgrade = () => {}; // upgrades changed (speed unlock)
   onResume = () => {};
   onRestart = () => {};
@@ -82,6 +85,7 @@ export class UI {
     bind('sfxVol', 'sfxOut', () => sound.sfxVol, (v) => sound.setSfxVolume(v), true);
     $('bPause').onclick = () => this.onPause();
     $('bFast').onclick = () => this.onFast();
+    $('bBoostHud').onclick = () => this.onBoostHud();
     $('bUpgrades').onclick = () => this.showUpgrades();
     $('bUpBack').onclick = () => this.showMenu();
     document.querySelectorAll<HTMLButtonElement>('.boostToggle').forEach((b) => {
@@ -110,15 +114,27 @@ export class UI {
     $('bFast').style.display = on ? '' : 'none';
   }
 
-  /** Keep every head-start toggle (menu, summary) in step with the save. */
+  /** Keep every head-start toggle (menu, pause, summary, in-run button) in step with the save. */
   syncBoost(): void {
     const d = this.save();
     const m = startMeters(d.startLevel);
+    const html = d.startOn
+      ? `<span class="bt">➤ HEAD START</span><span class="bm">+${m} m</span>`
+      : `<span class="bt">➤ HEAD START</span><span class="bm off">OFF</span>`;
     document.querySelectorAll<HTMLElement>('.boostToggle').forEach((b) => {
       b.style.display = d.startLevel > 0 ? '' : 'none';
-      b.textContent = d.startOn ? `HEAD START: +${m} m` : 'HEAD START: OFF';
+      b.innerHTML = html;
       b.classList.toggle('on', d.startOn);
     });
+    const h = $('bBoostHud');
+    h.innerHTML = `<span class="bi">➤</span><span class="bn">${m}m</span>`;
+    h.classList.toggle('on', d.startOn);
+    h.setAttribute('aria-pressed', String(d.startOn));
+    h.title = d.startOn ? `Head start ON (+${m} m) for the next run` : 'Head start OFF for the next run';
+  }
+
+  showBoostHud(on: boolean): void {
+    $('bBoostHud').style.display = on && this.save().startLevel > 0 ? '' : 'none';
   }
 
   setFast(on: boolean): void {
@@ -143,7 +159,7 @@ export class UI {
   showMenu(): void {
     this.syncBoost();
     this.showHud(false);
-    $('menuCoins').textContent = `Coins: ${this.save().coins}`;
+    $('menuCoins').innerHTML = `Coins: ${coinHtml(this.save().coins)}`;
     this.screens('menu');
   }
   hideScreens(): void {
@@ -193,9 +209,10 @@ export class UI {
     if (text) this.hint.textContent = text;
     this.hint.classList.toggle('on', !!text);
   }
-  setCombat(state: { text: string; frac: number; boss?: boolean } | null): void {
+  setCombat(state: { text: string; frac: number; boss?: boolean; tone?: 'ok' | 'tight' | 'danger' } | null): void {
     this.combat.classList.toggle('on', !!state);
     if (state) {
+      for (const t of ['ok', 'tight', 'danger']) this.combat.classList.toggle(t, state.tone === t);
       this.combat.classList.toggle('boss', !!state.boss);
       $('combatT').textContent = state.text;
       ($('combatBar') as HTMLElement).style.width = `${Math.max(0, Math.min(1, state.frac)) * 100}%`;
@@ -235,7 +252,7 @@ export class UI {
     const lvl = d.startLevel;
     const next = lvl + 1;
     const maxed = lvl >= START_MAX_LEVEL;
-    $('upCoins').textContent = `Coins: ${d.coins}`;
+    $('upCoins').innerHTML = `Coins: ${coinHtml(d.coins)}`;
     const pips = Array.from({ length: START_MAX_LEVEL }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('');
     const canStart = !maxed && d.coins >= startCost(next);
     const canSpeed = !d.speedUnlocked && d.coins >= SPEED_COST;
@@ -244,7 +261,7 @@ export class UI {
         <div class="upIcon">2×</div>
         <b>DOUBLE SPEED</b>
         <small>${d.speedUnlocked ? 'Unlocked: use the 2× button in a run' : 'Unlock a 2× run-speed button. Faster, harder, same rules.'}</small>
-        <button data-up="speed" ${d.speedUnlocked || !canSpeed ? 'disabled' : ''}>${d.speedUnlocked ? 'UNLOCKED' : `UNLOCK • ${SPEED_COST}`}</button>
+        <button data-up="speed" ${d.speedUnlocked || !canSpeed ? 'disabled' : ''}>${d.speedUnlocked ? 'UNLOCKED' : `UNLOCK ${coinHtml(SPEED_COST)}`}</button>
       </div>
       <div class="card up ${lvl > 0 ? 'eq' : ''}">
         <div class="upIcon">➤</div>
@@ -252,7 +269,7 @@ export class UI {
         <small>${lvl > 0 ? `Begin each run at ${startMeters(lvl)} m with an army to match.` : 'Skip the early game: start further along, with an army to match.'}</small>
         <div class="pips">${pips}</div>
         <small>Level ${lvl}/${START_MAX_LEVEL}${maxed ? '' : `  •  next: ${startMeters(next)} m`}</small>
-        <button data-up="start" ${!canStart ? 'disabled' : ''}>${maxed ? 'MAXED' : `UPGRADE • ${startCost(next)}`}</button>
+        <button data-up="start" ${!canStart ? 'disabled' : ''}>${maxed ? 'MAXED' : `UPGRADE ${coinHtml(startCost(next))}`}</button>
         ${lvl > 0 ? '<button class="ghost boostToggle"></button>' : ''}
       </div>`;
     document.querySelectorAll<HTMLButtonElement>('#upGrid .boostToggle').forEach((b) => {
@@ -286,7 +303,7 @@ export class UI {
   // ------------------------------------------------------------- skins
   showSkins(): void {
     const d = this.save();
-    $('skinCoins').textContent = `Coins: ${d.coins}  •  cosmetics only`;
+    $('skinCoins').innerHTML = `Coins: ${coinHtml(d.coins)}  •  cosmetics only`;
     const mk = (kind: 'skin' | 'trail') => {
       const list = kind === 'skin' ? SKINS : TRAILS;
       const owned = kind === 'skin' ? d.ownedSkins : d.ownedTrails;
@@ -302,9 +319,9 @@ export class UI {
                 : (it as (typeof TRAILS)[number]).colors.length
                   ? `linear-gradient(90deg, ${(it as (typeof TRAILS)[number]).colors.map(hex).join(',')})`
                   : 'linear-gradient(90deg,#1fe06c,#ffc21a,#ff3d4d)';
-          const label = eq === it.id ? 'EQUIPPED' : has ? 'EQUIP' : `BUY • ${it.cost}`;
+          const label = eq === it.id ? 'EQUIPPED' : has ? 'EQUIP' : `BUY ${coinHtml(it.cost)}`;
           const dis = eq === it.id || (!has && d.coins < it.cost) ? 'disabled' : '';
-          return `<div class="card ${eq === it.id ? 'eq' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<small>${has ? 'Owned' : it.cost + ' coins'}</small><button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
+          return `<div class="card ${eq === it.id ? 'eq' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<small>${has ? 'Owned' : `${coinHtml(it.cost)} coins`}</small><button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
         })
         .join('');
     };

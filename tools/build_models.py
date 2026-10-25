@@ -7,6 +7,7 @@ from process import *
 S = 1.5  # model height 0.8 -> 1.2 units, same as the old block soldier
 H = 'character-human:holding-right:0.2'
 O = 'character-orc:holding-right:0.2'
+COIN = 'coin:none:0'
 SW = 'weapon-sword:none:0'; SP = 'weapon-spear:none:0'; SH = 'shield-round:none:0'
 HAND = (-0.2, 0.2, 0.2)
 
@@ -37,6 +38,7 @@ PARTS = {
     'orcRed': redden(part(O, S)),
     'sword': part(SW, S, offset=HAND),
     'spear': part(SP, S, offset=HAND),
+    'coin': part(COIN, 1.9, offset=(0, -0.2085, 0)),
     'shield': part(SH, S, offset=(0.27, 0.2, 0.0), rot=(0, math.pi / 2, 0)),
 }
 

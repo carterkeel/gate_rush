@@ -52,7 +52,22 @@
     -webkit-mask-image:radial-gradient(ellipse at 50% 58%, transparent 38%, #000 82%); mask-image:radial-gradient(ellipse at 50% 58%, transparent 38%, #000 82%); }
   #speedlines.on { opacity:.7; animation-play-state:running; }
   @keyframes lines { from{background-position:0 0} to{background-position:0 220px} }
-  .boostToggle.on { background:linear-gradient(#ffd54f,#ff9800); color:#201400; border-color:#7a4a00; }
+  .coin { display:inline-block; width:.95em; height:.95em; margin:0 .3em 0 .1em; border-radius:50%; vertical-align:-.14em; background:radial-gradient(circle at 35% 30%, #fff7b8, #ffc21a 55%, #c47f00); border:2px solid #6b4200; box-shadow:inset 0 -2px 0 rgba(0,0,0,.22); -webkit-text-stroke:0; }
+  button .coin { width:.9em; height:.9em; }
+  .boostToggle { -webkit-text-stroke:0; text-shadow:none; display:inline-flex; align-items:center; justify-content:center; gap:10px; font-size:14px; letter-spacing:1.5px; padding:9px 14px; }
+  .boostToggle .bt { font-weight:900; }
+  .boostToggle .bm { padding:3px 9px; border-radius:8px; background:rgba(255,255,255,.14); letter-spacing:1px; }
+  .boostToggle .bm.off { opacity:.7; }
+  .boostToggle.on { background:linear-gradient(#ffd54f,#ffa000); color:#241600; border-color:#7a4a00; box-shadow:0 4px 0 #7a4a00; }
+  .boostToggle.on .bm { background:rgba(0,0,0,.2); }
+  #bBoostHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; }
+  #bBoostHud .bi { font-size:15px; } #bBoostHud .bn { font-size:11px; letter-spacing:.5px; }
+  #bBoostHud.on { background:linear-gradient(#ffd54f,#ffa000); color:#241600; border-color:#7a4a00; box-shadow:0 0 12px rgba(255,194,26,.55); }
+  #combat.ok .bar i { background:linear-gradient(90deg,#1fe06c,#8cf28f); }
+  #combat.tight .bar i { background:linear-gradient(90deg,#ffc21a,#ffe27a); }
+  #combat.danger .bar i { background:linear-gradient(90deg,#ff3d4d,#ff8a65); }
+  #combat.danger { border-color:rgba(255,80,90,.8); }
+  #combatT { white-space:pre-line; line-height:1.15; }
   .upgrid { display:grid; gap:12px; width:min(100%,460px); }
   .card.up { display:grid; gap:6px; justify-items:center; }
   .card.up b { font-size:min(5vw,19px); letter-spacing:2px; }
@@ -133,6 +148,7 @@
     <div id="army" class="stat"><small>ARMY</small><span id="armyV">1</span></div>
     <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
     <button id="bPause" class="ghost" aria-label="Pause" title="Pause (Esc / P)">❚❚</button>
+    <button id="bBoostHud" class="ghost" aria-label="Head start for next run" aria-pressed="false" style="display:none"></button>
     <button id="bFast" class="ghost" aria-label="Double speed" aria-pressed="false" title="Double speed"><span class="x2">2×</span><span class="chev"><i></i><i></i><i></i></span></button>
     <div id="banner"></div>
     <div id="combat"><div id="combatT">ENEMIES</div><div class="bar"><i id="combatBar"></i></div></div>
@@ -180,6 +196,7 @@
     <div class="tag" id="pauseInfo"></div>
     <button id="bResume">RESUME</button>
     <button id="bRestart" class="warn">RESTART</button>
+    <button class="ghost boostToggle" style="display:none"></button>
     <button id="bPauseSettings" class="ghost">SETTINGS</button>
     <button id="bQuit" class="ghost">QUIT TO MENU</button>
     <div class="tag">Esc or P also resumes</div>

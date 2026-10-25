@@ -100,7 +100,7 @@ export class Army {
 
   // ------------------------------------------------------------------ formation
   private spacing(n: number): number {
-    return Math.max(0.26, 0.62 - 0.045 * Math.log2(Math.max(1, n)));
+    return Math.max(0.22, 0.52 - 0.04 * Math.log2(Math.max(1, n)));
   }
 
   /**
@@ -185,7 +185,7 @@ export class Army {
     const sp = this.spacing(n);
     let unitScale = Math.min(1, Math.max(0.45, sp * 1.7));
     const elite = k > 1 ? Math.min(2.4, 1 + 0.32 * Math.log2(k)) : 1;
-    unitScale *= elite * 0.95;
+    unitScale *= elite * 0.74;
     let maxZ = 0;
 
     // lane layout in split mode: left instances first, then right instances
@@ -251,7 +251,7 @@ export class Army {
     if (showLeader) {
       const tgt = this.split ? (this.split.left >= this.split.right ? -2.6 : 2.6) : this.x;
       this.leaderX += (tgt - this.leaderX) * Math.min(1, dt * 14);
-      const ls = Math.max(2.1, unitScale * 1.9);
+      const ls = Math.max(1.55, unitScale * 1.75);
       const ph = Math.sin(time * freq) * 0.05;
       this.leader.position.set(this.leaderX, Math.abs(Math.sin(time * freq)) * bobAmp * ls, 0);
       this.leader.rotation.set(ph, 0, lean);

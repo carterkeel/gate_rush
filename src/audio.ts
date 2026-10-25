@@ -228,6 +228,12 @@ class Sound {
     if (!this.ok()) return;
     [392, 494, 587].forEach((f, i) => this.tone(f, 0.25, 'sine', 0.12, 0, i * 0.1));
   }
+  coin(streak: number): void {
+    if (!this.ok('coin', 0.045)) return;
+    const f = 988 * Math.pow(2, Math.min(7, streak) / 12);
+    this.tone(f, 0.09, 'square', 0.07);
+    this.tone(f * 1.5, 0.16, 'triangle', 0.09, 0, 0.06);
+  }
   boost(on: boolean): void {
     if (!this.ok()) return;
     if (on) {
