@@ -23,6 +23,7 @@ const coinHtml = (n: number | string) => `<span class="coin"></span>${n}`;
 export class UI {
   onPlay = () => {};
   onTutorial = () => {};
+  onArmy = () => {};
   onAgain = () => {};
   onMenu = () => {};
   onPause = () => {};
@@ -88,6 +89,8 @@ export class UI {
     $('bPause').onclick = () => this.onPause();
     $('bFast').onclick = () => this.onFast();
     $('bBoostHud').onclick = () => this.onBoostHud();
+    $('army').onclick = () => this.onArmy();
+    $('bIntelResume').onclick = () => this.onResume();
     $('bUpgrades').onclick = () => this.showUpgrades();
     $('bUpBack').onclick = () => this.showMenu();
     document.querySelectorAll<HTMLButtonElement>('.boostToggle').forEach((b) => {
@@ -104,7 +107,7 @@ export class UI {
   }
 
   private screens(on: string | null): void {
-    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'upgrades']) $(id).classList.toggle('on', id === on);
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'upgrades', 'intel']) $(id).classList.toggle('on', id === on);
     this.screenUp = on !== null;
     this.syncLines();
   }
@@ -164,6 +167,14 @@ export class UI {
   showPause(info: string): void {
     $('pauseInfo').textContent = info;
     this.screens('pause');
+  }
+
+  showIntel(i: { title: string; rows: [string, string][]; note: string; tone: string }): void {
+    $('intelTitle').textContent = i.title;
+    $('intelGrid').innerHTML = i.rows.map(([k, v]) => `<div>${k}</div><div>${v}</div>`).join('');
+    $('intelHl').textContent = i.note;
+    $('intelHl').className = 'hl ' + i.tone;
+    this.screens('intel');
   }
 
   showFast(on: boolean): void {

@@ -148,6 +148,7 @@ export class Game {
     this.ui.onAgain = () => this.startRun(false);
     this.ui.onMenu = () => this.toMenu();
     this.ui.onPause = () => this.pause();
+    this.ui.onArmy = () => this.showIntel();
     this.ui.onFast = () => this.setFast(!this.fast);
     this.ui.onBoostHud = () => {
       this.data.startOn = !this.data.startOn;
@@ -291,6 +292,38 @@ export class Game {
     sound.setPaused(true);
     sound.pause(true);
     this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`);
+  }
+
+  /** Army button: pause and show how strong the next fight is against the army you have. */
+  private showIntel(): void {
+    if (this.mode !== 'run' || this.tutorial) return;
+    this.mode = 'paused';
+    this.dragging = false;
+    this.keys.left = this.keys.right = false;
+    sound.setPaused(true);
+    sound.pause(true);
+    const A = this.army.count;
+    const f = (this.inCombat ? this.combatZone : this.queue.find((q) => q.type === 'combat')) as CombatZone | undefined;
+    if (!f) {
+      this.ui.showIntel({ title: 'NEXT FIGHT', rows: [['YOUR ARMY', fmt(A)]], note: 'No fight in sight yet. Keep picking the best gates.', tone: '' });
+      return;
+    }
+    const need = Math.ceil(f.critical * Math.max(f.refArmy, A));
+    const ratio = A / Math.max(1, need);
+    const hp = f.enemies.reduce((a, e) => a + e.hp, 0);
+    const word = ratio >= 1.25 ? 'You are ready for this one.' : ratio >= 1 ? 'Close. Grab the best gates to be safe.' : 'Too weak right now. You need more units.';
+    this.ui.showIntel({
+      title: f.boss ? 'BOSS FIGHT' : 'NEXT FIGHT',
+      rows: [
+        ['DISTANCE', `${Math.max(0, Math.round(f.s - this.playerS))} m`],
+        ['ENEMIES', `${f.enemies.length}`],
+        ['ENEMY POWER', fmt(Math.round(hp))],
+        ['YOUR ARMY', fmt(A)],
+        ['ARMY NEEDED', fmt(need)],
+      ],
+      note: word,
+      tone: ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger',
+    });
   }
 
   private resume(): void {
