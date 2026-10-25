@@ -185,7 +185,7 @@ export class Army {
     const sp = this.spacing(n);
     let unitScale = Math.min(1, Math.max(0.45, sp * 1.7));
     const elite = k > 1 ? Math.min(2.4, 1 + 0.32 * Math.log2(k)) : 1;
-    unitScale *= elite * 1.3; // Kenney models are small and chunky: size them up
+    unitScale *= elite * 0.95;
     let maxZ = 0;
 
     // lane layout in split mode: left instances first, then right instances

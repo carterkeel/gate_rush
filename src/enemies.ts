@@ -15,6 +15,7 @@ interface Enemy {
   scale: number;
   flash: number;
   gone: number; // death animation 0..1
+  yaw: number; // small random facing offset
 }
 
 const SCALE: Record<EnemyKind, number> = { grunt: 1, brute: 1.45, titan: 2.5, boss: 4.4 };
@@ -35,7 +36,7 @@ const PARTS_OF: Record<EnemyKind, string[]> = {
 };
 const KINDS: EnemyKind[] = ['grunt', 'brute', 'titan', 'boss'];
 /** Model height is 1.2; the old block enemy was 1.7, so enemy sizes keep their scale with this factor. */
-const MODEL_K = 1.42;
+const MODEL_K = 1.2;
 
 const MAX_ENEMY = 72;
 const MAX_BULLET = 220;
@@ -103,7 +104,7 @@ export class CombatSim {
   place(zone: CombatZone): void {
     const byKind: Record<EnemyKind, Enemy[]> = { grunt: [], brute: [], titan: [], boss: [] };
     for (const e of zone.enemies) {
-      byKind[e.kind].push({ kind: e.kind, hp: e.hp, max: e.hp, atk: e.atk, x: 0, z: 0, scale: SCALE[e.kind], flash: 0, gone: 0 });
+      byKind[e.kind].push({ kind: e.kind, hp: e.hp, max: e.hp, atk: e.atk, x: 0, z: 0, scale: SCALE[e.kind], flash: 0, gone: 0, yaw: (Math.random() - 0.5) * 0.9 });
     }
     let z = -(zone.s + CFG.combatStopGap);
     const rows = (list: Enemy[], maxCols: number, dx: number, dz: number) => {
@@ -113,7 +114,11 @@ export class CombatSim {
         const col = i % cols;
         const inRow = Math.min(cols, list.length - row * cols);
         e.x = (col - (inRow - 1) / 2) * dx;
-        e.z = z - row * dz;
+        // loose, uneven ranks instead of a parade-ground grid
+        const jx = Math.min(dx, 1.4) * 0.55;
+        const jz = Math.min(dz, 1.4) * 0.6;
+        e.x += (Math.random() - 0.5) * 2 * jx + (row % 2 ? dx * 0.25 : -dx * 0.25);
+        e.z = z - row * dz + (Math.random() - 0.5) * 2 * jz;
       });
       z -= Math.ceil(list.length / cols) * dz + dz * 0.4;
     };
@@ -315,7 +320,7 @@ export class CombatSim {
       e.flash = Math.max(0, e.flash - dt * 6);
       const sc = e.scale * MODEL_K * (e.kind === 'grunt' ? 0.85 + 0.35 * Math.min(1, e.max / 12) : 1) * (1 - e.gone) * (0.7 + 0.3 * ease);
       this.p.set(e.x, e.gone * 0.4, e.z);
-      this.q.setFromAxisAngle(this.up, Math.PI); // face the oncoming army (+z)
+      this.q.setFromAxisAngle(this.up, Math.PI + e.yaw); // face the oncoming army (+z), a little off-axis
       this.s.set(sc, sc, sc);
       this.m.compose(this.p, this.q, this.s);
       const mesh = this.meshes[e.kind];
