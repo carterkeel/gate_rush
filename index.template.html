@@ -71,13 +71,20 @@
   .sum .big { font-size:1.5em; color:var(--yellow); }
   .hl { font-family: system-ui, 'Arial Black', sans-serif; font-weight:900; font-size:min(4.2vw,17px); text-align:center; width:min(88vw,420px); color:#ffe9a6; background:rgba(255,194,26,.12); border:2px solid rgba(255,194,26,.5); border-radius:12px; padding:10px 12px; }
   .newbest { color:var(--green); font-size:min(7vw,32px); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; animation: ban .6s ease-out; }
-  .snd { font-size:13px; padding:8px 14px; }
   #tutDone h1 { font-size:min(13vw,64px); line-height:1; }
   #tutDone .sub { font-family: system-ui, 'Arial Black', sans-serif; font-weight:900; font-size:min(4.4vw,17px); letter-spacing:3px; color:#bcd2ff; text-align:center; opacity:.9; }
   .learn { width:min(90vw,400px); background:var(--panel); border:2px solid var(--edge); border-radius:18px; padding:12px 14px; display:grid; gap:8px; font-family: system-ui, 'Arial Black', sans-serif; font-weight:900; }
   .learn div { display:flex; align-items:center; gap:12px; font-size:min(4.2vw,16px); }
   .learn b { flex:0 0 auto; min-width:64px; text-align:center; padding:5px 8px; border-radius:10px; font-size:min(4.6vw,18px); color:#fff; -webkit-text-stroke:0; border:2px solid rgba(0,0,0,.45); box-shadow:inset 0 -3px 0 rgba(0,0,0,.25); }
   .learn .g { background:#16b45a; } .learn .r { background:#e0344a; } .learn .y { background:#e5a600; color:#201400; } .learn .p { background:#7a5cff; }
+  .sliders { gap:18px; padding:16px 18px; }
+  .sliders label { display:grid; grid-template-columns:1fr auto; gap:8px 12px; font-size:min(4.4vw,17px); letter-spacing:2px; align-items:center; }
+  .sliders output { color:var(--yellow); }
+  .sliders input[type=range] { grid-column:1 / -1; width:100%; height:34px; margin:0; background:transparent; -webkit-appearance:none; appearance:none; touch-action:pan-y; --v:80%; }
+  .sliders input[type=range]::-webkit-slider-runnable-track { height:12px; border-radius:8px; border:2px solid var(--ink); background:linear-gradient(90deg,var(--green) var(--v),rgba(255,255,255,.18) var(--v)); }
+  .sliders input[type=range]::-moz-range-track { height:12px; border-radius:8px; border:2px solid var(--ink); background:linear-gradient(90deg,var(--green) var(--v),rgba(255,255,255,.18) var(--v)); }
+  .sliders input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:30px; height:30px; margin-top:-11px; border-radius:50%; background:#fff; border:3px solid var(--ink); box-shadow:0 3px 0 rgba(0,0,0,.5); }
+  .sliders input[type=range]::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:#fff; border:3px solid var(--ink); }
   .row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   #fallback { display:none; position:absolute; inset:0; align-items:center; justify-content:center; text-align:center; padding:30px; font-family:system-ui,sans-serif; background:#0a0f1c; z-index:9; }
 </style>
@@ -104,7 +111,7 @@
     <button id="bSkins" class="alt">SKINS</button>
     <button id="bScores" class="alt">HIGH SCORES</button>
     <button id="bTutorial" class="ghost">HOW TO PLAY</button>
-    <div class="row"><button class="ghost snd" data-k="sfx">SFX: ON</button><button class="ghost snd" data-k="music">MUSIC: ON</button></div>
+    <button id="bSettings" class="ghost">SETTINGS</button>
     <div class="tag" id="menuCoins"></div>
   </div>
 
@@ -129,9 +136,18 @@
     <div class="tag" id="pauseInfo"></div>
     <button id="bResume">RESUME</button>
     <button id="bRestart" class="warn">RESTART</button>
+    <button id="bPauseSettings" class="ghost">SETTINGS</button>
     <button id="bQuit" class="ghost">QUIT TO MENU</button>
-    <div class="row"><button class="ghost snd" data-k="sfx">SFX: ON</button><button class="ghost snd" data-k="music">MUSIC: ON</button></div>
     <div class="tag">Esc or P also resumes</div>
+  </div>
+
+  <div id="settings" class="screen">
+    <h2>SETTINGS</h2>
+    <div class="learn sliders">
+      <label>MUSIC <output id="musicOut">80%</output><input id="musicVol" type="range" min="0" max="100" step="1" value="80" /></label>
+      <label>SOUND EFFECTS <output id="sfxOut">100%</output><input id="sfxVol" type="range" min="0" max="100" step="1" value="100" /></label>
+    </div>
+    <button id="bSettingsBack" class="ghost">BACK</button>
   </div>
 
   <div id="tutDone" class="screen">

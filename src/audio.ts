@@ -17,8 +17,9 @@ const PROG = [
 const ARP = [0, 1, 2, 1, 0, 1, 2, 1, 2, 1, 0, 1, 2, 1, 2, 1];
 
 class Sound {
-  sfxOn = true;
-  musicOn = true;
+  /** Volumes 0..1, set from the settings screen. */
+  sfxVol = 1;
+  musicVol = 0.8;
   private ctx: AudioContext | null = null;
   private master!: GainNode;
   private sfxBus!: GainNode;
@@ -35,8 +36,9 @@ class Sound {
   constructor() {
     try {
       const v = JSON.parse(localStorage.getItem(KEY) || '{}');
-      if (typeof v.sfx === 'boolean') this.sfxOn = v.sfx;
-      if (typeof v.music === 'boolean') this.musicOn = v.music;
+      const num = (x: unknown, d: number) => (typeof x === 'number' ? Math.min(1, Math.max(0, x)) : typeof x === 'boolean' ? (x ? d : 0) : d);
+      this.sfxVol = num(v.sfx, 1);
+      this.musicVol = num(v.music, 0.8);
     } catch {
       /* storage unavailable: defaults */
     }
@@ -44,7 +46,7 @@ class Sound {
 
   private persist(): void {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ sfx: this.sfxOn, music: this.musicOn }));
+      localStorage.setItem(KEY, JSON.stringify({ sfx: this.sfxVol, music: this.musicVol }));
     } catch {
       /* ignore */
     }
@@ -66,7 +68,7 @@ class Sound {
       this.master.gain.value = 0.8;
       this.master.connect(comp);
       this.sfxBus = ctx.createGain();
-      this.sfxBus.gain.value = this.sfxOn ? 1 : 0;
+      this.sfxBus.gain.value = this.sfxVol;
       this.sfxBus.connect(this.master);
       this.musicBus = ctx.createGain();
       this.musicBus.gain.value = 0;
@@ -83,13 +85,13 @@ class Sound {
     }
   }
 
-  setSfx(on: boolean): void {
-    this.sfxOn = on;
-    if (this.sfxBus && this.ctx) this.sfxBus.gain.setTargetAtTime(on ? 1 : 0, this.ctx.currentTime, 0.02);
+  setSfxVolume(v: number): void {
+    this.sfxVol = Math.min(1, Math.max(0, v));
+    if (this.sfxBus && this.ctx) this.sfxBus.gain.setTargetAtTime(this.sfxVol, this.ctx.currentTime, 0.02);
     this.persist();
   }
-  setMusic(on: boolean): void {
-    this.musicOn = on;
+  setMusicVolume(v: number): void {
+    this.musicVol = Math.min(1, Math.max(0, v));
     this.applyMusicGain();
     this.persist();
   }
@@ -109,13 +111,13 @@ class Sound {
   private applyMusicGain(): void {
     if (!this.ctx || !this.musicBus) return;
     const base = this.mode === 'menu' ? 0.16 : this.mode === 'combat' ? 0.3 : 0.24;
-    const g = !this.musicOn ? 0 : this.paused ? base * 0.25 : base;
+    const g = (this.paused ? base * 0.25 : base) * this.musicVol;
     this.musicBus.gain.setTargetAtTime(g, this.ctx.currentTime, 0.15);
   }
 
   // ------------------------------------------------------------------ primitives
   private ok(name?: string, gap = 0): boolean {
-    if (!this.ctx || !this.sfxOn) return false;
+    if (!this.ctx || this.sfxVol <= 0) return false;
     if (name) {
       const t = this.ctx.currentTime;
       if (t - (this.last[name] ?? -9) < gap) return false;
@@ -234,7 +236,7 @@ class Sound {
   // ------------------------------------------------------------------ music
   private schedule(): void {
     const ctx = this.ctx;
-    if (!ctx || !this.musicOn) {
+    if (!ctx || this.musicVol <= 0) {
       if (ctx) this.nextT = Math.max(this.nextT, ctx.currentTime);
       return;
     }

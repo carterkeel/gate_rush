@@ -50,20 +50,33 @@ export class UI {
     $('bMenu').onclick = () => this.onMenu();
     $('bTutPlay').onclick = () => this.onAgain();
     $('bTutMenu').onclick = () => this.onMenu();
-    const syncSnd = () =>
-      document.querySelectorAll<HTMLElement>('.snd').forEach((b) => {
-        const on = b.dataset.k === 'sfx' ? sound.sfxOn : sound.musicOn;
-        b.textContent = `${b.dataset.k === 'sfx' ? 'SFX' : 'MUSIC'}: ${on ? 'ON' : 'OFF'}`;
-      });
-    document.querySelectorAll<HTMLElement>('.snd').forEach((b) => {
-      b.onclick = () => {
-        sound.unlock();
-        if (b.dataset.k === 'sfx') sound.setSfx(!sound.sfxOn);
-        else sound.setMusic(!sound.musicOn);
-        syncSnd();
+    // settings: volume sliders, reachable from the menu and the pause screen (Back returns to where you came from)
+    let from: 'menu' | 'pause' = 'menu';
+    const open = (f: 'menu' | 'pause') => {
+      from = f;
+      this.screens('settings');
+    };
+    $('bSettings').onclick = () => open('menu');
+    $('bPauseSettings').onclick = () => open('pause');
+    $('bSettingsBack').onclick = () => (from === 'pause' ? this.screens('pause') : this.showMenu());
+    const bind = (id: string, outId: string, get: () => number, set: (v: number) => void, preview: boolean) => {
+      const el = $(id) as HTMLInputElement;
+      const out = $(outId);
+      const paint = () => {
+        out.textContent = `${el.value}%`;
+        el.style.setProperty('--v', `${el.value}%`);
       };
-    });
-    syncSnd();
+      el.value = String(Math.round(get() * 100));
+      paint();
+      el.oninput = () => {
+        sound.unlock();
+        set(Number(el.value) / 100);
+        paint();
+      };
+      if (preview) el.onchange = () => sound.good(1.2);
+    };
+    bind('musicVol', 'musicOut', () => sound.musicVol, (v) => sound.setMusicVolume(v), false);
+    bind('sfxVol', 'sfxOut', () => sound.sfxVol, (v) => sound.setSfxVolume(v), true);
     $('bPause').onclick = () => this.onPause();
     $('bResume').onclick = () => this.onResume();
     $('bRestart').onclick = () => this.onRestart();
@@ -71,7 +84,7 @@ export class UI {
   }
 
   private screens(on: string | null): void {
-    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone']) $(id).classList.toggle('on', id === on);
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings']) $(id).classList.toggle('on', id === on);
   }
 
   showPause(info: string): void {
