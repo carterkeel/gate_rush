@@ -1,0 +1,17 @@
+{
+  "name": "gate-rush",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node build.mjs",
+    "sim": "node tests/run-sim.mjs"
+  },
+  "dependencies": {
+    "@types/three": "^0.186.0",
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1",
+    "typescript": "^7.0.2"
+  }
+}

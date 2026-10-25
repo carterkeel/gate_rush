@@ -1,0 +1,174 @@
+import { CFG, spacingAt } from './config';
+import { Rng } from './rng';
+import { evalEffect, bestSplit, isSafe, opE, add, niceRound } from './logic';
+import type { Effect } from './logic';
+import type { CombatZone, GateDef, GateSet, SetKind, TrackItem } from './types';
+import { addGate, clamp, genSimple, genTypeA, genTypeB, hasNonDisastrous, targetFactor, tile } from './gateGen';
+import type { SimpleCategory } from './gateGen';
+import { genTypeC, genTypeD } from './gateGenSpecial';
+import { balancedFight } from './fightGen';
+
+/** Best achievable army size after crossing a set, assuming the player picks the best gate for `army`. */
+export function bestResult(set: GateSet, army: number): { result: number; index: number } {
+  if (set.split) {
+    const b = bestSplit(set.gates[0].effect, set.gates[1].effect, army);
+    return { result: b.total, index: b.toLeft > army / 2 ? 0 : 1 };
+  }
+  let best = -1;
+  let idx = 0;
+  set.gates.forEach((g, i) => {
+    const r = evalEffect(g.effect, army);
+    if (r > best) {
+      best = r;
+      idx = i;
+    }
+  });
+  return { result: best, index: idx };
+}
+
+/** Project the army forward through queued (uncrossed) items assuming best play. */
+export function projectArmy(items: TrackItem[], start: number): number {
+  let a = start;
+  for (const it of items) {
+    if (it.type === 'gates') a = Math.max(1, bestResult(it, a).result);
+    else a = Math.max(1, Math.round(a * (1 - it.lossFrac)));
+  }
+  return a;
+}
+
+export interface TrackStats {
+  sets: number;
+  complex: number;
+  combat: number;
+}
+
+export class Track {
+  private rng: Rng;
+  private nextId = 1;
+  cursor = 0; // s of the last placed item
+  private setsSinceCombat = 0;
+  fights = 0;
+  private nextCombatAfter: number;
+  private prevKind: SetKind | 'combat' | null = null;
+  setsAfterComplexStart = 0;
+  complexAfterStart = 0;
+  stats: TrackStats = { sets: 0, complex: 0, combat: 0 };
+
+  constructor(seed?: number, firstGateS = 30) {
+    this.rng = new Rng(seed);
+    this.cursor = firstGateS - spacingAt(0);
+    this.nextCombatAfter = this.rng.int(CFG.combatEveryMin, CFG.combatEveryMax);
+  }
+
+  next(ref: number): TrackItem {
+    ref = Math.max(1, ref);
+    if (this.setsSinceCombat >= this.nextCombatAfter) return this.makeCombat(ref);
+    return this.makeSet(ref);
+  }
+
+  // ------------------------------------------------------------ combat
+  private makeCombat(ref: number): CombatZone {
+    const stop = this.cursor + 18;
+    this.fights++;
+    const f = balancedFight(ref, stop, this.fights, this.rng);
+    this.cursor = stop + CFG.combatStopGap;
+    this.setsSinceCombat = 0;
+    this.nextCombatAfter = this.rng.int(CFG.combatEveryMin, CFG.combatEveryMax);
+    this.prevKind = 'combat';
+    this.stats.combat++;
+    return { type: 'combat', id: this.nextId++, s: stop, enemies: f.enemies, fightNo: this.fights, boss: f.boss, refArmy: ref, critical: f.critical, lossFrac: f.lossFrac };
+  }
+
+  // ------------------------------------------------------------ gate sets
+  private pickSimpleCategory(dist: number): SimpleCategory | 'complex' {
+    const r = this.rng;
+    if (dist < 300) return r.weighted([['pos', 0.45], ['mixed', 0.55]] as const);
+    if (dist < 1500) return r.weighted([['pos', 0.2], ['mixed', 0.55], ['neg', 0.25]] as const);
+    return r.weighted([['pos', 0.1], ['mixed', 0.5], ['neg', 0.15], ['complex', 0.25]] as const);
+  }
+
+  private makeSet(ref: number): GateSet {
+    const rng = this.rng;
+    let dist = this.cursor + spacingAt(this.cursor);
+    let cat = this.pickSimpleCategory(dist);
+
+    // >= 30 % complex choices after 800 m (deterministic floor + some randomness)
+    const afterStart = dist >= CFG.complexFromMeters;
+    if (afterStart) {
+      const deficit = this.complexAfterStart < CFG.complexMinShare * (this.setsAfterComplexStart + 1);
+      if (deficit || rng.chance(0.08)) cat = 'complex';
+    }
+    if (ref < 6 && cat === 'complex') cat = 'pos';
+
+    let kind: SetKind = 'simple';
+    let gates: GateDef[] = [];
+    let revealLead = 0;
+    const risk = clamp((dist - 800) / 3000, 0, 1) * 0.7 + (dist >= 1500 ? 0.3 : 0);
+    const ctx = { ref, dist };
+
+    if (cat === 'complex') {
+      kind = rng.weighted([['A', 0.3], ['B', 0.3], ['C', 0.2], ['D', 0.2]] as const);
+      if (kind === 'A') gates = tile(genTypeA(ctx, rng, risk), rng);
+      else if (kind === 'B') gates = tile(genTypeB(ctx, rng, risk), rng);
+      else if (kind === 'C') gates = genTypeC(ctx, rng, risk);
+      else {
+        gates = genTypeD(ctx, rng, risk);
+        revealLead = CFG.timePressureRevealSec;
+      }
+    } else {
+      const n = dist < 1000 ? rng.weighted([[2, 0.4], [3, 0.45], [4, 0.15]] as const) : rng.weighted([[2, 0.2], [3, 0.45], [4, 0.35]] as const);
+      let effs = genSimple(ctx, rng, cat, n);
+      if (cat !== 'neg') effs = this.ensureGrowth(effs, ref, rng);
+      gates = tile(effs, rng);
+    }
+
+    // spacing: split zones need room on both sides
+    let gap = spacingAt(this.cursor);
+    if (kind === 'C') gap = Math.max(gap, CFG.splitZoneLength + 2);
+    if (this.prevKind === 'C') gap = Math.max(gap, CFG.splitZoneLength + 2);
+    const s = this.cursor + gap;
+    dist = s;
+
+    const set: GateSet = {
+      type: 'gates',
+      id: this.nextId++,
+      kind,
+      complex: kind !== 'simple',
+      s,
+      gates,
+      split: kind === 'C',
+      revealLead,
+      category: cat,
+    };
+
+    // global safety net: a non-disastrous option must exist
+    if (!hasNonDisastrous(gates.map((g) => g.effect), ref) && kind !== 'C') {
+      gates[0].effect = opE(add(Math.max(2, niceRound(ref * 0.1))));
+    }
+
+    this.cursor = s;
+    this.setsSinceCombat++;
+    this.prevKind = kind;
+    this.stats.sets++;
+    if (kind !== 'simple') this.stats.complex++;
+    if (dist >= CFG.complexFromMeters) {
+      this.setsAfterComplexStart++;
+      if (kind !== 'simple') this.complexAfterStart++;
+    }
+    return set;
+  }
+
+  /** Make sure the best option for the reference army is a real gain. */
+  private ensureGrowth(effs: Effect[], ref: number, rng: Rng): Effect[] {
+    const need = ref * 1.06 + 1;
+    const best = Math.max(...effs.map((e) => evalEffect(e, ref)));
+    if (best >= need) return effs;
+    const out = effs.slice();
+    // replace the worst gate with a safe, clearly growing one
+    let worst = 0;
+    for (let i = 1; i < out.length; i++) if (evalEffect(out[i], ref) < evalEffect(out[worst], ref)) worst = i;
+    const g = addGate(ref, rng, targetFactor(ref));
+    out[worst] = isSafe(g) ? g : opE(add(Math.max(2, niceRound(ref * 0.12))));
+    return out;
+  }
+}

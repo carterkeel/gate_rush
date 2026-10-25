@@ -1,0 +1,265 @@
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { CFG } from './config';
+
+/** One stylised soldier-robot, built once, drawn with a single InstancedMesh. */
+function buildUnitGeometry(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const paint = (g: THREE.BufferGeometry, c: number) => {
+    const col = new THREE.Color(c);
+    const n = g.attributes.position.count;
+    const arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      arr[i * 3] = col.r;
+      arr[i * 3 + 1] = col.g;
+      arr[i * 3 + 2] = col.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+    return g.toNonIndexed();
+  };
+  const body = new THREE.CapsuleGeometry(0.2, 0.34, 3, 8);
+  body.translate(0, 0.55, 0);
+  parts.push(paint(body, 0xffffff));
+  const head = new THREE.SphereGeometry(0.17, 8, 6);
+  head.translate(0, 1.04, 0);
+  parts.push(paint(head, 0xdfe6ee));
+  const visor = new THREE.BoxGeometry(0.22, 0.07, 0.1);
+  visor.translate(0, 1.06, -0.13);
+  parts.push(paint(visor, 0x10151f));
+  const pack = new THREE.BoxGeometry(0.22, 0.3, 0.12);
+  pack.translate(0, 0.6, 0.22);
+  parts.push(paint(pack, 0x59657a));
+  const legL = new THREE.BoxGeometry(0.11, 0.3, 0.12);
+  legL.translate(-0.09, 0.15, 0);
+  parts.push(paint(legL, 0x2c3547));
+  const legR = new THREE.BoxGeometry(0.11, 0.3, 0.12);
+  legR.translate(0.09, 0.15, 0);
+  parts.push(paint(legR, 0x2c3547));
+  const gun = new THREE.BoxGeometry(0.07, 0.07, 0.42);
+  gun.translate(0.2, 0.62, -0.2);
+  parts.push(paint(gun, 0x1b2230));
+  const merged = mergeGeometries(parts, false)!;
+  merged.computeVertexNormals();
+  return merged;
+}
+
+export interface SplitState {
+  left: number; // units sent into the left lane
+  right: number;
+}
+
+const MAXI = CFG.visualCap + 8;
+
+export class Army {
+  readonly mesh: THREE.InstancedMesh;
+  count: number = CFG.startArmy; // exact integer
+  x = 0; // anchor (crowd centre) x
+  private curX = new Float32Array(MAXI);
+  private curZ = new Float32Array(MAXI); // offset along path, + = behind the anchor
+  private phase = new Float32Array(MAXI);
+  private inst = 0;
+  private k = 1; // units represented per instance (elite collapse)
+  private tmpM = new THREE.Matrix4();
+  private tmpQ = new THREE.Quaternion();
+  private tmpE = new THREE.Euler();
+  private tmpS = new THREE.Vector3();
+  private tmpP = new THREE.Vector3();
+  private tmpC = new THREE.Color();
+  split: SplitState | null = null;
+  private splitInst: { l: number; r: number } | null = null;
+  vx = 0; // lateral velocity, for leaning
+  depth = 1; // current crowd depth along the path, for camera framing
+  private skinBody = new THREE.Color(0x4fc3f7);
+  private skinAccent = new THREE.Color(0x0d47a1);
+  private dirty = true;
+
+  constructor(scene: THREE.Scene) {
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
+    this.mesh = new THREE.InstancedMesh(buildUnitGeometry(), mat, MAXI);
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.frustumCulled = false;
+    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3), 3);
+    this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    scene.add(this.mesh);
+    for (let i = 0; i < MAXI; i++) this.phase[i] = Math.random() * Math.PI * 2;
+  }
+
+  setSkin(body: number, accent: number): void {
+    this.skinBody.set(body);
+    this.skinAccent.set(accent);
+    this.dirty = true;
+  }
+
+  reset(): void {
+    this.count = CFG.startArmy;
+    this.x = 0;
+    this.split = null;
+    this.splitInst = null;
+    this.curX.fill(0);
+    this.curZ.fill(0);
+    this.inst = 0;
+    this.dirty = true;
+  }
+
+  setCount(n: number): void {
+    this.count = Math.max(0, Math.min(CFG.armyCap, Math.floor(n)));
+  }
+
+  get unitsPerInstance(): number {
+    return this.k;
+  }
+
+  /** Units represented by instance i (the last instance carries the remainder). */
+  private unitsOf(i: number, total: number, k: number): number {
+    return Math.min(k, total - i * k);
+  }
+
+  // ------------------------------------------------------------------ formation
+  private spacing(n: number): number {
+    return Math.max(0.26, 0.62 - 0.045 * Math.log2(Math.max(1, n)));
+  }
+
+  /** Slot i of an n-instance crowd inside a lane of the given half width, centred on cx. Row 0 is the front. */
+  private slot(i: number, n: number, cx: number, halfW: number, out: { x: number; z: number }): void {
+    const s = this.spacing(n);
+    const maxCols = Math.max(1, Math.floor((halfW * 2 - 0.5) / s));
+    const cols = Math.max(1, Math.min(maxCols, Math.round(Math.sqrt(n) * 1.25)));
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const inRow = Math.min(cols, n - row * cols);
+    const x = (col - (inRow - 1) / 2) * s + (row % 2 ? s * 0.18 : -s * 0.18);
+    out.x = cx + x;
+    out.z = row * s * 0.95;
+  }
+
+  /** Called when the crowd reaches the start of a split zone. Sorts units left/right by x and returns exact counts. */
+  enterSplit(): SplitState {
+    const k = this.k;
+    const n = this.inst;
+    const idx: number[] = [];
+    for (let i = 0; i < n; i++) idx.push(i);
+    idx.sort((a, b) => this.curX[a] - this.curX[b]);
+    const nx = new Float32Array(MAXI);
+    const nz = new Float32Array(MAXI);
+    const np = new Float32Array(MAXI);
+    let leftUnits = 0;
+    let leftInst = 0;
+    for (let j = 0; j < n; j++) {
+      const i = idx[j];
+      nx[j] = this.curX[i];
+      nz[j] = this.curZ[i];
+      np[j] = this.phase[i];
+      if (this.curX[i] < 0) {
+        leftUnits += this.unitsOf(i, this.count, k);
+        leftInst++;
+      }
+    }
+    // The last instance (partial remainder) sorts anywhere; recompute exactly so L + R == count.
+    leftUnits = Math.min(leftUnits, this.count);
+    this.curX.set(nx);
+    this.curZ.set(nz);
+    this.phase.set(np);
+    this.split = { left: leftUnits, right: this.count - leftUnits };
+    this.splitInst = { l: leftInst, r: n - leftInst };
+    return { ...this.split };
+  }
+
+  /** Apply the lane gate results and keep the lanes separated until exitSplit. */
+  setSplitCounts(left: number, right: number): void {
+    this.split = { left, right };
+    this.count = Math.min(CFG.armyCap, left + right);
+  }
+
+  exitSplit(): void {
+    this.split = null;
+    this.splitInst = null;
+  }
+
+  // ------------------------------------------------------------------ per-frame
+  update(dt: number, time: number, speed: number, running: boolean): void {
+    const total = this.count;
+    const k = Math.max(1, Math.ceil(total / CFG.visualCap));
+    this.k = k;
+    let n = Math.ceil(total / k);
+    if (n > CFG.visualCap) n = CFG.visualCap;
+    const prev = this.inst;
+
+    // when units appear, spawn them at the crowd centre so they visibly pour out
+    for (let i = prev; i < n; i++) {
+      this.curX[i] = this.x + (Math.random() - 0.5) * 0.4;
+      this.curZ[i] = 0;
+    }
+    this.inst = n;
+
+    const pos = { x: 0, z: 0 };
+    const sc = this.tmpS;
+    const lerp = 1 - Math.exp(-dt * 9);
+    const sp = this.spacing(n);
+    let unitScale = Math.min(1, Math.max(0.45, sp * 1.7));
+    const elite = k > 1 ? Math.min(2.4, 1 + 0.32 * Math.log2(k)) : 1;
+    unitScale *= elite;
+    let maxZ = 0;
+
+    // lane layout in split mode: left instances first, then right instances
+    let lInst = n;
+    let lCount = 0;
+    let rCount = 0;
+    if (this.split) {
+      lCount = Math.ceil(this.split.left / k);
+      rCount = Math.ceil(this.split.right / k);
+      lInst = lCount;
+      // never exceed the instance budget
+      if (lCount + rCount > n) lInst = Math.min(lCount, n);
+    }
+
+    for (let i = 0; i < n; i++) {
+      let tx: number;
+      let tz: number;
+      if (this.split && this.splitInst) {
+        const left = i < lInst;
+        const idx = left ? i : i - lInst;
+        const cnt = left ? lCount : Math.max(0, n - lInst);
+        const cx = left ? -2.6 : 2.6;
+        this.slot(idx, Math.max(1, cnt), cx, 1.9, pos);
+        tx = pos.x;
+        tz = pos.z;
+      } else {
+        this.slot(i, n, this.x, CFG.halfWidth - 0.6, pos);
+        tx = pos.x;
+        tz = pos.z;
+      }
+      this.curX[i] += (tx - this.curX[i]) * lerp;
+      this.curZ[i] += (tz - this.curZ[i]) * lerp;
+      if (tz > maxZ) maxZ = tz;
+    }
+    this.depth = maxZ;
+
+    // write instance matrices
+    const bobAmp = running ? 0.1 : 0.02;
+    const freq = 9 + speed * 0.35;
+    const lean = Math.max(-0.35, Math.min(0.35, -this.vx * 0.02));
+    for (let i = 0; i < n; i++) {
+      const ph = this.phase[i];
+      const bob = Math.abs(Math.sin(time * freq + ph)) * bobAmp * unitScale;
+      const px = Math.max(-CFG.halfWidth + 0.25, Math.min(CFG.halfWidth - 0.25, this.curX[i]));
+      this.tmpP.set(px, bob, this.curZ[i] - maxZ * 0.5); // centre the crowd on the anchor
+      this.tmpE.set(Math.sin(time * freq + ph) * 0.05, 0, lean);
+      this.tmpQ.setFromEuler(this.tmpE);
+      sc.set(unitScale, unitScale, unitScale);
+      this.tmpM.compose(this.tmpP, this.tmpQ, sc);
+      this.mesh.setMatrixAt(i, this.tmpM);
+      // two-tone crowd: every 5th unit takes the accent colour
+      this.tmpC.copy(i % 5 === 0 ? this.skinAccent : this.skinBody);
+      this.mesh.setColorAt(i, this.tmpC);
+    }
+    this.mesh.count = n;
+    this.mesh.instanceMatrix.needsUpdate = true;
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    this.dirty = false;
+  }
+
+  /** World-space offset (along +z = behind the anchor) of the rearmost row, used for camera framing. */
+  get halfDepth(): number {
+    return this.depth * 0.5;
+  }
+}
