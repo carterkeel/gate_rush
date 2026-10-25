@@ -50,6 +50,15 @@ export interface SplitState {
 
 const MAXI = CFG.visualCap + 8;
 
+/** Cheap integer hash in [0,1): decorrelated from the sunflower pattern (a multiplicative hash makes blobs). */
+function hash01(i: number): number {
+  let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+
 export class Army {
   readonly mesh: THREE.InstancedMesh;
   count: number = CFG.startArmy; // exact integer
@@ -131,17 +140,21 @@ export class Army {
     return Math.max(0.26, 0.62 - 0.045 * Math.log2(Math.max(1, n)));
   }
 
-  /** Slot i of an n-instance crowd inside a lane of the given half width, centred on cx. Row 0 is the front. */
+  /**
+   * Slot i of an n-instance crowd: a round sunflower (golden-angle) pattern centred on (cx, 0), with the player's
+   * golden unit in the middle. When the circle would be wider than the lane it is squeezed into an ellipse that is
+   * longer along the path, keeping the same area. Offsets are relative to the crowd centre (+z = behind).
+   */
   private slot(i: number, n: number, cx: number, halfW: number, out: { x: number; z: number }): void {
     const s = this.spacing(n);
-    const maxCols = Math.max(1, Math.floor((halfW * 2 - 0.5) / s));
-    const cols = Math.max(1, Math.min(maxCols, Math.round(Math.sqrt(n) * 1.25)));
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const inRow = Math.min(cols, n - row * cols);
-    const x = (col - (inRow - 1) / 2) * s + (row % 2 ? s * 0.18 : -s * 0.18);
-    out.x = cx + x;
-    out.z = row * s * 0.95;
+    const c = s / 1.7;
+    const R = c * Math.sqrt(n + 1.5);
+    const maxHalf = Math.max(0.8, halfW - 0.1);
+    const sx = R > maxHalf ? maxHalf / R : 1;
+    const r = c * Math.sqrt(i + 1.5);
+    const a = i * 2.399963229728653;
+    out.x = cx + Math.cos(a) * r * sx;
+    out.z = (Math.sin(a) * r) / sx;
   }
 
   /** Called when the crowd reaches the start of a split zone. Sorts units left/right by x and returns exact counts. */
@@ -236,15 +249,15 @@ export class Army {
         tx = pos.x;
         tz = pos.z;
       } else {
-        this.slot(i, n, this.x, CFG.halfWidth - 0.6, pos);
+        this.slot(i, n, this.x, CFG.halfWidth - 0.3, pos);
         tx = pos.x;
         tz = pos.z;
       }
       this.curX[i] += (tx - this.curX[i]) * lerp;
       this.curZ[i] += (tz - this.curZ[i]) * lerp;
-      if (tz > maxZ) maxZ = tz;
+      if (Math.abs(tz) > maxZ) maxZ = Math.abs(tz);
     }
-    this.depth = maxZ;
+    this.depth = maxZ * 2;
 
     // write instance matrices
     const bobAmp = running ? 0.1 : 0.02;
@@ -254,14 +267,14 @@ export class Army {
       const ph = this.phase[i];
       const bob = Math.abs(Math.sin(time * freq + ph)) * bobAmp * unitScale;
       const px = Math.max(-CFG.halfWidth + 0.25, Math.min(CFG.halfWidth - 0.25, this.curX[i]));
-      this.tmpP.set(px, bob, this.curZ[i] - maxZ * 0.5); // centre the crowd on the anchor
+      this.tmpP.set(px, bob, this.curZ[i]); // slots are already centred on the anchor
       this.tmpE.set(Math.sin(time * freq + ph) * 0.05, 0, lean);
       this.tmpQ.setFromEuler(this.tmpE);
       sc.set(unitScale, unitScale, unitScale);
       this.tmpM.compose(this.tmpP, this.tmpQ, sc);
       this.mesh.setMatrixAt(i, this.tmpM);
-      // two-tone crowd: every 5th unit takes the accent colour
-      this.tmpC.copy(i % 5 === 0 ? this.skinAccent : this.skinBody);
+      // two-tone crowd: about one in five units takes the accent colour (hashed, so no spiral stripes)
+      this.tmpC.copy(hash01(i) < 0.2 ? this.skinAccent : this.skinBody);
       this.mesh.setColorAt(i, this.tmpC);
     }
     this.mesh.count = n;
