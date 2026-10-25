@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/logo.svg" width="128" alt="Gate Rush logo"></p>
+<p align="center"><img src="assets/social-preview.png" alt="Gate Rush" width="720"></p>
 
 # Gate Rush
 
@@ -6,6 +6,16 @@ An infinite gate-math runner / crowd shooter. Slide your army left and right thr
 split lanes, time-pressure gates, and titan and boss fights. TypeScript + three.js, bundled with esbuild.
 
 **Play it:** https://carterkeel.github.io/gate_rush/
+
+## Screenshots
+
+<p align="center">
+  <img src="assets/screens/menu.jpg" width="19%" alt="Main menu">
+  <img src="assets/screens/neo.jpg" width="19%" alt="Neo biome">
+  <img src="assets/screens/forest.jpg" width="19%" alt="Forest biome">
+  <img src="assets/screens/lava.jpg" width="19%" alt="Lava biome">
+  <img src="assets/screens/boss.jpg" width="19%" alt="Boss approaching">
+</p>
 
 ## Controls
 Drag or swipe, or use A / D or the arrow keys. The first "Play" runs a short tutorial; "How to play" replays it.
