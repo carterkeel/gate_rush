@@ -18,7 +18,7 @@ split lanes, time-pressure gates, and titan and boss fights. TypeScript + three.
 </p>
 
 ## Controls
-Drag or swipe, or use A / D or the arrow keys. Pause with the ❚❚ button, Esc or P (it also pauses when you switch tabs). The first "Play" runs a short tutorial; "How to play" replays it.
+Drag or swipe, or use A / D or the arrow keys. The 2× button (bottom left) doubles your run speed. Pause with the ❚❚ button, Esc or P (it also pauses when you switch tabs). The first "Play" runs a short tutorial; "How to play" replays it.
 
 ## Develop
 ```

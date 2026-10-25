@@ -23,6 +23,7 @@ export class UI {
   onAgain = () => {};
   onMenu = () => {};
   onPause = () => {};
+  onFast = () => {};
   onResume = () => {};
   onRestart = () => {};
   onChange = () => {}; // cosmetics changed
@@ -78,6 +79,7 @@ export class UI {
     bind('musicVol', 'musicOut', () => sound.musicVol, (v) => sound.setMusicVolume(v), false);
     bind('sfxVol', 'sfxOut', () => sound.sfxVol, (v) => sound.setSfxVolume(v), true);
     $('bPause').onclick = () => this.onPause();
+    $('bFast').onclick = () => this.onFast();
     $('bResume').onclick = () => this.onResume();
     $('bRestart').onclick = () => this.onRestart();
     $('bQuit').onclick = () => this.onMenu();
@@ -90,6 +92,15 @@ export class UI {
   showPause(info: string): void {
     $('pauseInfo').textContent = info;
     this.screens('pause');
+  }
+
+  showFast(on: boolean): void {
+    $('bFast').style.display = on ? '' : 'none';
+  }
+
+  setFast(on: boolean): void {
+    $('bFast').classList.toggle('on', on);
+    $('bFast').setAttribute('aria-pressed', String(on));
   }
 
   showHud(on: boolean): void {

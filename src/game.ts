@@ -90,6 +90,11 @@ export class Game {
       () => save(this.data),
     );
     this.applyCosmetics();
+    try {
+      if (JSON.parse(localStorage.getItem('gate-rush-prefs') || '{}').fast === true) this.setFast(true);
+    } catch {
+      /* ignore */
+    }
     this.bindUi();
     this.bindInput();
     this.resize();
@@ -121,6 +126,7 @@ export class Game {
     this.ui.onAgain = () => this.startRun(false);
     this.ui.onMenu = () => this.toMenu();
     this.ui.onPause = () => this.pause();
+    this.ui.onFast = () => this.setFast(!this.fast);
     this.ui.onResume = () => this.resume();
     this.ui.onRestart = () => this.startRun(this.tutorial !== null);
     this.ui.onChange = () => this.applyCosmetics();
@@ -211,6 +217,7 @@ export class Game {
     this.ui.hideScreens();
     this.ui.showHud(true);
     this.ui.setArmy(this.army.count);
+    this.ui.showFast(!tutorial);
     this.ui.setDist(0);
     this.ui.setCoins(0);
     this.ui.flashBanner(tutorial ? 'TUTORIAL' : 'GO!', 1000);
@@ -218,6 +225,18 @@ export class Game {
     sound.setBiome(0);
     sound.setPaused(false);
     sound.start();
+  }
+
+  /** Optional 2x run speed (remembered). Ignored in the tutorial. */
+  private fast = false;
+  private setFast(on: boolean): void {
+    this.fast = on;
+    this.ui.setFast(on);
+    try {
+      localStorage.setItem('gate-rush-prefs', JSON.stringify({ fast: on }));
+    } catch {
+      /* storage unavailable */
+    }
   }
 
   private pause(): void {
@@ -304,7 +323,7 @@ export class Game {
   // ------------------------------------------------------------------ run update
   private updateRun(dt: number): void {
     this.runTime += dt;
-    this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime);
+    this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime) * (this.fast ? 2 : 1);
 
     if (this.keys.left) this.targetX -= CFG.keyboardLateralSpeed * dt;
     if (this.keys.right) this.targetX += CFG.keyboardLateralSpeed * dt;

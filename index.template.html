@@ -25,14 +25,16 @@
   .stat { position:absolute; top:max(10px, env(safe-area-inset-top)); text-shadow:0 3px 0 rgba(0,0,0,.5); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; }
   #dist { left:12px; font-size:min(6.2vw,30px); }
   #dist small, #coins small { display:block; font-size:.45em; opacity:.85; letter-spacing:2px; -webkit-text-stroke:2px var(--ink); }
-  #coins { right:12px; text-align:right; font-size:min(5.6vw,26px); color:#ffe27a; }
-  #army { left:50%; transform:translateX(-50%); text-align:center; font-size:min(8.6vw,50px); line-height:1; color:#fff; padding:4px 14px 6px; border-radius:20px; background:rgba(10,16,38,.66); border:2px solid rgba(130,175,255,.5); box-shadow:0 6px 22px rgba(0,0,0,.5); -webkit-backdrop-filter:blur(10px) saturate(1.3); backdrop-filter:blur(10px) saturate(1.3); -webkit-text-stroke:0; text-shadow:0 3px 0 rgba(0,0,0,.6); }
+  #coins { left:12px; top:calc(max(10px, env(safe-area-inset-top)) + min(6.2vw,30px) * 1.75 + 12px); text-align:left; font-size:min(5.2vw,24px); color:#ffe27a; }
+  #army { right:12px; text-align:center; font-size:min(8.6vw,50px); line-height:1; color:#fff; padding:4px 14px 6px; border-radius:20px; background:rgba(10,16,38,.66); border:2px solid rgba(130,175,255,.5); box-shadow:0 6px 22px rgba(0,0,0,.5); -webkit-backdrop-filter:blur(10px) saturate(1.3); backdrop-filter:blur(10px) saturate(1.3); -webkit-text-stroke:0; text-shadow:0 3px 0 rgba(0,0,0,.6); }
   #army span { -webkit-text-stroke:4px var(--ink); paint-order:stroke fill; }
   #army small { display:block; font-size:.26em; letter-spacing:3px; opacity:1; color:#cfe0ff; -webkit-text-stroke:0; }
   #army.up { animation: up .35s ease-out; color:#9dffc4; } #army.down { animation: down .35s ease-out; color:#ff9aa4; }
-  @keyframes up { 0%{transform:translateX(-50%) scale(1.35)} 100%{transform:translateX(-50%) scale(1)} }
-  @keyframes down { 0%{transform:translateX(-50%) scale(.75)} 100%{transform:translateX(-50%) scale(1)} }
-  #bPause { position:absolute; right:14px; top:calc(max(10px, env(safe-area-inset-top)) + min(14vw,64px)); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
+  @keyframes up { 0%{transform:scale(1.25)} 100%{transform:scale(1)} }
+  @keyframes down { 0%{transform:scale(.8)} 100%{transform:scale(1)} }
+  #bPause { position:absolute; right:14px; top:calc(max(10px, env(safe-area-inset-top)) + min(8.6vw,50px) * 1.45 + 24px); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
+  #bFast { position:absolute; left:12px; bottom:max(20px, env(safe-area-inset-bottom)); width:48px; height:48px; padding:0; border-radius:50%; font-size:17px; line-height:1; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; }
+  #bFast.on { background:linear-gradient(#ffd54f,#ffa000); color:#201400; border-color:#7a4a00; box-shadow:0 0 14px rgba(255,194,26,.6); }
   #banner { position:absolute; left:50%; top:28%; transform:translateX(-50%); text-align:center; font-size:min(9vw,48px); color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; display:none; width:90%; }
   #banner.on { display:block; animation: ban .5s ease-out; }
   @keyframes ban { from{transform:translateX(-50%) scale(.6); opacity:0} to{transform:translateX(-50%) scale(1); opacity:1} }
@@ -104,6 +106,7 @@
     <div id="army" class="stat"><small>ARMY</small><span id="armyV">1</span></div>
     <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
     <button id="bPause" class="ghost" aria-label="Pause" title="Pause (Esc / P)">❚❚</button>
+    <button id="bFast" class="ghost" aria-label="Double speed" aria-pressed="false" title="Double speed">2×</button>
     <div id="banner"></div>
     <div id="combat"><div id="combatT">ENEMIES</div><div class="bar"><i id="combatBar"></i></div></div>
     <div id="hint"></div>
