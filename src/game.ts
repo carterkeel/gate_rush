@@ -40,6 +40,9 @@ export class Game {
   /** Test hook: sets where the crossing result was below best play. */
   misses: Array<{ kind: string; s: number; A: number; result: number; best: number; idx: number }> = [];
   private forecasting = false;
+  private setsSinceCoins = 0;
+  private coinEvery = 5;
+  private lastGateX = 0;
   private coinFrom = 0; // start of the next free stretch where coins may be laid
   private coinStreak = 0;
   private lastPickT = -9;
@@ -194,6 +197,9 @@ export class Game {
   private clearWorld(): void {
     this.coins.clear();
     this.coinFrom = 0;
+    this.setsSinceCoins = 0;
+    this.coinEvery = 5;
+    this.lastGateX = 0;
     this.forecasting = false;
     for (const v of this.viewOrder) {
       this.world.scene.remove(v.root);
@@ -470,12 +476,24 @@ export class Game {
       if (!item) break;
       this.queue.push(item);
       if (!this.tutorial) {
-        // coins in the free stretch between the previous item and this one (never inside a split zone or fight)
+        // roughly every 5th gate set: a row of coins leading to its best gate
         const half = CFG.splitZoneLength / 2;
         const gates = item.type === 'gates';
         const zoneFrom = item.s - (gates && item.split ? half : 0) - 1.4;
         const zoneTo = item.s + (gates ? (item.split ? half : 0) + 1.4 : CFG.combatStopGap);
-        this.coins.spawnBetween(Math.max(this.coinFrom, this.playerS + 6), zoneFrom);
+        if (gates) {
+          this.setsSinceCoins++;
+          if (this.setsSinceCoins >= this.coinEvery) {
+            const b = bestResult(item, Math.max(1, ref));
+            const tx = item.split ? (b.index === 0 ? -3.2 : 3.2) : (item.gates[b.index].x0 + item.gates[b.index].x1) / 2;
+            if (this.coins.spawnRow(Math.max(this.coinFrom, this.playerS + 6), zoneFrom, this.lastGateX, tx)) {
+              this.setsSinceCoins = 0;
+              this.coinEvery = 4 + Math.floor(Math.random() * 3);
+            }
+          }
+          const bb = bestResult(item, Math.max(1, ref));
+          this.lastGateX = item.split ? (bb.index === 0 ? -3.2 : 3.2) : (item.gates[bb.index].x0 + item.gates[bb.index].x1) / 2;
+        }
         this.coinFrom = zoneTo;
       }
       if (item.type === 'gates') {

@@ -39,21 +39,17 @@ export class CoinField {
     this.gone[i] = 0;
   }
 
-  /** Lay a pattern of coins in the free stretch [from, to] (distances along the track). */
-  spawnBetween(from: number, to: number): void {
+  /** A row of coins in [from, to] that sweeps from xStart to xEnd (the best gate). Returns false if too short. */
+  spawnRow(from: number, to: number, xStart: number, xEnd: number): boolean {
     const span = to - from;
-    if (span < 3.2 || Math.random() > 0.72) return;
-    const n = Math.min(7, Math.max(3, Math.floor(span / 1.5)));
-    const pattern = Math.random();
-    const lane = (Math.random() - 0.5) * 6.4;
+    if (span < 5) return false;
+    const n = Math.min(10, Math.max(4, Math.floor(span / 1.6)));
     for (let i = 0; i < n; i++) {
-      const t = n === 1 ? 0.5 : i / (n - 1);
-      const s = from + 0.5 + t * (span - 1);
-      let x = lane;
-      if (pattern > 0.66) x = lane + Math.sin(t * Math.PI * 2) * 1.8; // wave
-      else if (pattern > 0.33) x = lane * (1 - t) + -lane * t; // diagonal sweep
-      this.add(Math.max(-4.1, Math.min(4.1, x)), s);
+      const t = i / (n - 1);
+      const e = t * t * (3 - 2 * t); // ease so the row settles into the gate lane
+      this.add(Math.max(-4.1, Math.min(4.1, xStart + (xEnd - xStart) * e)), from + 0.5 + t * (span - 1));
     }
+    return true;
   }
 
   /** Spin, animate and collect. Returns how many coins were picked up this frame (and where, for effects). */
