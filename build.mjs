@@ -1,6 +1,5 @@
-import { copyFileSync } from "node:fs";
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 
 mkdirSync('dist', { recursive: true });
 const result = await build({

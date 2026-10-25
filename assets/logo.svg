@@ -4,6 +4,6 @@
 <rect width="256" height="256" rx="52" fill="url(#bg)"/>
 <path d="M54 214V104a74 74 0 0 1 148 0v110h-34V104a40 40 0 0 0-80 0v110z" fill="url(#g)"/>
 <path d="M54 214V104a74 74 0 0 1 148 0v110h-34V104a40 40 0 0 0-80 0v110z" fill="none" stroke="#c9ffe0" stroke-opacity=".5" stroke-width="3"/>
-<text x="128" y="76" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46" fill="#ffd23f">×2</text>
+<text x="128" y="118" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="36" fill="#ffd23f">×2</text>
 <g fill="#4db2ff"><circle cx="128" cy="150" r="9"/><circle cx="108" cy="170" r="9"/><circle cx="148" cy="170" r="9"/><circle cx="88" cy="192" r="9"/><circle cx="128" cy="192" r="9"/><circle cx="168" cy="192" r="9"/><circle cx="108" cy="214" r="9"/><circle cx="148" cy="214" r="9"/></g>
 </svg>

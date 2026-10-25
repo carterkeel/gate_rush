@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" width="128" alt="Gate Rush logo"></p>
+
 # Gate Rush
 
 An infinite gate-math runner / crowd shooter. Slide your army left and right through +, −, ×, ÷ gates,
