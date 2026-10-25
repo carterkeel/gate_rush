@@ -25,3 +25,10 @@ Gate Rush bundles the following open-source software. Sounds are generated in co
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
+
+## Kenney "Mini Dungeon" 3D models (CC0)
+
+The soldier and orc character models and the sword, spear and shield props come from Kenney's Mini Dungeon pack
+(https://kenney.nl), released under Creative Commons Zero (CC0 1.0): free for personal, educational and commercial
+use. Crediting Kenney is appreciated but not required. The pack's license text is in
+`assets/kenney/License-Mini-Dungeon.txt`. The models are baked into `src/modelData.ts` by `tools/build_models.py`.

@@ -20,8 +20,12 @@ export interface SkinDef {
   id: string;
   name: string;
   cost: number;
-  body: number;
+  body: number; // swatch colours in the skins menu
   accent: number;
+  model: 'human' | 'orc';
+  weapon: 'sword' | 'spear';
+  shield?: boolean;
+  tint: number; // multiplied with the model's own colours (0xffffff = natural)
 }
 export interface TrailDef {
   id: string;
@@ -32,12 +36,12 @@ export interface TrailDef {
 }
 
 export const SKINS: SkinDef[] = [
-  { id: 'trooper', name: 'Trooper', cost: 0, body: 0x4fc3f7, accent: 0x0d47a1 },
-  { id: 'crimson', name: 'Crimson Guard', cost: 120, body: 0xff6b6b, accent: 0x7f0000 },
-  { id: 'toxic', name: 'Toxic Squad', cost: 300, body: 0xb2ff59, accent: 0x33691e },
-  { id: 'gold', name: 'Gold Legion', cost: 700, body: 0xffd54f, accent: 0xff6f00 },
-  { id: 'violet', name: 'Void Walkers', cost: 1200, body: 0xb388ff, accent: 0x311b92 },
-  { id: 'ghost', name: 'Ghost Unit', cost: 2500, body: 0xeceff1, accent: 0x455a64 },
+  { id: 'trooper', name: 'Footman', cost: 0, body: 0x4fa3ff, accent: 0x6b7a99, model: 'human', weapon: 'sword', tint: 0x4fa3ff },
+  { id: 'crimson', name: 'Crimson Guard', cost: 120, body: 0xff6b6b, accent: 0x7f0000, model: 'human', weapon: 'spear', tint: 0xff4d4d },
+  { id: 'toxic', name: 'Orc Warband', cost: 300, body: 0x4caf6a, accent: 0x33691e, model: 'orc', weapon: 'sword', tint: 0xffffff },
+  { id: 'gold', name: 'Gold Legion', cost: 700, body: 0xffd54f, accent: 0xff6f00, model: 'human', weapon: 'sword', shield: true, tint: 0xffc83a },
+  { id: 'violet', name: 'Void Walkers', cost: 1200, body: 0xb388ff, accent: 0x311b92, model: 'orc', weapon: 'spear', tint: 0xb48cff },
+  { id: 'ghost', name: 'Ghost Unit', cost: 2500, body: 0xeceff1, accent: 0x455a64, model: 'human', weapon: 'spear', shield: true, tint: 0xe4f1ff },
 ];
 
 export const TRAILS: TrailDef[] = [

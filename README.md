@@ -31,6 +31,9 @@ npm run sim         # fairness simulation of the gate and fight generators
 ## Sound
 All sound effects and the music loop are synthesised with the Web Audio API (no audio files). Music and sound-effect volume have separate sliders under Settings (on the main menu and the pause screen); the choice is stored under `gate-rush-audio`.
 
+## Models
+Characters (Footman, Orc Warband and the red orc enemies) and weapons are Kenney's CC0 "Mini Dungeon" models, baked into static vertex-coloured geometry (`tools/bake.py`, `tools/build_models.py`, output in `src/modelData.ts`). See `THIRD_PARTY_NOTICES.md`.
+
 ## Save data
 Coins, skins, trails, high scores and the tutorial flag are stored in the browser's `localStorage`
 under the key `gate-rush-save-v1`. They stay on that device and browser; clearing site data resets them.

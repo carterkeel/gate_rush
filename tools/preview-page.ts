@@ -1,0 +1,30 @@
+import * as THREE from 'three';
+const w = window as any;
+w.show = (variants: any[]) => {
+  const canvas = document.getElementById('c') as HTMLCanvasElement;
+  const r = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+  r.setSize(canvas.width, canvas.height, false);
+  r.setScissorTest(true);
+  r.setClearColor(0x26304a);
+  const scene = new THREE.Scene();
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x445066, 1.6));
+  const dl = new THREE.DirectionalLight(0xffffff, 1.4);
+  dl.position.set(-2, 4, -3);
+  scene.add(dl);
+  const cam = new THREE.PerspectiveCamera(30, 300 / 420, 0.1, 50);
+  cam.position.set(...((w.camPos as number[]) ?? [-1.6, 1.2, -2.6]));
+  cam.lookAt(0, 0.38, 0);
+  variants.forEach((v, i) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(v.pos, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(v.nor, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(v.col, 3));
+    g.setIndex(v.idx);
+    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true }));
+    scene.add(m);
+    r.setViewport(i * 300, 0, 300, 420);
+    r.setScissor(i * 300, 0, 300, 420);
+    r.render(scene, cam);
+    scene.remove(m);
+  });
+};

@@ -1,47 +1,7 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CFG } from './config';
-
-/** One stylised soldier-robot, built once, drawn with a single InstancedMesh. */
-function buildUnitGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const paint = (g: THREE.BufferGeometry, c: number) => {
-    const col = new THREE.Color(c);
-    const n = g.attributes.position.count;
-    const arr = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      arr[i * 3] = col.r;
-      arr[i * 3 + 1] = col.g;
-      arr[i * 3 + 2] = col.b;
-    }
-    g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
-    return g.toNonIndexed();
-  };
-  const body = new THREE.CapsuleGeometry(0.2, 0.34, 3, 8);
-  body.translate(0, 0.55, 0);
-  parts.push(paint(body, 0xffffff));
-  const head = new THREE.SphereGeometry(0.17, 8, 6);
-  head.translate(0, 1.04, 0);
-  parts.push(paint(head, 0xdfe6ee));
-  const visor = new THREE.BoxGeometry(0.22, 0.07, 0.1);
-  visor.translate(0, 1.06, -0.13);
-  parts.push(paint(visor, 0x10151f));
-  const pack = new THREE.BoxGeometry(0.22, 0.3, 0.12);
-  pack.translate(0, 0.6, 0.22);
-  parts.push(paint(pack, 0x59657a));
-  const legL = new THREE.BoxGeometry(0.11, 0.3, 0.12);
-  legL.translate(-0.09, 0.15, 0);
-  parts.push(paint(legL, 0x2c3547));
-  const legR = new THREE.BoxGeometry(0.11, 0.3, 0.12);
-  legR.translate(0.09, 0.15, 0);
-  parts.push(paint(legR, 0x2c3547));
-  const gun = new THREE.BoxGeometry(0.07, 0.07, 0.42);
-  gun.translate(0.2, 0.62, -0.2);
-  parts.push(paint(gun, 0x1b2230));
-  const merged = mergeGeometries(parts, false)!;
-  merged.computeVertexNormals();
-  return merged;
-}
+import { unitGeometry } from './models';
+import type { SkinDef } from './storage';
 
 export interface SplitState {
   left: number; // units sent into the left lane
@@ -78,8 +38,8 @@ export class Army {
   private splitInst: { l: number; r: number } | null = null;
   vx = 0; // lateral velocity, for leaning
   depth = 1; // current crowd depth along the path, for camera framing
-  private skinBody = new THREE.Color(0x4fc3f7);
-  private skinAccent = new THREE.Color(0x0d47a1);
+  private skinTint = new THREE.Color(0xffffff);
+  private skinParts: string[] = ['human', 'sword'];
   private dirty = true;
   /** The player: one big golden unit at the crowd centre, so it is always clear which gate you walked through. */
   private leader: THREE.Mesh;
@@ -88,13 +48,13 @@ export class Army {
 
   constructor(scene: THREE.Scene) {
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
-    this.mesh = new THREE.InstancedMesh(buildUnitGeometry(), mat, MAXI);
+    this.mesh = new THREE.InstancedMesh(unitGeometry(this.skinParts), mat, MAXI);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.frustumCulled = false;
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3), 3);
     this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
     scene.add(this.mesh);
-    this.leader = new THREE.Mesh(buildUnitGeometry(), new THREE.MeshLambertMaterial({ vertexColors: true, color: 0xffd23f, emissive: 0x5a3c00 }));
+    this.leader = new THREE.Mesh(unitGeometry(this.skinParts), new THREE.MeshLambertMaterial({ vertexColors: true, color: 0xffd23f, emissive: 0x5a3c00 }));
     this.leader.frustumCulled = false;
     this.leader.renderOrder = 2;
     this.leaderRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.25, 40), new THREE.MeshBasicMaterial({ color: 0xffe27a, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
@@ -104,9 +64,12 @@ export class Army {
     for (let i = 0; i < MAXI; i++) this.phase[i] = Math.random() * Math.PI * 2;
   }
 
-  setSkin(body: number, accent: number): void {
-    this.skinBody.set(body);
-    this.skinAccent.set(accent);
+  setSkin(skin: SkinDef): void {
+    this.skinParts = [skin.model, skin.weapon, ...(skin.shield ? ['shield'] : [])];
+    const g = unitGeometry(this.skinParts);
+    this.mesh.geometry = g;
+    this.leader.geometry = g;
+    this.skinTint.set(skin.tint);
     this.dirty = true;
   }
 
@@ -222,7 +185,7 @@ export class Army {
     const sp = this.spacing(n);
     let unitScale = Math.min(1, Math.max(0.45, sp * 1.7));
     const elite = k > 1 ? Math.min(2.4, 1 + 0.32 * Math.log2(k)) : 1;
-    unitScale *= elite;
+    unitScale *= elite * 1.3; // Kenney models are small and chunky: size them up
     let maxZ = 0;
 
     // lane layout in split mode: left instances first, then right instances
@@ -273,8 +236,8 @@ export class Army {
       sc.set(unitScale, unitScale, unitScale);
       this.tmpM.compose(this.tmpP, this.tmpQ, sc);
       this.mesh.setMatrixAt(i, this.tmpM);
-      // two-tone crowd: about one in five units takes the accent colour (hashed, so no spiral stripes)
-      this.tmpC.copy(hash01(i) < 0.2 ? this.skinAccent : this.skinBody);
+      // slight per-unit brightness variation so the crowd does not look cloned
+      this.tmpC.copy(this.skinTint).multiplyScalar(0.88 + 0.24 * hash01(i));
       this.mesh.setColorAt(i, this.tmpC);
     }
     this.mesh.count = n;

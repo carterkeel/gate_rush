@@ -111,7 +111,7 @@ export class Game {
 
   private applyCosmetics(): void {
     const s = SKINS.find((x) => x.id === this.data.skin) ?? SKINS[0];
-    this.army.setSkin(s.body, s.accent);
+    this.army.setSkin(s);
     this.fx.trail = TRAILS.find((x) => x.id === this.data.trail) ?? TRAILS[0];
   }
 

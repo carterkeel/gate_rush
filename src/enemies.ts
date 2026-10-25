@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CFG } from './config';
 import { KIND_ORDER } from './combatModel';
+import { unitGeometry } from './models';
 import type { CombatZone, EnemyKind } from './types';
 
 interface Enemy {
@@ -25,43 +26,16 @@ const TINT: Record<EnemyKind, [number, number, number]> = {
   boss: [1, 2.0, 0.3],
 };
 
-function enemyGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const paint = (g: THREE.BufferGeometry, c: number) => {
-    const col = new THREE.Color(c);
-    const arr = new Float32Array(g.attributes.position.count * 3);
-    for (let i = 0; i < g.attributes.position.count; i++) {
-      arr[i * 3] = col.r;
-      arr[i * 3 + 1] = col.g;
-      arr[i * 3 + 2] = col.b;
-    }
-    g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
-    return g.toNonIndexed();
-  };
-  const body = new THREE.BoxGeometry(0.8, 0.9, 0.6);
-  body.translate(0, 0.75, 0);
-  parts.push(paint(body, 0xff5a5a));
-  const head = new THREE.BoxGeometry(0.55, 0.4, 0.5);
-  head.translate(0, 1.4, 0);
-  parts.push(paint(head, 0xc93a3a));
-  const eyes = new THREE.BoxGeometry(0.42, 0.1, 0.08);
-  eyes.translate(0, 1.42, 0.27);
-  parts.push(paint(eyes, 0xffee58));
-  const legs = new THREE.BoxGeometry(0.6, 0.3, 0.4);
-  legs.translate(0, 0.15, 0);
-  parts.push(paint(legs, 0x5a1d1d));
-  const arms = new THREE.BoxGeometry(1.2, 0.18, 0.2);
-  arms.translate(0, 0.95, 0.05);
-  parts.push(paint(arms, 0xb23030));
-  const horn1 = new THREE.ConeGeometry(0.08, 0.3, 5);
-  horn1.translate(-0.2, 1.72, 0);
-  const horn2 = new THREE.ConeGeometry(0.08, 0.3, 5);
-  horn2.translate(0.2, 1.72, 0);
-  parts.push(paint(horn1, 0xffffff), paint(horn2, 0xffffff));
-  const g = mergeGeometries(parts, false)!;
-  g.computeVertexNormals();
-  return g;
-}
+/** Kenney orc models (red-skinned) per enemy kind. */
+const PARTS_OF: Record<EnemyKind, string[]> = {
+  grunt: ['orcRed', 'sword'],
+  brute: ['orcRed', 'sword', 'shield'],
+  titan: ['orcRed', 'spear'],
+  boss: ['orcRed', 'spear', 'shield'],
+};
+const KINDS: EnemyKind[] = ['grunt', 'brute', 'titan', 'boss'];
+/** Model height is 1.2; the old block enemy was 1.7, so enemy sizes keep their scale with this factor. */
+const MODEL_K = 1.42;
 
 const MAX_ENEMY = 72;
 const MAX_BULLET = 220;
@@ -78,7 +52,7 @@ export interface CombatStep {
 }
 
 export class CombatSim {
-  private mesh: THREE.InstancedMesh;
+  private meshes = {} as Record<EnemyKind, THREE.InstancedMesh>;
   private bullets: THREE.InstancedMesh;
   private ebullets: THREE.InstancedMesh;
   private enemies: Enemy[] = [];
@@ -107,11 +81,14 @@ export class CombatSim {
   private appear = 1;
 
   constructor(scene: THREE.Scene) {
-    this.mesh = new THREE.InstancedMesh(enemyGeometry(), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
-    this.mesh.frustumCulled = false;
-    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_ENEMY * 3), 3);
-    this.mesh.count = 0;
-    scene.add(this.mesh);
+    for (const k of KINDS) {
+      const m = new THREE.InstancedMesh(unitGeometry(PARTS_OF[k]), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
+      m.frustumCulled = false;
+      m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_ENEMY * 3), 3);
+      m.count = 0;
+      scene.add(m);
+      this.meshes[k] = m;
+    }
     this.bullets = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, 0.1, 0.55), new THREE.MeshBasicMaterial({ color: 0xfff2a8, fog: false }), MAX_BULLET);
     this.bullets.frustumCulled = false;
     this.bullets.count = 0;
@@ -188,7 +165,7 @@ export class CombatSim {
   clear(): void {
     this.enemies = [];
     this.active = false;
-    this.mesh.count = 0;
+    for (const k of KINDS) this.meshes[k].count = 0;
     this.bullets.count = 0;
     this.ebullets.count = 0;
     this.bx.fill(0);
@@ -324,31 +301,36 @@ export class CombatSim {
   }
 
   private render(dt: number): void {
-    let n = 0;
     this.appear = Math.min(1, this.appear + dt / 1.1);
     const ease = this.appear * this.appear * (3 - 2 * this.appear);
-    const mat = this.mesh.material as THREE.MeshLambertMaterial;
-    mat.transparent = true;
-    mat.opacity = ease;
-    mat.needsUpdate = false;
+    const used: Record<EnemyKind, number> = { grunt: 0, brute: 0, titan: 0, boss: 0 };
+    for (const k of KINDS) {
+      const mat = this.meshes[k].material as THREE.MeshLambertMaterial;
+      mat.transparent = true;
+      mat.opacity = ease;
+    }
     for (const e of this.enemies) {
       if (e.hp <= 0) e.gone = Math.min(1, e.gone + dt * (e.kind === 'grunt' ? 5 : 2));
       if (e.gone >= 1) continue;
       e.flash = Math.max(0, e.flash - dt * 6);
-      const sc = e.scale * (e.kind === 'grunt' ? 0.85 + 0.35 * Math.min(1, e.max / 12) : 1) * (1 - e.gone) * (0.7 + 0.3 * ease);
+      const sc = e.scale * MODEL_K * (e.kind === 'grunt' ? 0.85 + 0.35 * Math.min(1, e.max / 12) : 1) * (1 - e.gone) * (0.7 + 0.3 * ease);
       this.p.set(e.x, e.gone * 0.4, e.z);
-      this.q.identity();
+      this.q.setFromAxisAngle(this.up, Math.PI); // face the oncoming army (+z)
       this.s.set(sc, sc, sc);
       this.m.compose(this.p, this.q, this.s);
-      this.mesh.setMatrixAt(n, this.m);
+      const mesh = this.meshes[e.kind];
+      const n = used[e.kind]++;
+      mesh.setMatrixAt(n, this.m);
       const k = Math.max(0.45, e.hp / e.max);
       const t = TINT[e.kind];
       this.c.setRGB(t[0] * (0.55 + 0.45 * k) + e.flash * 0.6, t[1] * (0.55 + 0.45 * k) + e.flash * 0.8, t[2] * (0.55 + 0.45 * k) + e.flash * 0.8);
-      this.mesh.setColorAt(n, this.c);
-      n++;
+      mesh.setColorAt(n, this.c);
     }
-    this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    for (const k of KINDS) {
+      const mesh = this.meshes[k];
+      mesh.count = used[k];
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
   }
 }
