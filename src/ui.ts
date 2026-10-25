@@ -21,6 +21,9 @@ export class UI {
   onTutorial = () => {};
   onAgain = () => {};
   onMenu = () => {};
+  onPause = () => {};
+  onResume = () => {};
+  onRestart = () => {};
   onChange = () => {}; // cosmetics changed
 
   private armyEl = $('army');
@@ -44,10 +47,19 @@ export class UI {
     $('bScoresBack').onclick = () => this.showMenu();
     $('bAgain').onclick = () => this.onAgain();
     $('bMenu').onclick = () => this.onMenu();
+    $('bPause').onclick = () => this.onPause();
+    $('bResume').onclick = () => this.onResume();
+    $('bRestart').onclick = () => this.onRestart();
+    $('bQuit').onclick = () => this.onMenu();
   }
 
   private screens(on: string | null): void {
-    for (const id of ['menu', 'skins', 'scores', 'summary']) $(id).classList.toggle('on', id === on);
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause']) $(id).classList.toggle('on', id === on);
+  }
+
+  showPause(info: string): void {
+    $('pauseInfo').textContent = info;
+    this.screens('pause');
   }
 
   showHud(on: boolean): void {

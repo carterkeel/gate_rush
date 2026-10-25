@@ -1,4 +1,4 @@
-import { CFG, spacingAt } from './config';
+import { CFG, spacingAt, complexShareAt } from './config';
 import { Rng } from './rng';
 import { evalEffect, bestSplit, isSafe, opE, add, niceRound } from './logic';
 import type { Effect } from './logic';
@@ -51,6 +51,7 @@ export class Track {
   private nextCombatAfter: number;
   private prevKind: SetKind | 'combat' | null = null;
   setsAfterComplexStart = 0;
+  complexDebt = 0.5;
   complexAfterStart = 0;
   stats: TrackStats = { sets: 0, complex: 0, combat: 0 };
 
@@ -84,7 +85,9 @@ export class Track {
     const r = this.rng;
     if (dist < 300) return r.weighted([['pos', 0.45], ['mixed', 0.55]] as const);
     if (dist < 1500) return r.weighted([['pos', 0.2], ['mixed', 0.55], ['neg', 0.25]] as const);
-    return r.weighted([['pos', 0.1], ['mixed', 0.5], ['neg', 0.15], ['complex', 0.25]] as const);
+    const c = r.weighted([['pos', 0.1], ['mixed', 0.5], ['neg', 0.15], ['complex', 0.25]] as const);
+    // complex sets are rationed by the ramp in makeSet, not by this table
+    return c === 'complex' ? 'mixed' : c;
   }
 
   private makeSet(ref: number): GateSet {
@@ -92,11 +95,15 @@ export class Track {
     let dist = this.cursor + spacingAt(this.cursor);
     let cat = this.pickSimpleCategory(dist);
 
-    // >= 30 % complex choices after 800 m (deterministic floor + some randomness)
-    const afterStart = dist >= CFG.complexFromMeters;
-    if (afterStart) {
-      const deficit = this.complexAfterStart < CFG.complexMinShare * (this.setsAfterComplexStart + 1);
-      if (deficit || rng.chance(0.08)) cat = 'complex';
+    // Yellow (complex) sets start at 400 m with a small share that ramps up to the full share (>= 30 %)
+    // by complexFullMeters. A running debt keeps them evenly spread, plus a little randomness.
+    const share = complexShareAt(dist);
+    if (share > 0) {
+      this.complexDebt += share;
+      if (this.complexDebt >= 1) {
+        this.complexDebt -= 1;
+        cat = 'complex';
+      } else if (rng.chance(share * 0.1)) cat = 'complex';
     }
     if (ref < 6 && cat === 'complex') cat = 'pos';
 

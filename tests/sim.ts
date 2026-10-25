@@ -1,4 +1,4 @@
-import { CFG, speedAt, spacingAt, spawnAheadDist } from '../src/config';
+import { CFG, speedAt, spacingAt, spawnAheadDist, complexShareAt } from '../src/config';
 import { Track, bestResult } from '../src/track';
 import { evalEffect, isSafe } from '../src/logic';
 import { simulateFight } from '../src/combatModel';
@@ -26,6 +26,8 @@ const SEEDS = 40;
 const MAX_DIST = 9000;
 let sets = 0;
 let complexAfter = 0;
+let rampSets = 0;
+let rampComplex = 0;
 let setsAfter = 0;
 let minWindowLogGrowth = Infinity;
 let windowSum = 0;
@@ -99,9 +101,12 @@ for (let seed = 1; seed <= SEEDS; seed++) {
     // structure checks
     if (set.gates.length < 2 || set.gates.length > 4) fail(`gate count ${set.gates.length}`);
     if (set.kind === 'C' && set.gates.length !== 2) fail('type C needs two lanes');
-    if (set.s >= CFG.complexFromMeters) {
+    if (set.s >= CFG.complexFullMeters) {
       setsAfter++;
       if (set.complex) complexAfter++;
+    }
+    if (set.s >= CFG.complexFromMeters) {
+      if (set.s < 800) { rampSets++; if (set.complex) rampComplex++; }
     } else if (set.complex) fail(`complex set before ${CFG.complexFromMeters} m at ${set.s}`);
     for (const g of set.gates) {
       const e = g.effect;
@@ -147,7 +152,9 @@ const share = setsAfter ? complexAfter / setsAfter : 0;
 console.log(`sets generated: ${sets}`);
 console.log('kinds:', kinds);
 console.log('category by band:', catPos);
-console.log(`complex share after ${CFG.complexFromMeters} m: ${(share * 100).toFixed(1)}%`);
+console.log(`complex share ${CFG.complexFromMeters}-800 m: ${((rampComplex / Math.max(1, rampSets)) * 100).toFixed(1)}%; after ${CFG.complexFullMeters} m: ${(share * 100).toFixed(1)}%`);
+if (rampSets && rampComplex / rampSets > 0.2) fail('yellow gates not nerfed early on');
+if (complexShareAt(399) !== 0 || complexShareAt(400) <= 0) fail('yellow ramp start');
 console.log(`min log-growth over any 500 m window: ${minWindowLogGrowth.toFixed(3)} (x${Math.exp(minWindowLogGrowth).toFixed(2)})`);
 console.log(`mean log-growth per 500 m: ${(windowSum / Math.max(1, windowN)).toFixed(3)}; worst window seed ${worst.seed} at ${worst.s.toFixed(0)}m: ${worst.a0.toFixed(0)} -> ${worst.a1.toFixed(0)}`);
 console.log(`non-neg sets without a universally safe gate: ${safeMissing}`);

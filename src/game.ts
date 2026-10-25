@@ -16,7 +16,7 @@ import { SKINS, TRAILS, addScore, load, save } from './storage';
 import type { SaveData } from './storage';
 import type { CombatZone, GateSet, ItemSource, TrackItem } from './types';
 
-type Mode = 'menu' | 'run' | 'over';
+type Mode = 'menu' | 'run' | 'over' | 'paused';
 
 interface SplitCtx {
   set: GateSet;
@@ -93,7 +93,11 @@ export class Game {
     this.resize();
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 200));
-    document.addEventListener('visibilitychange', () => (this.lastT = 0));
+    document.addEventListener('visibilitychange', () => {
+      this.lastT = 0;
+      if (document.hidden) this.pause();
+    });
+    window.addEventListener('blur', () => this.pause());
     this.ui.showMenu();
     requestAnimationFrame((t) => this.frame(t));
   }
@@ -114,6 +118,9 @@ export class Game {
     this.ui.onTutorial = () => this.startRun(true);
     this.ui.onAgain = () => this.startRun(false);
     this.ui.onMenu = () => this.toMenu();
+    this.ui.onPause = () => this.pause();
+    this.ui.onResume = () => this.resume();
+    this.ui.onRestart = () => this.startRun(this.tutorial !== null);
     this.ui.onChange = () => this.applyCosmetics();
   }
 
@@ -140,6 +147,11 @@ export class Game {
   }
 
   private key(e: KeyboardEvent, down: boolean): void {
+    if (down && !e.repeat && (e.code === 'Escape' || e.code === 'KeyP')) {
+      if (this.mode === 'run') this.pause();
+      else if (this.mode === 'paused') this.resume();
+      return;
+    }
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') this.keys.left = down;
     else if (e.code === 'ArrowRight' || e.code === 'KeyD') this.keys.right = down;
     else return;
@@ -196,6 +208,21 @@ export class Game {
     this.ui.flashBanner(tutorial ? 'TUTORIAL' : 'GO!', 1000);
   }
 
+  private pause(): void {
+    if (this.mode !== 'run') return;
+    this.mode = 'paused';
+    this.dragging = false;
+    this.keys.left = this.keys.right = false;
+    this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`);
+  }
+
+  private resume(): void {
+    if (this.mode !== 'paused') return;
+    this.mode = 'run';
+    this.lastT = 0;
+    this.ui.hideScreens();
+  }
+
   private toMenu(): void {
     this.clearWorld();
     this.army.reset();
@@ -210,6 +237,12 @@ export class Game {
     const dt = this.lastT ? Math.min(0.05, (t - this.lastT) / 1000) : 1 / 60;
     this.lastT = t;
     this.time += dt;
+    if (this.mode === 'paused') {
+      // frozen: keep presenting the last frame, advance nothing
+      this.world.renderer.render(this.world.scene, this.world.camera);
+      requestAnimationFrame((tt) => this.frame(tt));
+      return;
+    }
     if (this.mode === 'run') this.updateRun(dt);
     else if (this.mode === 'over') this.updateOver(dt);
 

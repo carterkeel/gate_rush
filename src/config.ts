@@ -24,8 +24,10 @@ export const CFG = {
   timePressureFadeStartSec: 1.2,
   timePressureFadeDurSec: 1.2,
   // complex sets
-  complexFromMeters: 800,
-  complexMinShare: 0.34, // >= 30 % required; 34 % keeps a margin
+  complexFromMeters: 400, // yellow (complex) gates first appear here
+  complexRampStartShare: 0.06, // share of sets at complexFromMeters
+  complexFullMeters: 1500, // ramp reaches the full share here
+  complexMinShare: 0.34, // full share once the ramp ends (>= 30 % required)
   splitZoneLength: 12,
   // combat
   combatEveryMin: 4,
@@ -55,4 +57,11 @@ export function spacingAt(distance: number): number {
 /** How far ahead (meters) a gate set must materialise so the player always has >= minReactionSec. */
 export function spawnAheadDist(speed: number): number {
   return Math.max(CFG.spawnLeadMinDist, speed * CFG.spawnLeadSec);
+}
+
+/** Target share of complex (yellow) sets at a distance: ramps up slowly from complexFromMeters. */
+export function complexShareAt(m: number): number {
+  if (m < CFG.complexFromMeters) return 0;
+  const t = Math.min(1, (m - CFG.complexFromMeters) / (CFG.complexFullMeters - CFG.complexFromMeters));
+  return CFG.complexRampStartShare + (CFG.complexMinShare - CFG.complexRampStartShare) * t;
 }

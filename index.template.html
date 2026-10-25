@@ -30,6 +30,7 @@
   #army.up { animation: up .35s ease-out; color:#9dffc4; } #army.down { animation: down .35s ease-out; color:#ff9aa4; }
   @keyframes up { 0%{transform:translateX(-50%) scale(1.35)} 100%{transform:translateX(-50%) scale(1)} }
   @keyframes down { 0%{transform:translateX(-50%) scale(.75)} 100%{transform:translateX(-50%) scale(1)} }
+  #bPause { position:absolute; right:14px; top:calc(max(10px, env(safe-area-inset-top)) + min(14vw,64px)); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
   #banner { position:absolute; left:50%; top:28%; transform:translateX(-50%); text-align:center; font-size:min(9vw,48px); color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; display:none; width:90%; }
   #banner.on { display:block; animation: ban .5s ease-out; }
   @keyframes ban { from{transform:translateX(-50%) scale(.6); opacity:0} to{transform:translateX(-50%) scale(1); opacity:1} }
@@ -79,6 +80,7 @@
     <div id="dist" class="stat"><small>DISTANCE</small><span id="distV">0</span> m</div>
     <div id="army" class="stat"><small>ARMY</small><span id="armyV">1</span></div>
     <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
+    <button id="bPause" class="ghost" aria-label="Pause" title="Pause (Esc / P)">❚❚</button>
     <div id="banner"></div>
     <div id="combat"><div id="combatT">ENEMIES</div><div class="bar"><i id="combatBar"></i></div></div>
     <div id="hint"></div>
@@ -108,6 +110,15 @@
     <h2>HIGH SCORES</h2>
     <div id="scoreTable"></div>
     <button id="bScoresBack" class="ghost">BACK</button>
+  </div>
+
+  <div id="pause" class="screen">
+    <h2>PAUSED</h2>
+    <div class="tag" id="pauseInfo"></div>
+    <button id="bResume">RESUME</button>
+    <button id="bRestart" class="warn">RESTART</button>
+    <button id="bQuit" class="ghost">QUIT TO MENU</button>
+    <div class="tag">Esc or P also resumes</div>
   </div>
 
   <div id="summary" class="screen">
