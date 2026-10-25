@@ -72,6 +72,10 @@ export class Army {
   private skinBody = new THREE.Color(0x4fc3f7);
   private skinAccent = new THREE.Color(0x0d47a1);
   private dirty = true;
+  /** The player: one big golden unit at the crowd centre, so it is always clear which gate you walked through. */
+  private leader: THREE.Mesh;
+  private leaderRing: THREE.Mesh;
+  private leaderX = 0;
 
   constructor(scene: THREE.Scene) {
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
@@ -81,6 +85,13 @@ export class Army {
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3), 3);
     this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
     scene.add(this.mesh);
+    this.leader = new THREE.Mesh(buildUnitGeometry(), new THREE.MeshLambertMaterial({ vertexColors: true, color: 0xffd23f, emissive: 0x5a3c00 }));
+    this.leader.frustumCulled = false;
+    this.leader.renderOrder = 2;
+    this.leaderRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.25, 40), new THREE.MeshBasicMaterial({ color: 0xffe27a, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
+    this.leaderRing.rotation.x = -Math.PI / 2;
+    this.leaderRing.position.y = 0.06;
+    this.mesh.add(this.leader, this.leaderRing);
     for (let i = 0; i < MAXI; i++) this.phase[i] = Math.random() * Math.PI * 2;
   }
 
@@ -93,6 +104,7 @@ export class Army {
   reset(): void {
     this.count = CFG.startArmy;
     this.x = 0;
+    this.leaderX = 0;
     this.split = null;
     this.splitInst = null;
     this.curX.fill(0);
@@ -256,6 +268,21 @@ export class Army {
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
     this.dirty = false;
+
+    // leader: sits at the crowd centre (where gates are actually resolved); in a split zone it follows the bigger lane
+    const showLeader = total > 0;
+    this.leader.visible = this.leaderRing.visible = showLeader;
+    if (showLeader) {
+      const tgt = this.split ? (this.split.left >= this.split.right ? -2.6 : 2.6) : this.x;
+      this.leaderX += (tgt - this.leaderX) * Math.min(1, dt * 14);
+      const ls = Math.max(2.1, unitScale * 1.9);
+      const ph = Math.sin(time * freq) * 0.05;
+      this.leader.position.set(this.leaderX, Math.abs(Math.sin(time * freq)) * bobAmp * ls, 0);
+      this.leader.rotation.set(ph, 0, lean);
+      this.leader.scale.setScalar(ls);
+      this.leaderRing.position.x = this.leaderX;
+      this.leaderRing.scale.setScalar(Math.max(1, ls * 0.6) * (1 + 0.06 * Math.sin(time * 6)));
+    }
   }
 
   /** World-space offset (along +z = behind the anchor) of the rearmost row, used for camera framing. */

@@ -76,10 +76,11 @@ export class SetView {
     set.gates.forEach((def) => {
       const tone = effectTone(def.effect);
       const color = TONE_COLOR[tone];
-      const w = def.x1 - def.x0 - 0.14;
+      // leave a clear gap between neighbouring gates (frames are 0.2 wide) so their edges never overlap or z-fight
+      const w = def.x1 - def.x0 - 0.46;
       const cx = (def.x0 + def.x1) / 2;
       const group = new THREE.Group();
-      group.position.set(cx, 0, 0);
+      group.position.set(cx, 0, 0.012 * (this.gates.length % 2));
       const mats: THREE.Material[] = [];
 
       const faceMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.24, depthWrite: false, side: THREE.DoubleSide, fog: false });
@@ -113,7 +114,7 @@ export class SetView {
       label.position.set(0, FACE_BOTTOM + FACE_H / 2, 0.05);
       group.add(label);
 
-      const obj: GateObj = { group, face, label, frame, mats, tex, baseHalf: w / 2, cx, fade: def.fade };
+      const obj: GateObj = { group, face, label, frame, mats, tex, baseHalf: (def.x1 - def.x0) / 2, cx, fade: def.fade };
       if (def.fade) {
         const barMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, fog: false });
         mats.push(barMat);
@@ -149,7 +150,7 @@ export class SetView {
     if (!g.fade) return { x0: def.x0, x1: def.x1 };
     // the gate narrows (never fully closes) so the army centre must be under the shrinking frame at the plane
     const p = this.fadeProgress(g);
-    const half = (g.baseHalf + 0.07) * (1 - 0.8 * p);
+    const half = g.baseHalf * (1 - 0.8 * p);
     return { x0: g.cx - half, x1: g.cx + half };
   }
 
