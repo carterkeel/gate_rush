@@ -37,3 +37,6 @@ under the key `gate-rush-save-v1`. They stay on that device and browser; clearin
 
 ## Notes
 `docs/index.html` is the built game. Rebuild and commit it after source changes.
+
+## License
+Public domain (The Unlicense, see `LICENSE`): use it however you like, no credit needed. The bundled three.js keeps its own MIT notice in `THIRD_PARTY_NOTICES.md`.
