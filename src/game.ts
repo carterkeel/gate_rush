@@ -40,6 +40,7 @@ export class Game {
   /** Test hook: sets where the crossing result was below best play. */
   misses: Array<{ kind: string; s: number; A: number; result: number; best: number; idx: number }> = [];
   private forecasting = false;
+  private heldRows: { from: number; to: number; x0: number; x1: number }[] = [];
   private setsSinceCoins = 0;
   private coinEvery = 5;
   private lastGateX = 0;
@@ -196,6 +197,7 @@ export class Game {
   // ------------------------------------------------------------------ run lifecycle
   private clearWorld(): void {
     this.coins.clear();
+    this.heldRows.length = 0;
     this.coinFrom = 0;
     this.setsSinceCoins = 0;
     this.coinEvery = 5;
@@ -315,6 +317,7 @@ export class Game {
     this.army.reset();
     this.mode = 'menu';
     this.playerS = 0;
+    this.world.reset(0);
     this.tutorial = null;
     this.ui.showMenu();
     sound.setMode('menu');
@@ -334,8 +337,13 @@ export class Game {
     }
     if (this.mode === 'run') this.updateRun(dt);
     else if (this.mode === 'over') this.updateOver(dt);
+    else if (this.mode === 'menu') {
+      // menu backdrop: slow fly-through that rotates the biomes
+      this.speed = 22;
+      this.playerS += this.speed * dt;
+    }
 
-    const running = this.mode === 'run' && !this.inCombat;
+    const running = (this.mode === 'run' && !this.inCombat) || this.mode === 'menu';
     this.world.update(this.playerS, this.time, dt);
     this.army.mesh.position.set(0, 0, -this.playerS);
     this.army.update(dt, this.time, this.speed, running);
@@ -392,6 +400,10 @@ export class Game {
     this.processQueue();
     if (!this.tutorial) {
       const radius = Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
+      if (this.heldRows.length && !this.inCombat && !this.queue.some((q) => q.type === 'combat')) {
+        for (const r of this.heldRows) this.coins.spawnRow(Math.max(r.from, this.playerS + 6), r.to, r.x0, r.x1);
+        this.heldRows.length = 0;
+      }
       const got = this.coins.update(dt, this.time, this.playerS, this.army.x, radius, (x, sPos) => {
         this.fx.burst(new THREE.Vector3(x, 1.2, -sPos), 0xffd54f, 7, 3.5);
       });
@@ -486,7 +498,11 @@ export class Game {
           if (this.setsSinceCoins >= this.coinEvery) {
             const b = bestResult(item, Math.max(1, ref));
             const tx = item.split ? (b.index === 0 ? -3.2 : 3.2) : (item.gates[b.index].x0 + item.gates[b.index].x1) / 2;
-            if (this.coins.spawnRow(Math.max(this.coinFrom, this.playerS + 6), zoneFrom, this.lastGateX, tx)) {
+            const from = Math.max(this.coinFrom, this.playerS + 6);
+            if (zoneFrom - from >= 5) {
+              // never show coins before the enemy ahead is dead: hold the row until the fight is over
+              if (this.queue.some((q) => q.type === 'combat') || this.inCombat) this.heldRows.push({ from, to: zoneFrom, x0: this.lastGateX, x1: tx });
+              else this.coins.spawnRow(from, zoneFrom, this.lastGateX, tx);
               this.setsSinceCoins = 0;
               this.coinEvery = 4 + Math.floor(Math.random() * 3);
             }
