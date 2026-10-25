@@ -1,3 +1,4 @@
+import { sound } from './audio';
 import { fmt } from './logic';
 import { SKINS, TRAILS } from './storage';
 import type { SaveData } from './storage';
@@ -47,6 +48,20 @@ export class UI {
     $('bScoresBack').onclick = () => this.showMenu();
     $('bAgain').onclick = () => this.onAgain();
     $('bMenu').onclick = () => this.onMenu();
+    const syncSnd = () =>
+      document.querySelectorAll<HTMLElement>('.snd').forEach((b) => {
+        const on = b.dataset.k === 'sfx' ? sound.sfxOn : sound.musicOn;
+        b.textContent = `${b.dataset.k === 'sfx' ? 'SFX' : 'MUSIC'}: ${on ? 'ON' : 'OFF'}`;
+      });
+    document.querySelectorAll<HTMLElement>('.snd').forEach((b) => {
+      b.onclick = () => {
+        sound.unlock();
+        if (b.dataset.k === 'sfx') sound.setSfx(!sound.sfxOn);
+        else sound.setMusic(!sound.musicOn);
+        syncSnd();
+      };
+    });
+    syncSnd();
     $('bPause').onclick = () => this.onPause();
     $('bResume').onclick = () => this.onResume();
     $('bRestart').onclick = () => this.onRestart();
@@ -123,9 +138,10 @@ export class UI {
     if (text) this.hint.textContent = text;
     this.hint.classList.toggle('on', !!text);
   }
-  setCombat(state: { text: string; frac: number } | null): void {
+  setCombat(state: { text: string; frac: number; boss?: boolean } | null): void {
     this.combat.classList.toggle('on', !!state);
     if (state) {
+      this.combat.classList.toggle('boss', !!state.boss);
       $('combatT').textContent = state.text;
       ($('combatBar') as HTMLElement).style.width = `${Math.max(0, Math.min(1, state.frac)) * 100}%`;
     }

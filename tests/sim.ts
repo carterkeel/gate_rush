@@ -49,6 +49,8 @@ let slipWins = 0;
 let critSum = 0;
 let weakFail = 0;
 let maxEnemies = 0;
+let earlyN = 0;
+let earlyCrit = 0;
 let enemyCountSum = 0;
 
 for (let seed = 1; seed <= SEEDS; seed++) {
@@ -76,7 +78,7 @@ for (let seed = 1; seed <= SEEDS; seed++) {
       }
       // fights must be able to kill: an under-sized army (a third of ref) must lose units or die
       const weak = simulateFight(Math.max(1, Math.floor(A / 3)), it.enemies);
-      if (A >= 30) {
+      if (A >= 30 && it.s >= 800) {
         weakTotal++;
         if (!weak.cleared) weakFail++;
         // two bad decisions (about 60 % of the expected army) must lose; a small slip (88 %) must still win
@@ -85,6 +87,7 @@ for (let seed = 1; seed <= SEEDS; seed++) {
         if (simulateFight(Math.round(A * (isBoss ? 0.95 : 0.9)), it.enemies).cleared) slipWins++;
         critSum += it.critical;
       }
+      if (it.s < 300) { earlyN++; earlyCrit += it.critical; }
       maxEnemies = Math.max(maxEnemies, it.enemies.length);
       enemyCountSum += it.enemies.length;
       A = Math.max(1, r.finalArmy);
@@ -162,6 +165,8 @@ console.log(`fights: ${fightsSeen} (bosses ${bossFights}), avg enemies ${(enemyC
 console.log(`best-play army lost on average ${((lossSum / Math.max(1, lossN)) * 100).toFixed(0)}% per fight (bosses ${((bossLossSum / Math.max(1, bossFights)) * 100).toFixed(0)}%)`);
 console.log(`an army a third of the expected size fails ${weakFail}/${weakTotal} fights`);
 console.log(`army at 60% of expected loses ${twoBadLose}/${cliffTotal} fights; at 90% (boss 95%) still wins ${slipWins}/${cliffTotal}; mean cliff ${(critSum / Math.max(1, cliffTotal) * 100).toFixed(0)}% of expected`);
+if (earlyN) console.log(`fights before 300 m: ${earlyN}, mean cliff ${(earlyCrit / earlyN * 100).toFixed(0)}% of expected`);
+if (earlyN && earlyCrit / earlyN > 0.6) fail('early fights are not forgiving enough');
 if (cliffTotal && twoBadLose / cliffTotal < 0.9) fail('two bad decisions do not lose enough fights');
 if (cliffTotal && slipWins / cliffTotal < 0.8) fail('a small slip loses too many fights');
 if (weakTotal && weakFail / weakTotal < 0.5) fail('fights are too soft for an undersized army');

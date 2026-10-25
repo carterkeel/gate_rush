@@ -11,8 +11,11 @@ import { balancedFight } from './fightGen';
 /** Best achievable army size after crossing a set, assuming the player picks the best gate for `army`. */
 export function bestResult(set: GateSet, army: number): { result: number; index: number } {
   if (set.split) {
-    const b = bestSplit(set.gates[0].effect, set.gates[1].effect, army);
-    return { result: b.total, index: b.toLeft > army / 2 ? 0 : 1 };
+    // Reachable result: commit the whole army to the better lane. A perfect mid-lane split can beat this,
+    // but it needs pixel-precise steering, so fights are balanced against the single-lane result.
+    const l = evalEffect(set.gates[0].effect, army);
+    const r = evalEffect(set.gates[1].effect, army);
+    return l >= r ? { result: l, index: 0 } : { result: r, index: 1 };
   }
   let best = -1;
   let idx = 0;

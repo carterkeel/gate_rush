@@ -10,6 +10,7 @@ import { UI } from './ui';
 import type { RunSummary } from './ui';
 import { Track, projectArmy, bestResult } from './track';
 import { TutorialSource } from './tutorial';
+import { sound } from './audio';
 import { evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save } from './storage';
@@ -61,6 +62,7 @@ export class Game {
   private hurtAcc = 0;
   private lossShown = 0;
   private lossT = 0;
+  private shotT = 0;
 
   // run stats
   private peak: number = CFG.startArmy;
@@ -142,6 +144,12 @@ export class Game {
     const up = () => (this.dragging = false);
     c.addEventListener('pointerup', up);
     c.addEventListener('pointercancel', up);
+    const unlock = () => sound.unlock();
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    document.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('button')) sound.click();
+    });
     window.addEventListener('keydown', (e) => this.key(e, true));
     window.addEventListener('keyup', (e) => this.key(e, false));
   }
@@ -206,6 +214,10 @@ export class Game {
     this.ui.setDist(0);
     this.ui.setCoins(0);
     this.ui.flashBanner(tutorial ? 'TUTORIAL' : 'GO!', 1000);
+    sound.setMode('run');
+    sound.setBiome(0);
+    sound.setPaused(false);
+    sound.start();
   }
 
   private pause(): void {
@@ -213,6 +225,8 @@ export class Game {
     this.mode = 'paused';
     this.dragging = false;
     this.keys.left = this.keys.right = false;
+    sound.setPaused(true);
+    sound.pause(true);
     this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`);
   }
 
@@ -221,6 +235,8 @@ export class Game {
     this.mode = 'run';
     this.lastT = 0;
     this.ui.hideScreens();
+    sound.setPaused(false);
+    sound.pause(false);
   }
 
   private toMenu(): void {
@@ -230,6 +246,8 @@ export class Game {
     this.playerS = 0;
     this.tutorial = null;
     this.ui.showMenu();
+    sound.setMode('menu');
+    sound.setPaused(false);
   }
 
   // ------------------------------------------------------------------ main loop
@@ -306,13 +324,17 @@ export class Game {
       this.combatClearT -= dt;
       this.combat.step(dt, 0, this.army.x, -this.playerS);
       if (this.combatClearT <= 0) this.combat.clear();
-    }
+    } else this.combat.idle(dt);
     this.cleanupViews();
     this.emitTrail(dt);
     const bi = biomeIndex(this.playerS);
     if (bi !== this.lastBiome) {
       this.lastBiome = bi;
-      if (!this.tutorial) this.ui.flashBanner(BIOMES[bi].name, 1800);
+      if (!this.tutorial) {
+        this.ui.flashBanner(BIOMES[bi].name, 1800);
+        sound.biome();
+        sound.setBiome(bi);
+      }
     }
     this.updateHud();
   }
@@ -548,6 +570,10 @@ export class Game {
     else if (delta < 0 && result < A * 0.6) this.fx.shake(0.3);
     this.trailT = 1.2;
     this.trailColor = color;
+    if (eff) {
+      if (delta < 0) sound.bad();
+      else sound.good(ratio);
+    }
   }
 
   // ------------------------------------------------------------------ combat
@@ -561,12 +587,23 @@ export class Game {
     this.hurtT = this.lossT = 0;
     this.ui.flashBanner(zone.boss ? 'BOSS FIGHT!' : zone.fightNo === 0 ? 'ENEMIES!' : 'TITAN AHEAD!', 1100);
     if (zone.boss) this.fx.shake(0.7);
+    sound.setMode('combat');
+    sound.fight(zone.boss);
+    this.shotT = 0;
   }
 
   private stepCombat(dt: number): void {
     const r = this.combat.step(dt, this.army.count, this.army.x, -this.playerS);
     this.kills = this.combat.kills;
     const zone = this.combatZone;
+    this.shotT -= dt;
+    if (this.shotT <= 0 && this.army.count > 0) {
+      sound.shot();
+      this.shotT = 0.1;
+    }
+    if (r.killedNow > 0) sound.kill(r.killedNow);
+    if (r.titansKilled > 0) sound.titan();
+    if (r.bossKilled > 0) sound.boss();
 
     // the enemy shoots back: friendly units die during the fight
     if (r.armyLoss > 0) {
@@ -588,6 +625,7 @@ export class Game {
     if (this.hurtAcc > 0 && this.hurtT <= 0) {
       this.fx.burst(new THREE.Vector3(this.army.x + (Math.random() - 0.5) * 4, 1, -this.playerS + (Math.random() - 0.5) * 3), 0xff3d4d, Math.min(24, 4 + this.hurtAcc * 2), 5);
       this.fx.shake(zone && zone.boss ? 0.28 : 0.15);
+      sound.hurt();
       this.hurtAcc = 0;
       this.hurtT = 0.16;
     }
@@ -612,6 +650,7 @@ export class Game {
 
     const label = zone && zone.boss ? 'BOSS FIGHT' : 'ENEMIES';
     this.ui.setCombat({
+      boss: !!(zone && zone.boss),
       text: `${label}  ${fmt(r.remainingHp)} HP   ${r.timeLeft.toFixed(1)}s`,
       frac: r.remainingHp / Math.max(1, this.combat.totalHp),
     });
@@ -621,6 +660,7 @@ export class Game {
   private endCombat(remaining: number): void {
     this.combat.active = false;
     this.ui.setCombat(null);
+    sound.setMode('run');
     const zone = this.combatZone;
     const A = this.army.count;
     const at = new THREE.Vector3(this.army.x, 3.2, -this.playerS - 6);
@@ -667,6 +707,8 @@ export class Game {
       return;
     }
     this.mode = 'over';
+    sound.setMode('menu');
+    sound.die();
     this.overT = 0;
     this.overAt = performance.now();
     this.inCombat = false;
@@ -704,8 +746,23 @@ export class Game {
       queue: this.queue.length,
       views: this.views.size,
       inCombat: this.inCombat,
+      zone: this.combatZone ? { no: this.combatZone.fightNo, ref: this.combatZone.refArmy, crit: this.combatZone.critical, boss: this.combatZone.boss, loss: this.combatZone.lossFrac } : null,
       head: head ? { type: head.type, kind: head.type === 'gates' ? head.kind : 'combat', s: head.s } : null,
     };
+  }
+  /** Test hook: advance the simulation without rendering. */
+  fastStep(dt: number): void {
+    this.time += dt;
+    if (this.mode === 'run') this.updateRun(dt);
+    else if (this.mode === 'over') this.updateOver(dt);
+    const running = this.mode === 'run' && !this.inCombat;
+    this.army.mesh.position.set(0, 0, -this.playerS);
+    this.army.update(dt, this.time, this.speed, running);
+    this.fx.update(dt);
+    for (const v of this.viewOrder) {
+      v.update(dt, 0, this.time);
+      v.root.visible = v.revealed;
+    }
   }
   steerTo(x: number): void {
     this.targetX = clamp(x, -4.4, 4.4);

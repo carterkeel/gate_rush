@@ -103,6 +103,8 @@ export class CombatSim {
   titanKills = 0;
   bossKills = 0;
   private shotAcc = 0;
+  /** 0 -> 1 fade/scale-in after the roster is placed, so enemies never pop out of thin air. */
+  private appear = 1;
 
   constructor(scene: THREE.Scene) {
     this.mesh = new THREE.InstancedMesh(enemyGeometry(), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
@@ -146,7 +148,13 @@ export class CombatSim {
     this.enemies = [...byKind.grunt, ...byKind.brute, ...byKind.titan, ...byKind.boss];
     this.totalHp = zone.enemies.reduce((a, e) => a + e.hp, 0);
     this.active = false;
+    this.appear = 0;
     this.render(0);
+  }
+
+  /** Advance the fade-in while the army is still approaching (step() does it during the fight). */
+  idle(dt: number): void {
+    if (this.appear < 1 && this.enemies.length) this.render(dt);
   }
 
   /** Enemies scale with the army that actually arrives: a bigger army meets proportionally bigger enemies. */
@@ -317,11 +325,17 @@ export class CombatSim {
 
   private render(dt: number): void {
     let n = 0;
+    this.appear = Math.min(1, this.appear + dt / 1.1);
+    const ease = this.appear * this.appear * (3 - 2 * this.appear);
+    const mat = this.mesh.material as THREE.MeshLambertMaterial;
+    mat.transparent = true;
+    mat.opacity = ease;
+    mat.needsUpdate = false;
     for (const e of this.enemies) {
       if (e.hp <= 0) e.gone = Math.min(1, e.gone + dt * (e.kind === 'grunt' ? 5 : 2));
       if (e.gone >= 1) continue;
       e.flash = Math.max(0, e.flash - dt * 6);
-      const sc = e.scale * (e.kind === 'grunt' ? 0.85 + 0.35 * Math.min(1, e.max / 12) : 1) * (1 - e.gone);
+      const sc = e.scale * (e.kind === 'grunt' ? 0.85 + 0.35 * Math.min(1, e.max / 12) : 1) * (1 - e.gone) * (0.7 + 0.3 * ease);
       this.p.set(e.x, e.gone * 0.4, e.z);
       this.q.identity();
       this.s.set(sc, sc, sc);

@@ -28,6 +28,9 @@ npm run typecheck
 npm run sim         # fairness simulation of the gate and fight generators
 ```
 
+## Sound
+All sound effects and the music loop are synthesised with the Web Audio API (no audio files). SFX and music can be toggled separately on the menu and pause screens; the choice is stored under `gate-rush-audio`.
+
 ## Save data
 Coins, skins, trails, high scores and the tutorial flag are stored in the browser's `localStorage`
 under the key `gate-rush-save-v1`. They stay on that device and browser; clearing site data resets them.

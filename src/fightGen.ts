@@ -52,12 +52,15 @@ export function criticalFraction(enemies: EnemySpec[], ref: number): number {
 /**
  * Scale a fight so it has a cliff: the army a best-play run should have (ref) wins, but an army that made a couple
  * of bad decisions (roughly 70 % of ref or less) loses units until it dies or runs out the clock.
- * Normal fights put the cliff at ~78 % of ref, boss fights at ~86 %.
+ * Late normal fights put the cliff at ~78 % of ref, boss fights at ~86 % (see `target`: earlier fights are softer).
  */
 export function balancedFight(ref: number, dist: number, fightNo: number, rng: Rng): BalancedFight {
   const boss = fightNo % 10 === 0;
   const titans = boss ? 2 : fightNo >= 4 && rng.chance(0.4) ? 2 : 1;
-  const target = boss ? 0.86 : 0.78;
+  // Forgiveness fades with distance: early fights tolerate a much smaller army (about 45 % of the expected size),
+  // from 800 m on the cliff sits at the full 78 % (boss 86 %).
+  const t = clamp((dist - 300) / 500, 0, 1);
+  const target = boss ? 0.55 + 0.31 * t : 0.45 + 0.33 * t;
   const H0 = 7 * ref + 16 + dist * 0.05;
   const D0 = Math.max(0.14 * ref, 0.7);
   let lo = 0.05;
