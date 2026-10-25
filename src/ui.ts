@@ -103,6 +103,60 @@ export class UI {
 
   private screens(on: string | null): void {
     for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'upgrades']) $(id).classList.toggle('on', id === on);
+    this.screenUp = on !== null;
+    this.syncLines();
+  }
+
+  // ------------------------------------------------------------- 2x speed lines (canvas streaks, only while actually running)
+  private fastOn = false;
+  private screenUp = true;
+  private lineRaf = 0;
+  private streaks: { a: number; r: number; v: number; len: number; w: number }[] = [];
+
+  private syncLines(): void {
+    const cv = $('speedlines') as HTMLCanvasElement;
+    const active = this.fastOn && !this.screenUp && $('hud').classList.contains('on');
+    cv.classList.toggle('on', active);
+    if (active && !this.lineRaf) {
+      let last = performance.now();
+      const frame = (t: number) => {
+        const dt = Math.min(0.05, (t - last) / 1000);
+        last = t;
+        this.drawLines(cv, dt);
+        this.lineRaf = requestAnimationFrame(frame);
+      };
+      this.lineRaf = requestAnimationFrame(frame);
+    } else if (!active && this.lineRaf) {
+      cancelAnimationFrame(this.lineRaf);
+      this.lineRaf = 0;
+      cv.getContext('2d')?.clearRect(0, 0, cv.width, cv.height);
+    }
+  }
+
+  private drawLines(cv: HTMLCanvasElement, dt: number): void {
+    const w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const g = cv.getContext('2d');
+    if (!g) return;
+    g.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h * 0.5, maxR = Math.hypot(w, h) / 2;
+    while (this.streaks.length < 38) {
+      this.streaks.push({ a: Math.random() * 6.283, r: Math.random() * maxR * 0.5, v: 0.6 + Math.random() * 0.8, len: 0.08 + Math.random() * 0.18, w: 1 + Math.random() * 1.6 });
+    }
+    g.lineCap = 'round';
+    for (const s of this.streaks) {
+      s.r += s.v * maxR * 1.7 * dt * (0.35 + s.r / maxR);
+      if (s.r > maxR) { s.a = Math.random() * 6.283; s.r = maxR * (0.18 + Math.random() * 0.25); s.v = 0.6 + Math.random() * 0.8; }
+      const k = s.r / maxR; // grows brighter and longer toward the edges
+      const r0 = s.r, r1 = s.r + maxR * s.len * (0.4 + k);
+      const c = Math.cos(s.a), n = Math.sin(s.a);
+      g.strokeStyle = `rgba(255,255,255,${Math.min(0.55, k * 0.7)})`;
+      g.lineWidth = s.w * (0.6 + k);
+      g.beginPath();
+      g.moveTo(cx + c * r0, cy + n * r0);
+      g.lineTo(cx + c * r1, cy + n * r1);
+      g.stroke();
+    }
   }
 
   showPause(info: string): void {
@@ -142,13 +196,15 @@ export class UI {
     b.classList.remove('pop');
     void b.offsetWidth;
     b.classList.add('pop');
-    $('speedlines').classList.toggle('on', on);
+    this.fastOn = on;
+    this.syncLines();
     $('bFast').classList.toggle('on', on);
     $('bFast').setAttribute('aria-pressed', String(on));
   }
 
   showHud(on: boolean): void {
     $('hud').classList.toggle('on', on);
+    this.syncLines();
     if (!on) {
       this.setCombat(null);
       this.setHint(null);

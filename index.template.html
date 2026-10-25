@@ -46,12 +46,8 @@
   @keyframes fastGlow { 0%,100%{box-shadow:0 0 8px 2px rgba(255,194,26,.55), 0 0 0 0 rgba(255,194,26,.5); transform:scale(1)} 50%{box-shadow:0 0 18px 6px rgba(255,160,0,.85), 0 0 0 10px rgba(255,194,26,0); transform:scale(1.07)} }
   @keyframes fastPop { 0%{transform:scale(.7) rotate(-14deg)} 60%{transform:scale(1.25) rotate(6deg)} 100%{transform:scale(1) rotate(0)} }
   @keyframes chevBlink { 0%,100%{opacity:.25} 50%{opacity:1} }
-  #speedlines { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .5s; z-index:1;
-    background: repeating-linear-gradient(90deg, transparent 0 17px, rgba(255,255,255,.34) 17px 19px, transparent 19px 41px, rgba(255,255,255,.22) 41px 42px, transparent 42px 73px);
-    background-size:100% 220px; animation: lines .28s linear infinite paused;
-    -webkit-mask-image:radial-gradient(ellipse at 50% 58%, transparent 38%, #000 82%); mask-image:radial-gradient(ellipse at 50% 58%, transparent 38%, #000 82%); }
-  #speedlines.on { opacity:.7; animation-play-state:running; }
-  @keyframes lines { from{background-position:0 0} to{background-position:0 220px} }
+  #speedlines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity .35s; z-index:1; }
+  #speedlines.on { opacity:1; }
   .coin { display:inline-block; width:.95em; height:.95em; margin:0 .3em 0 .1em; border-radius:50%; vertical-align:-.14em; background:radial-gradient(circle at 35% 30%, #fff7b8, #ffc21a 55%, #c47f00); border:2px solid #6b4200; box-shadow:inset 0 -2px 0 rgba(0,0,0,.22); -webkit-text-stroke:0; }
   button .coin { width:.9em; height:.9em; }
   .boostToggle { -webkit-text-stroke:0; text-shadow:none; display:inline-flex; align-items:center; justify-content:center; gap:10px; font-size:14px; letter-spacing:1.5px; padding:9px 14px; }
@@ -135,13 +131,47 @@
   .sliders input[type=range]::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:#fff; border:3px solid var(--ink); }
   .row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   #fallback { display:none; position:absolute; inset:0; align-items:center; justify-content:center; text-align:center; padding:30px; font-family:system-ui,sans-serif; background:#0a0f1c; z-index:9; }
+
+  /* ---- minimal menu theme ---- */
+  .screen { gap:10px; background:rgba(6,9,18,.82); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight:600; }
+  .screen h1 { font-size:min(15vw,84px); line-height:.95; letter-spacing:6px; font-weight:800; -webkit-text-stroke:0; text-shadow:none; margin-bottom:10px; }
+  .screen h1 span:nth-child(1){ color:#fff; } .screen h1 span:nth-child(2){ color:var(--green); }
+  .screen h2 { font-size:min(6vw,24px); letter-spacing:6px; font-weight:700; -webkit-text-stroke:0; margin-bottom:6px; opacity:.95; }
+  .screen .tag { font-weight:500; opacity:.6; letter-spacing:.3px; font-size:min(3.8vw,14px); }
+  .screen button { font:inherit; font-weight:700; letter-spacing:3px; font-size:min(4.4vw,16px); padding:15px 24px; width:min(78vw,280px); min-width:0; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07); color:#fff; -webkit-text-stroke:0; box-shadow:none; transition:background .15s, transform .1s; }
+  .screen button:hover { background:rgba(255,255,255,.13); }
+  .screen button:active { transform:scale(.98); box-shadow:none; }
+  .screen button#bPlay, .screen button.warn { background:var(--green); border-color:transparent; color:#04210f; }
+  .screen button#bPlay:hover, .screen button.warn:hover { background:#3cf085; }
+  .screen button.alt { background:rgba(255,255,255,.07); }
+  .screen button.ghost { background:transparent; border-color:transparent; opacity:.65; padding:10px 18px; font-size:min(3.8vw,13px); width:auto; }
+  .screen button.ghost:hover { opacity:1; background:rgba(255,255,255,.06); }
+  .screen button:disabled { opacity:.35; filter:none; }
+  .screen .card, .screen .sum, .screen .learn, .screen table, .screen .hl { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); box-shadow:none; border-radius:16px; font-family:inherit; font-weight:600; }
+  .screen .card.eq { border-color:var(--green); box-shadow:none; }
+  .screen .card button { width:100%; padding:9px; font-size:min(3.4vw,12px); letter-spacing:1.5px; border-radius:10px; background:rgba(255,255,255,.1); }
+  .screen .card button.alt { background:rgba(255,255,255,.1); }
+  .screen .card .sw { border:0; height:26px; }
+  .screen .card.up b { letter-spacing:3px; font-weight:700; }
+  .screen .upIcon { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); }
+  .screen .pips i { border:0; background:rgba(255,255,255,.14); } .screen .pips i.on { background:var(--green); }
+  .screen .learn b { border:0; box-shadow:none; }
+  .screen .sum { gap:8px 18px; } .screen .sum .big { color:#fff; }
+  .screen .hl { color:#dfe8ff; background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.1); }
+  .screen .newbest { -webkit-text-stroke:0; font-size:min(4.4vw,15px); letter-spacing:4px; }
+  .screen th { background:transparent; } .screen #tutDone h1, #tutDone h1 { font-size:min(10vw,48px); }
+  .screen .boostToggle { width:auto; background:rgba(255,255,255,.07); opacity:1; border:1px solid rgba(255,255,255,.14); }
+  .screen .boostToggle.on { background:rgba(255,194,26,.18); color:var(--yellow); border-color:rgba(255,194,26,.5); box-shadow:none; }
+  .screen .boostToggle .bm { background:rgba(255,255,255,.12); }
+  .screen .coin { border-width:1px; }
+  #bSkinsBack, #bScoresBack { box-shadow:0 0 0 6px rgba(6,9,18,.85); background:rgba(30,36,52,.95) !important; opacity:1 !important; }
 </style>
 </head>
 <body>
 <div id="app">
   <canvas id="c"></canvas>
   <div id="popups"></div>
-  <div id="speedlines"></div>
+  <canvas id="speedlines"></canvas>
 
   <div id="hud">
     <div id="dist" class="stat"><small>DISTANCE</small><span id="distV">0</span> m</div>
