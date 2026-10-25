@@ -190,7 +190,7 @@ export class UI {
   // ------------------------------------------------------------- skins
   showSkins(): void {
     const d = this.save();
-    $('skinCoins').textContent = `Coins: ${d.coins}  •  cosmetics only, never pay-to-win`;
+    $('skinCoins').textContent = `Coins: ${d.coins}  •  cosmetics only`;
     const mk = (kind: 'skin' | 'trail') => {
       const list = kind === 'skin' ? SKINS : TRAILS;
       const owned = kind === 'skin' ? d.ownedSkins : d.ownedTrails;
