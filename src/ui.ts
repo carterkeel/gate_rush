@@ -48,6 +48,8 @@ export class UI {
     $('bScoresBack').onclick = () => this.showMenu();
     $('bAgain').onclick = () => this.onAgain();
     $('bMenu').onclick = () => this.onMenu();
+    $('bTutPlay').onclick = () => this.onAgain();
+    $('bTutMenu').onclick = () => this.onMenu();
     const syncSnd = () =>
       document.querySelectorAll<HTMLElement>('.snd').forEach((b) => {
         const on = b.dataset.k === 'sfx' ? sound.sfxOn : sound.musicOn;
@@ -69,7 +71,7 @@ export class UI {
   }
 
   private screens(on: string | null): void {
-    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause']) $(id).classList.toggle('on', id === on);
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone']) $(id).classList.toggle('on', id === on);
   }
 
   showPause(info: string): void {
@@ -169,12 +171,7 @@ export class UI {
 
   showTutorialDone(): void {
     this.showHud(false);
-    $('sumTitle').textContent = 'TUTORIAL COMPLETE';
-    $('sumNew').style.display = 'none';
-    $('sumGrid').innerHTML = `<div>NEXT</div><div>Make a huge army!</div>`;
-    $('sumHl').style.display = 'none';
-    $('bAgain').textContent = 'PLAY';
-    this.screens('summary');
+    this.screens('tutDone');
   }
 
   // ------------------------------------------------------------- skins
