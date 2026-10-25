@@ -1,6 +1,6 @@
 import { sound } from './audio';
 import { fmt } from './logic';
-import { SKINS, TRAILS } from './storage';
+import { SKINS, TRAILS, SPEED_COST, START_MAX_LEVEL, startCost, startMeters } from './storage';
 import type { SaveData } from './storage';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -13,6 +13,7 @@ export interface RunSummary {
   kills: number;
   score: number;
   coins: number;
+  start: number; // head start metres used this run (0 = none)
   highlight: string | null;
   newBest: boolean;
 }
@@ -24,6 +25,7 @@ export class UI {
   onMenu = () => {};
   onPause = () => {};
   onFast = () => {};
+  onUpgrade = () => {}; // upgrades changed (speed unlock)
   onResume = () => {};
   onRestart = () => {};
   onChange = () => {}; // cosmetics changed
@@ -80,13 +82,23 @@ export class UI {
     bind('sfxVol', 'sfxOut', () => sound.sfxVol, (v) => sound.setSfxVolume(v), true);
     $('bPause').onclick = () => this.onPause();
     $('bFast').onclick = () => this.onFast();
+    $('bUpgrades').onclick = () => this.showUpgrades();
+    $('bUpBack').onclick = () => this.showMenu();
+    document.querySelectorAll<HTMLButtonElement>('.boostToggle').forEach((b) => {
+      b.onclick = () => {
+        const d = this.save();
+        d.startOn = !d.startOn;
+        this.persist();
+        this.syncBoost();
+      };
+    });
     $('bResume').onclick = () => this.onResume();
     $('bRestart').onclick = () => this.onRestart();
     $('bQuit').onclick = () => this.onMenu();
   }
 
   private screens(on: string | null): void {
-    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings']) $(id).classList.toggle('on', id === on);
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'upgrades']) $(id).classList.toggle('on', id === on);
   }
 
   showPause(info: string): void {
@@ -98,7 +110,23 @@ export class UI {
     $('bFast').style.display = on ? '' : 'none';
   }
 
+  /** Keep every head-start toggle (menu, summary) in step with the save. */
+  syncBoost(): void {
+    const d = this.save();
+    const m = startMeters(d.startLevel);
+    document.querySelectorAll<HTMLElement>('.boostToggle').forEach((b) => {
+      b.style.display = d.startLevel > 0 ? '' : 'none';
+      b.textContent = d.startOn ? `HEAD START: +${m} m` : 'HEAD START: OFF';
+      b.classList.toggle('on', d.startOn);
+    });
+  }
+
   setFast(on: boolean): void {
+    const b = $('bFast');
+    b.classList.remove('pop');
+    void b.offsetWidth;
+    b.classList.add('pop');
+    $('speedlines').classList.toggle('on', on);
     $('bFast').classList.toggle('on', on);
     $('bFast').setAttribute('aria-pressed', String(on));
   }
@@ -113,6 +141,7 @@ export class UI {
   }
 
   showMenu(): void {
+    this.syncBoost();
     this.showHud(false);
     $('menuCoins').textContent = `Coins: ${this.save().coins}`;
     this.screens('menu');
@@ -183,6 +212,7 @@ export class UI {
       ['DISTANCE', `${Math.floor(s.distance)} m`],
       ['PEAK ARMY', fmt(s.peak)],
       ['ENEMIES KILLED', String(s.kills)],
+      ...(s.start > 0 ? ([['HEAD START', `+${s.start} m`]] as Array<[string, string, boolean?]>) : []),
       ['SCORE', fmt(s.score), true],
       ['COINS EARNED', `+${s.coins}`],
     ];
@@ -190,12 +220,67 @@ export class UI {
     const hl = $('sumHl');
     hl.style.display = s.highlight ? 'block' : 'none';
     if (s.highlight) hl.textContent = '★ Best complex choice: ' + s.highlight;
+    this.syncBoost();
     this.screens('summary');
   }
 
   showTutorialDone(): void {
     this.showHud(false);
     this.screens('tutDone');
+  }
+
+  // ------------------------------------------------------------- upgrades
+  showUpgrades(): void {
+    const d = this.save();
+    const lvl = d.startLevel;
+    const next = lvl + 1;
+    const maxed = lvl >= START_MAX_LEVEL;
+    $('upCoins').textContent = `Coins: ${d.coins}`;
+    const pips = Array.from({ length: START_MAX_LEVEL }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('');
+    const canStart = !maxed && d.coins >= startCost(next);
+    const canSpeed = !d.speedUnlocked && d.coins >= SPEED_COST;
+    $('upGrid').innerHTML = `
+      <div class="card up ${d.speedUnlocked ? 'eq' : ''}">
+        <div class="upIcon">2×</div>
+        <b>DOUBLE SPEED</b>
+        <small>${d.speedUnlocked ? 'Unlocked: use the 2× button in a run' : 'Unlock a 2× run-speed button. Faster, harder, same rules.'}</small>
+        <button data-up="speed" ${d.speedUnlocked || !canSpeed ? 'disabled' : ''}>${d.speedUnlocked ? 'UNLOCKED' : `UNLOCK • ${SPEED_COST}`}</button>
+      </div>
+      <div class="card up ${lvl > 0 ? 'eq' : ''}">
+        <div class="upIcon">➤</div>
+        <b>HEAD START</b>
+        <small>${lvl > 0 ? `Begin each run at ${startMeters(lvl)} m with an army to match.` : 'Skip the early game: start further along, with an army to match.'}</small>
+        <div class="pips">${pips}</div>
+        <small>Level ${lvl}/${START_MAX_LEVEL}${maxed ? '' : `  •  next: ${startMeters(next)} m`}</small>
+        <button data-up="start" ${!canStart ? 'disabled' : ''}>${maxed ? 'MAXED' : `UPGRADE • ${startCost(next)}`}</button>
+        ${lvl > 0 ? '<button class="ghost boostToggle"></button>' : ''}
+      </div>`;
+    document.querySelectorAll<HTMLButtonElement>('#upGrid .boostToggle').forEach((b) => {
+      b.onclick = () => {
+        d.startOn = !d.startOn;
+        this.persist();
+        this.syncBoost();
+      };
+    });
+    document.querySelectorAll<HTMLButtonElement>('#upGrid button[data-up]').forEach((b) => {
+      b.onclick = () => {
+        sound.unlock();
+        if (b.dataset.up === 'speed' && !d.speedUnlocked && d.coins >= SPEED_COST) {
+          d.coins -= SPEED_COST;
+          d.speedUnlocked = true;
+        } else if (b.dataset.up === 'start' && d.startLevel < START_MAX_LEVEL && d.coins >= startCost(d.startLevel + 1)) {
+          d.coins -= startCost(d.startLevel + 1);
+          d.startLevel++;
+          d.startOn = true; // a fresh upgrade is switched on, so the player sees what it does
+        } else return;
+        sound.good(2.5);
+        this.persist();
+        this.onUpgrade();
+        this.showUpgrades();
+      };
+    });
+    this.syncBoost();
+    this.screens('upgrades');
   }
 
   // ------------------------------------------------------------- skins

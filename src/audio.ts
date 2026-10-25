@@ -228,6 +228,13 @@ class Sound {
     if (!this.ok()) return;
     [392, 494, 587].forEach((f, i) => this.tone(f, 0.25, 'sine', 0.12, 0, i * 0.1));
   }
+  boost(on: boolean): void {
+    if (!this.ok()) return;
+    if (on) {
+      this.tone(220, 0.35, 'sawtooth', 0.12, 880);
+      this.noise(0.35, 0.1, 3000, 0.6, 0, 'highpass');
+    } else this.tone(660, 0.25, 'sawtooth', 0.1, 200);
+  }
   pause(on: boolean): void {
     if (!this.ok()) return;
     this.tone(on ? 440 : 660, 0.1, 'triangle', 0.12, on ? 330 : 880);

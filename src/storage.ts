@@ -1,7 +1,7 @@
 // Persistent progress: coins, owned/equipped cosmetics, high scores, tutorial flag. localStorage, fail-safe.
 export interface ScoreEntry {
   score: number;
-  distance: number;
+  distance: number; // metres run this round (not counting a head start)
   peak: number;
   kills: number;
   date: number;
@@ -14,6 +14,9 @@ export interface SaveData {
   trail: string;
   scores: ScoreEntry[];
   tutorialDone: boolean;
+  speedUnlocked: boolean; // 2x speed button
+  startLevel: number; // head-start upgrade level, 0..START_MAX_LEVEL
+  startOn: boolean; // use the head start on the next run
 }
 
 export interface SkinDef {
@@ -62,7 +65,22 @@ const DEFAULTS = (): SaveData => ({
   trail: 'plain',
   scores: [],
   tutorialDone: false,
+  speedUnlocked: false,
+  startLevel: 0,
+  startOn: false,
 });
+
+// ---- upgrades -----------------------------------------------------------------------------------------------
+export const SPEED_COST = 1000;
+export const START_MAX_LEVEL = 15;
+/** Head-start distance at an upgrade level: 100 m at level 1, +50 m per level, 800 m at level 15. */
+export function startMeters(level: number): number {
+  return level <= 0 ? 0 : 100 + 50 * (Math.min(level, START_MAX_LEVEL) - 1);
+}
+/** Coins to buy upgrade `level` (1..15): 100 for the first, growing ~30 % per level (about 3.9K for the last). */
+export function startCost(level: number): number {
+  return Math.round((100 * Math.pow(1.3, level - 1)) / 10) * 10;
+}
 
 export function load(): SaveData {
   try {

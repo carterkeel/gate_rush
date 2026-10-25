@@ -7,6 +7,7 @@ import { addGate, clamp, genSimple, genTypeA, genTypeB, hasNonDisastrous, target
 import type { SimpleCategory } from './gateGen';
 import { genTypeC, genTypeD } from './gateGenSpecial';
 import { balancedFight } from './fightGen';
+import { simulateFight } from './combatModel';
 
 /** Best achievable army size after crossing a set, assuming the player picks the best gate for `army`. */
 export function bestResult(set: GateSet, army: number): { result: number; index: number } {
@@ -181,4 +182,31 @@ export class Track {
     out[worst] = isSafe(g) ? g : opE(add(Math.max(2, niceRound(ref * 0.12))));
     return out;
   }
+}
+
+/**
+ * Head start: play a fresh track with best-play decisions up to `meters` and hand back the track (positioned there)
+ * plus the army a good run would have by then, so the content ahead is as hard as at that distance.
+ * The army is 90 % of best play: a skilled but imperfect run, safely above the fight cliff.
+ */
+export function headStartTrack(meters: number): { track: Track; army: number } {
+  // best-play armies vary a lot from seed to seed (multiplier streaks): take the median of three tracks
+  const c = [0, 1, 2].map(() => oneHeadStart(meters)).sort((a, b) => a.army - b.army);
+  return c[1];
+}
+
+function oneHeadStart(meters: number): { track: Track; army: number } {
+  const t = new Track();
+  let A = 1;
+  for (let guard = 0; guard < 4000; guard++) {
+    const it = t.next(A);
+    if (it.s >= meters) {
+      if (it.type === 'combat') t.fights--; // that fight is generated again later
+      break;
+    }
+    if (it.type === 'combat') A = Math.max(1, simulateFight(A, it.enemies).finalArmy);
+    else A = Math.max(1, bestResult(it, A).result);
+  }
+  t.cursor = meters;
+  return { track: t, army: Math.max(1, Math.floor(A * 0.9)) };
 }

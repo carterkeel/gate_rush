@@ -33,8 +33,34 @@
   @keyframes up { 0%{transform:scale(1.25)} 100%{transform:scale(1)} }
   @keyframes down { 0%{transform:scale(.8)} 100%{transform:scale(1)} }
   #bPause { position:absolute; right:14px; top:calc(max(10px, env(safe-area-inset-top)) + min(8.6vw,50px) * 1.45 + 24px); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
-  #bFast { position:absolute; left:12px; bottom:max(20px, env(safe-area-inset-bottom)); width:48px; height:48px; padding:0; border-radius:50%; font-size:17px; line-height:1; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; }
-  #bFast.on { background:linear-gradient(#ffd54f,#ffa000); color:#201400; border-color:#7a4a00; box-shadow:0 0 14px rgba(255,194,26,.6); }
+  #bFast { position:absolute; left:12px; bottom:max(20px, env(safe-area-inset-bottom)); width:54px; height:54px; padding:0; border-radius:50%; font-size:19px; line-height:1; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; overflow:hidden; animation: fastIdle 3.2s ease-in-out infinite; }
+  #bFast .x2 { position:relative; z-index:1; }
+  #bFast .chev { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; gap:0; padding-bottom:7px; opacity:0; }
+  #bFast .chev i { width:8px; height:8px; margin-left:-1px; border-top:3px solid rgba(40,24,0,.55); border-right:3px solid rgba(40,24,0,.55); transform:rotate(45deg); }
+  #bFast.on { background:linear-gradient(#ffd54f,#ff9800); color:#201400; border-color:#7a4a00; animation: fastGlow .9s ease-in-out infinite; }
+  #bFast.on .chev { opacity:1; }
+  #bFast.on .chev i:nth-child(2) { animation: chevBlink .7s linear .12s infinite; } #bFast.on .chev i:nth-child(3) { animation: chevBlink .7s linear .24s infinite; } #bFast.on .chev i:nth-child(1) { animation: chevBlink .7s linear 0s infinite; }
+  #bFast.on .x2 { transform:translateY(-10px); font-size:16px; }
+  #bFast.pop { animation: fastPop .45s cubic-bezier(.2,1.6,.4,1) 1; }
+  @keyframes fastIdle { 0%,80%,100%{transform:scale(1)} 88%{transform:scale(1.12)} 94%{transform:scale(.97)} }
+  @keyframes fastGlow { 0%,100%{box-shadow:0 0 8px 2px rgba(255,194,26,.55), 0 0 0 0 rgba(255,194,26,.5); transform:scale(1)} 50%{box-shadow:0 0 18px 6px rgba(255,160,0,.85), 0 0 0 10px rgba(255,194,26,0); transform:scale(1.07)} }
+  @keyframes fastPop { 0%{transform:scale(.7) rotate(-14deg)} 60%{transform:scale(1.25) rotate(6deg)} 100%{transform:scale(1) rotate(0)} }
+  @keyframes chevBlink { 0%,100%{opacity:.25} 50%{opacity:1} }
+  #speedlines { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .5s; z-index:1;
+    background: repeating-linear-gradient(90deg, transparent 0 17px, rgba(255,255,255,.34) 17px 19px, transparent 19px 41px, rgba(255,255,255,.22) 41px 42px, transparent 42px 73px);
+    background-size:100% 220px; animation: lines .28s linear infinite paused;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 58%, transparent 38%, #000 82%); mask-image:radial-gradient(ellipse at 50% 58%, transparent 38%, #000 82%); }
+  #speedlines.on { opacity:.7; animation-play-state:running; }
+  @keyframes lines { from{background-position:0 0} to{background-position:0 220px} }
+  .boostToggle.on { background:linear-gradient(#ffd54f,#ff9800); color:#201400; border-color:#7a4a00; }
+  .upgrid { display:grid; gap:12px; width:min(100%,460px); }
+  .card.up { display:grid; gap:6px; justify-items:center; }
+  .card.up b { font-size:min(5vw,19px); letter-spacing:2px; }
+  .card.up small { margin:0; }
+  .upIcon { width:52px; height:52px; border-radius:14px; display:grid; place-items:center; font-size:26px; background:linear-gradient(#5b8cff,#2f55d6); border:2px solid var(--ink); }
+  .pips { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; }
+  .pips i { width:14px; height:14px; border-radius:4px; background:rgba(255,255,255,.14); border:2px solid var(--ink); }
+  .pips i.on { background:linear-gradient(#ffd54f,#ff9800); }
   #banner { position:absolute; left:50%; top:28%; transform:translateX(-50%); text-align:center; font-size:min(9vw,48px); color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; display:none; width:90%; }
   #banner.on { display:block; animation: ban .5s ease-out; }
   @keyframes ban { from{transform:translateX(-50%) scale(.6); opacity:0} to{transform:translateX(-50%) scale(1); opacity:1} }
@@ -100,13 +126,14 @@
 <div id="app">
   <canvas id="c"></canvas>
   <div id="popups"></div>
+  <div id="speedlines"></div>
 
   <div id="hud">
     <div id="dist" class="stat"><small>DISTANCE</small><span id="distV">0</span> m</div>
     <div id="army" class="stat"><small>ARMY</small><span id="armyV">1</span></div>
     <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
     <button id="bPause" class="ghost" aria-label="Pause" title="Pause (Esc / P)">❚❚</button>
-    <button id="bFast" class="ghost" aria-label="Double speed" aria-pressed="false" title="Double speed">2×</button>
+    <button id="bFast" class="ghost" aria-label="Double speed" aria-pressed="false" title="Double speed"><span class="x2">2×</span><span class="chev"><i></i><i></i><i></i></span></button>
     <div id="banner"></div>
     <div id="combat"><div id="combatT">ENEMIES</div><div class="bar"><i id="combatBar"></i></div></div>
     <div id="hint"></div>
@@ -117,10 +144,19 @@
     <div class="tag">Slide left and right. Pick the gate with the best math.</div>
     <button id="bPlay">PLAY</button>
     <button id="bSkins" class="alt">SKINS</button>
+    <button id="bUpgrades" class="alt">UPGRADES</button>
     <button id="bScores" class="alt">HIGH SCORES</button>
+    <button class="ghost boostToggle" style="display:none"></button>
     <button id="bTutorial" class="ghost">HOW TO PLAY</button>
     <button id="bSettings" class="ghost">SETTINGS</button>
     <div class="tag" id="menuCoins"></div>
+  </div>
+
+  <div id="upgrades" class="screen">
+    <h2>UPGRADES</h2>
+    <div class="tag" id="upCoins"></div>
+    <div class="upgrid" id="upGrid"></div>
+    <button id="bUpBack" class="ghost">BACK</button>
   </div>
 
   <div id="skins" class="screen">
@@ -181,6 +217,7 @@
     <div class="sum" id="sumGrid"></div>
     <div class="hl" id="sumHl" style="display:none"></div>
     <div class="row">
+      <button class="ghost boostToggle" style="display:none"></button>
       <button id="bAgain" class="warn">PLAY AGAIN</button>
       <button id="bMenu" class="ghost">MENU</button>
     </div>

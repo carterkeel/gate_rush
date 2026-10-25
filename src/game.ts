@@ -8,12 +8,12 @@ import { CombatSim } from './enemies';
 import { SetView, TONE_COLOR } from './gateView';
 import { UI } from './ui';
 import type { RunSummary } from './ui';
-import { Track, projectArmy, bestResult } from './track';
+import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
 import { evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
-import { SKINS, TRAILS, addScore, load, save } from './storage';
+import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
 import type { SaveData } from './storage';
 import type { CombatZone, GateSet, ItemSource, TrackItem } from './types';
 
@@ -75,6 +75,8 @@ export class Game {
   private overAt = 0;
   private summary: RunSummary | null = null;
   private tutorialFinished = false;
+  private startDist = 0; // head start: metres skipped at the beginning of this run
+  private startArmy: number = CFG.startArmy; // army handed out with the head start
 
   private camBack = 12;
   private lastBiome = 0;
@@ -213,14 +215,18 @@ export class Game {
     this.summary = null;
     this.tutorialFinished = false;
     this.lastBiome = 0;
+    this.startDist = 0;
+    this.startArmy = CFG.startArmy;
+    const boost = !tutorial && this.data.startOn ? startMeters(this.data.startLevel) : 0;
+    if (boost > 0) this.applyHeadStart(boost);
     this.ui.resetHud();
     this.ui.hideScreens();
     this.ui.showHud(true);
     this.ui.setArmy(this.army.count);
-    this.ui.showFast(!tutorial);
+    this.ui.showFast(!tutorial && this.data.speedUnlocked);
     this.ui.setDist(0);
     this.ui.setCoins(0);
-    this.ui.flashBanner(tutorial ? 'TUTORIAL' : 'GO!', 1000);
+    this.ui.flashBanner(tutorial ? 'TUTORIAL' : boost > 0 ? `HEAD START +${boost} m` : 'GO!', boost > 0 ? 1600 : 1000);
     sound.setMode('run');
     sound.setBiome(0);
     sound.setPaused(false);
@@ -230,6 +236,7 @@ export class Game {
   /** Optional 2x run speed (remembered). Ignored in the tutorial. */
   private fast = false;
   private setFast(on: boolean): void {
+    if (on !== this.fast) sound.boost(on);
     this.fast = on;
     this.ui.setFast(on);
     try {
@@ -256,6 +263,24 @@ export class Game {
     this.ui.hideScreens();
     sound.setPaused(false);
     sound.pause(false);
+  }
+
+  /** Jump the fresh run ahead to `meters` with the army (and a track) a good run would have there. */
+  private applyHeadStart(meters: number): void {
+    const hs = headStartTrack(meters);
+    this.source = hs.track;
+    this.playerS = meters;
+    this.startDist = meters;
+    this.startArmy = hs.army;
+    this.army.setCount(hs.army);
+    this.peak = hs.army;
+    this.world.reset(meters);
+    this.lastBiome = biomeIndex(meters);
+    // the run clock drives the speed curve: advance it as if the distance had been driven
+    let t = 0;
+    for (let d = 0; d < meters; t += 0.1) d += speedAt(t) * 0.1;
+    this.runTime = t;
+    this.speed = speedAt(t);
   }
 
   private toMenu(): void {
@@ -323,7 +348,7 @@ export class Game {
   // ------------------------------------------------------------------ run update
   private updateRun(dt: number): void {
     this.runTime += dt;
-    this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime) * (this.fast ? 2 : 1);
+    this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime) * (this.fast && this.data.speedUnlocked ? 2 : 1);
 
     if (this.keys.left) this.targetX -= CFG.keyboardLateralSpeed * dt;
     if (this.keys.right) this.targetX += CFG.keyboardLateralSpeed * dt;
@@ -370,7 +395,7 @@ export class Game {
 
   private coinsEarned(): number {
     if (this.tutorial) return 0;
-    return Math.floor(this.playerS / CFG.metersPerCoin) + this.bonusCoins + Math.floor(this.kills / 2);
+    return Math.floor((this.playerS - this.startDist) / CFG.metersPerCoin) + this.bonusCoins + Math.floor(this.kills / 2);
   }
 
   private emitTrail(dt: number): void {
@@ -713,7 +738,7 @@ export class Game {
     this.mode = 'over';
     this.overT = 0;
     this.overAt = performance.now();
-    this.summary = { title: '', distance: 0, peak: 0, kills: 0, score: 0, coins: 0, highlight: null, newBest: false };
+    this.summary = { title: '', distance: 0, peak: 0, kills: 0, score: 0, coins: 0, start: 0, highlight: null, newBest: false };
     this.ui.setHint(null);
   }
 
@@ -734,8 +759,9 @@ export class Game {
     this.army.setCount(0);
     this.fx.burst(new THREE.Vector3(this.army.x, 1, -this.playerS), 0xff3d4d, 160, 9);
     this.fx.shake(1.0);
-    const distance = Math.floor(this.playerS);
-    const score = distance * CFG.scoreDistMul + this.peak * CFG.scorePeakMul + this.kills * CFG.scoreKillMul;
+    // a head start does not count towards score or coins: only what is run, and the army grown beyond the gift
+    const distance = Math.floor(this.playerS - this.startDist);
+    const score = distance * CFG.scoreDistMul + Math.max(0, this.peak - this.startArmy) * CFG.scorePeakMul + this.kills * CFG.scoreKillMul;
     const coins = this.coinsEarned();
     this.data.coins += coins;
     const newBest = addScore(this.data, { score, distance, peak: this.peak, kills: this.kills, date: Date.now() });
@@ -747,6 +773,7 @@ export class Game {
       kills: this.kills,
       score,
       coins,
+      start: this.startDist,
       highlight: this.bestHl ? this.bestHl.text : null,
       newBest,
     };
