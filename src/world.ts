@@ -259,7 +259,7 @@ export class World {
     const needHalfWidth = CFG.halfWidth * 1.12;
     const hfov = 2 * Math.atan(needHalfWidth / focus);
     const vfovFromWidth = 2 * Math.atan(Math.tan(hfov / 2) / aspect);
-    this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(vfovFromWidth), 38, 78);
+    this.camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(vfovFromWidth), 58, 78); // 58 = a typical phone's vertical view, so wide screens see as far ahead
     this.camera.updateProjectionMatrix();
   }
 
