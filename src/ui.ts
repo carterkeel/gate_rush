@@ -49,7 +49,8 @@ export class UI {
     $('bPlay').onclick = () => this.onPlay();
     $('bTutorial').onclick = () => this.onTutorial();
     $('bSkins').onclick = () => this.showSkins();
-    $('bScores').onclick = () => this.showScores();
+    $('topScores').onclick = () => this.showScores();
+    $('topScores').onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') this.showScores(); };
     $('bSkinsBack').onclick = () => this.showMenu();
     $('bScoresBack').onclick = () => this.showMenu();
     $('bAgain').onclick = () => this.onAgain();
@@ -60,6 +61,7 @@ export class UI {
     let from: 'menu' | 'pause' = 'menu';
     const open = (f: 'menu' | 'pause') => {
       from = f;
+      $('bTutorial').style.display = f === 'menu' ? '' : 'none';
       this.screens('settings');
     };
     $('bSettings').onclick = () => open('menu');
@@ -202,7 +204,12 @@ export class UI {
     $('bFast').setAttribute('aria-pressed', String(on));
   }
 
+  showTutorialTag(on: boolean): void {
+    $('tutTag').classList.toggle('on', on);
+  }
+
   showHud(on: boolean): void {
+    if (!on) this.showTutorialTag(false);
     $('hud').classList.toggle('on', on);
     this.syncLines();
     if (!on) {
@@ -216,6 +223,13 @@ export class UI {
     this.syncBoost();
     this.showHud(false);
     $('menuCoins').innerHTML = `Coins: ${coinHtml(this.save().coins)}`;
+    $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'PLAY TUTORIAL';
+    const top = this.save().scores.slice(0, 3);
+    $('topScores').innerHTML =
+      `<div class="th"><span>TOP SCORES</span><span>›</span></div>` +
+      (top.length
+        ? top.map((t, i) => `<div class="r"><i>${i + 1}</i><b>${fmt(t.score)}</b><span>${Math.floor(t.distance)} m</span></div>`).join('')
+        : '<div class="none">No runs yet</div>');
     this.screens('menu');
   }
   hideScreens(): void {

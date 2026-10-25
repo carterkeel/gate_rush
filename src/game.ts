@@ -117,9 +117,16 @@ export class Game {
     window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 200));
     document.addEventListener('visibilitychange', () => {
       this.lastT = 0;
+      sound.setAway(document.hidden);
       if (document.hidden) this.pause();
     });
-    window.addEventListener('blur', () => this.pause());
+    window.addEventListener('blur', () => {
+      sound.setAway(true);
+      this.pause();
+    });
+    window.addEventListener('focus', () => sound.setAway(document.hidden));
+    window.addEventListener('pagehide', () => sound.setAway(true));
+    window.addEventListener('pageshow', () => sound.setAway(document.hidden));
     this.ui.showMenu();
     requestAnimationFrame((t) => this.frame(t));
   }
@@ -252,6 +259,7 @@ export class Game {
     this.ui.setArmy(this.army.count);
     this.ui.showFast(!tutorial && this.data.speedUnlocked);
     this.ui.showBoostHud(!tutorial);
+    this.ui.showTutorialTag(tutorial);
     this.ui.syncBoost();
     this.ui.setDist(0);
     this.ui.setCoins(0);

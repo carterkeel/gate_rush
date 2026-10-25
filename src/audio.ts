@@ -95,6 +95,13 @@ class Sound {
     this.applyMusicGain();
     this.persist();
   }
+  /** Silence everything while the app is in the background; resume when it returns. */
+  setAway(away: boolean): void {
+    const c = this.ctx;
+    if (!c) return;
+    if (away) void c.suspend();
+    else void c.resume();
+  }
   setMode(m: Mode): void {
     this.mode = m;
     this.applyMusicGain();
