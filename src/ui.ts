@@ -262,6 +262,26 @@ export class UI {
   private bonusRun = 0;
   private bonusSkip = false;
 
+  /** The coin total pops and bursts into particles once it has finished counting. */
+  private coinBurst(el: HTMLElement): void {
+    el.classList.remove('tick');
+    el.classList.add('boom');
+    const cols = ['#ffe27a', '#ffc21a', '#fff3b0', '#ff9f1a', '#ffffff'];
+    for (let i = 0; i < 30; i++) {
+      const b = document.createElement('b');
+      b.className = 'nP';
+      const a = (i / 30) * Math.PI * 2 + Math.random() * 0.3;
+      const r = 40 + Math.random() * 70;
+      b.style.setProperty('--dx', `${(Math.cos(a) * r).toFixed(1)}px`);
+      b.style.setProperty('--dy', `${(Math.sin(a) * r * 0.8).toFixed(1)}px`);
+      b.style.setProperty('--r', `${Math.round(Math.random() * 540 - 270)}deg`);
+      b.style.background = cols[i % cols.length];
+      b.style.width = b.style.height = `${4 + Math.round(Math.random() * 5)}px`;
+      el.appendChild(b);
+      window.setTimeout(() => b.remove(), 1000);
+    }
+  }
+
   private revealStats(): void {
     $('sumGrid').classList.add('go');
   }
@@ -273,11 +293,12 @@ export class UI {
     const box = $('bonus');
     const MILLION = 1_000_000;
     box.innerHTML =
-      `<div class="bTitle">BONUS COINS FOR ARMY SIZE</div>` +
-      `<div class="bBody"><div class="bNum">0</div><div class="bRight"><div class="cStack"></div><div class="bCoin"><span class="coin"></span><b>0</b></div></div></div>`;
-    box.classList.add('on');
+      `<div class="bTitle">LARGE ARMY BONUS</div>` +
+      `<div class="cStack"></div><div class="bCoin"><span class="coin"></span><b>0</b></div>`;
+    box.classList.toggle('on', coins > 0);
+    box.classList.remove('win');
     box.onclick = () => (this.bonusSkip = true);
-    const num = box.querySelector<HTMLElement>('.bNum')!;
+    const num = document.createElement('div'); // the army size is no longer shown; the count-down just drives the coins
     const stack = box.querySelector<HTMLElement>('.cStack')!;
     const coinB = box.querySelector<HTMLElement>('.bCoin b')!;
     const coinEl = box.querySelector<HTMLElement>('.bCoin')!;
@@ -304,8 +325,8 @@ export class UI {
 
     // coin discs: stacks grow one coin at a time; when a stack would outgrow the box the coins shrink and
     // new stacks start next to it
-    const AVAIL_W = Math.max(90, (stack.clientWidth || 170) - 6);
-    const AVAIL_H = 78;
+    const AVAIL_W = Math.max(120, (stack.clientWidth || 300) - 8);
+    const AVAIL_H = 82;
     let sc = 1;
     let per = 1;
     for (const k of [1, 0.8, 0.65, 0.5, 0.4, 0.32, 0.26, 0.2]) {
@@ -364,7 +385,8 @@ export class UI {
       num.textContent = fmt(end);
       box.classList.add('win');
       sound.jackpot();
-      await wait(650);
+      this.coinBurst(coinEl);
+      await wait(900);
       if (!alive()) return;
       this.revealStats();
     })();
