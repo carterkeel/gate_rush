@@ -171,7 +171,7 @@ export class Track {
         if (v < vals[worst]) worst = i;
       });
       if (best !== worst && vals[best] >= ref * 1.05 + 1) {
-        const k = this.rng.weighted([['coins', 0.27], ['instakill', 0.3], ['magnet', 0.2], ['double', 0.23]] as const);
+        const k = this.rng.weighted([['coins', 0.32], ['instakill', 0.4], ['double', 0.28]] as const);
         gates[worst].bonus = k === 'coins' ? { kind: 'coins', amount: 100 } : { kind: k };
         gates[worst].effect = opE(mul(1));
         this.setsSinceBonus = 0;

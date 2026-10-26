@@ -32,7 +32,7 @@ npm run sim         # fairness simulation of the gate and fight generators
 Coins are earned by distance, by picking up the spinning coins laid between gate sets, and by playing the best gate. They buy skins, trails and upgrades.
 
 ## Bonus gates and power-ups
-Rarely, one gate in a set pays something other than army: **+100 coins**, an **instakill** that wipes out the next fight (enemies, titans and bosses), or a **coin magnet**. Taking one costs you that set's army growth, so it is a real choice.
+Rarely, one gate in a set pays something other than army: **+100 coins**, an **instakill** that wipes out the next fight (enemies, titans and bosses), or a saved **×2 army**. Taking one costs you that set's army growth, so it is a real choice.
 
 When a run ends, your **largest army** is converted into a bonus: 1 coin per million units, shown as a stack of units turning into coins.
 

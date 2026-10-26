@@ -83,7 +83,6 @@ export class Game {
   private instakill = false; // armed: the next fight is wiped out
   private doubleCount = 0; // saved x2 army power-up (hold one)
   private instaT = -1; // charge-up before the blast during a fight (-1 = none)
-  private magnetT = 0; // seconds of coin magnet left
   private bestHl: { gain: number; text: string } | null = null;
   private trailT = 0;
   private trailColor = 0xffffff;
@@ -282,7 +281,6 @@ export class Game {
     this.doubleCount = 0;
     this.instakill = false;
     this.instaT = -1;
-    this.magnetT = 0;
     this.ui.setPower(null);
     this.bestHl = null;
     this.trailT = 0;
@@ -464,7 +462,6 @@ export class Game {
   // ------------------------------------------------------------------ run update
   private updateRun(dt: number): void {
     this.runTime += dt;
-    if (this.magnetT > 0) this.magnetT = Math.max(0, this.magnetT - dt);
     this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime) * (this.fast && this.data.speedUnlocked ? 2 : 1);
 
     if (this.keys.left) this.targetX -= CFG.keyboardLateralSpeed * dt;
@@ -492,7 +489,7 @@ export class Game {
       }
       const got = this.coins.update(dt, this.time, this.playerS, this.army.x, radius, (x, sPos) => {
         this.fx.burst(new THREE.Vector3(x, 1.2, -sPos), 0xffd54f, 7, 3.5);
-      }, this.magnetT > 0);
+      });
       if (got > 0) {
         this.bonusCoins += got;
         this.coinStreak = this.time - this.lastPickT < 0.7 ? this.coinStreak + got : got;
@@ -524,8 +521,6 @@ export class Game {
   private updateHud(): void {
     this.ui.setInsta(this.instaCount, this.instakill);
     this.ui.setDouble(this.doubleCount);
-    if (this.magnetT > 0) this.ui.setPower(`🧲 ${Math.ceil(this.magnetT)}s`, 'cyan');
-    else this.ui.setPower(null);
     this.ui.setArmy(this.army.count);
     this.ui.setDist(this.playerS);
     this.ui.setCoins(this.coinsEarned());
@@ -793,11 +788,6 @@ export class Game {
         this.useDouble();
       }
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xff4f9a, 110, 9);
-      sound.power();
-    } else {
-      this.magnetT = 14;
-      this.fx.popup(at, 'COIN MAGNET!', 'green big');
-      this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0x37e6ff, 90, 8);
       sound.power();
     }
     this.fx.shake(0.4);

@@ -4,12 +4,12 @@ import { effectLines, effectTone } from './logic';
 import type { Tone } from './logic';
 import type { Bonus, GateSet } from './types';
 
-export const BONUS_COLOR = { coins: 0xff9f1a, instakill: 0xa56bff, magnet: 0x37e6ff, double: 0xff4f9a } as const;
+export const BONUS_COLOR = { coins: 0xff9f1a, instakill: 0xa56bff, double: 0xff4f9a } as const;
 export function bonusLines(b: Bonus): string[] {
   if (b.kind === 'coins') return [`+${b.amount}`, 'COINS'];
   if (b.kind === 'instakill') return ['⚡', 'INSTAKILL'];
   if (b.kind === 'double') return ['×2', 'ARMY'];
-  return ['🧲', 'MAGNET'];
+  return ['', ''];
 }
 
 export const TONE_COLOR: Record<Tone, number> = { green: 0x1fe06c, red: 0xff3d4d, yellow: 0xffc21a };
