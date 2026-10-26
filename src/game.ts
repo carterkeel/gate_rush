@@ -1,3 +1,4 @@
+import { dev, initDev } from './dev';
 import * as THREE from 'three';
 import { CFG, speedAt, spawnAheadDist, spacingAt } from './config';
 import { World } from './world';
@@ -177,6 +178,10 @@ export class Game {
         sound.power();
       }
     };
+    initDev(() => {
+      this.ui.flashBanner('DEV MENU UNLOCKED', 1800);
+      sound.power();
+    });
     this.ui.onDouble = () => {
       if (this.mode !== 'run' || this.tutorial || this.doubleCount === 0) return;
       if (this.splitCtx && !this.splitCtx.resolved) return;
@@ -290,8 +295,13 @@ export class Game {
     this.lastBiome = 0;
     this.startDist = 0;
     this.startArmy = CFG.startArmy;
-    const boost = !tutorial && this.data.startOn ? startMeters(this.data.startLevel) : 0;
+    const devOn = !tutorial && dev.on;
+    const boost = devOn && dev.meters > 0 ? dev.meters : !tutorial && this.data.startOn ? startMeters(this.data.startLevel) : 0;
     if (boost > 0) this.applyHeadStart(boost);
+    if (devOn) {
+      this.bonusCoins = dev.coins;
+      if (dev.infinite) this.instaCount = this.doubleCount = 1;
+    }
     this.ui.resetHud();
     this.ui.hideScreens();
     this.ui.showHud(true);
@@ -462,6 +472,10 @@ export class Game {
   // ------------------------------------------------------------------ run update
   private updateRun(dt: number): void {
     this.runTime += dt;
+    if (dev.on && dev.infinite && !this.tutorial) {
+      if (this.instaCount === 0 && !this.instakill) this.instaCount = 1;
+      this.doubleCount = 1;
+    }
     this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime) * (this.fast && this.data.speedUnlocked ? 2 : 1);
 
     if (this.keys.left) this.targetX -= CFG.keyboardLateralSpeed * dt;
