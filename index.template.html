@@ -7,6 +7,7 @@
 </script>
 <style>
   :root { --sat: env(safe-area-inset-top, 0px); }
+  :root.apk .kbd { display:none !important; }
   :root.apk { --sat: max(env(safe-area-inset-top, 0px), 34px); }
 </style>
 <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -337,7 +338,7 @@
     <div id="dist" class="stat"><small>DISTANCE</small><span id="distV">0</span> m</div>
     <button id="army" class="stat" aria-label="Army size and next fight info"><small>ARMY</small><span id="armyV">1</span></button>
     <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
-    <button id="bPause" class="ghost" aria-label="Pause" title="Pause (Esc / P)">❚❚</button>
+    <button id="bPause" class="ghost" aria-label="Pause" title="Pause">❚❚</button>
     <button id="bInstaHud" class="ghost" aria-label="Use instakill on the next fight" aria-pressed="false" style="display:none"></button>
     <button id="bDoubleHud" class="ghost" aria-label="Use x2 army" style="display:none"></button>
     <button id="bBoostHud" class="ghost" aria-label="Head start for next run" aria-pressed="false" style="display:none"></button>
@@ -396,7 +397,7 @@
     <button class="ghost boostToggle" style="display:none"></button>
     <button id="bPauseSettings" class="ghost">SETTINGS</button>
     <button id="bQuit" class="ghost">QUIT TO MENU</button>
-    <div class="tag">Esc or P also resumes</div>
+    <div class="tag kbd">Esc or P also resumes</div>
   </div>
 
   <div id="intel" class="screen">
@@ -415,8 +416,8 @@
     <h2 class="sub">CONTROLS</h2>
     <div class="learn controls">
       <div><b>↔</b>Slide or drag to steer your army</div>
-      <div><b>← →</b>Arrow keys or A / D on a keyboard</div>
-      <div><b>❚❚</b>Pause with the button, Esc or P</div>
+      <div class="kbd"><b>← →</b>Arrow keys or A / D on a keyboard</div>
+      <div><b>❚❚</b>Pause with the button<span class="kbd">, Esc or P</span></div>
       <div><b class="g">✓</b>Walk through the gate with the best math</div>
     </div>
     <button id="bTutorial" class="alt">PLAY TUTORIAL</button>
