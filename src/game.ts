@@ -149,6 +149,11 @@ export class Game {
 
   private bindUi(): void {
     this.ui.onPlay = () => this.startRun(!this.data.tutorialDone);
+    this.ui.onSkipTutorial = () => {
+      this.data.tutorialDone = true;
+      save(this.data);
+      this.startRun(false);
+    };
     this.ui.onTutorial = () => this.startRun(true);
     this.ui.onAgain = () => this.startRun(false);
     this.ui.onMenu = () => this.toMenu();
@@ -338,7 +343,7 @@ export class Game {
     this.keys.left = this.keys.right = false;
     sound.setPaused(true);
     sound.pause(true);
-    this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`);
+    this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`, !!this.tutorial);
   }
 
   /** Army button: pause and show how strong the next fight is against the army you have. */

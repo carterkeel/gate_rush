@@ -25,6 +25,7 @@ const coinHtml = (n: number | string) => `<span class="coin"></span>${n}`;
 
 export class UI {
   onPlay = () => {};
+  onSkipTutorial = () => {};
   onTutorial = () => {};
   onArmy = () => {};
   onInsta = () => {};
@@ -53,6 +54,8 @@ export class UI {
 
   constructor(private save: () => SaveData, private persist: () => void) {
     $('bPlay').onclick = () => this.onPlay();
+    $('bSkipTut').onclick = () => this.onSkipTutorial();
+    $('bSkipTutPause').onclick = () => this.onSkipTutorial();
     $('bTutorial').onclick = () => this.onTutorial();
     $('bSkins').onclick = () => this.showSkins();
     $('topScores').onclick = () => this.showScores();
@@ -462,8 +465,9 @@ export class UI {
     }
   }
 
-  showPause(info: string): void {
+  showPause(info: string, inTutorial = false): void {
     $('pauseInfo').textContent = info;
+    $('bSkipTutPause').style.display = inTutorial ? '' : 'none';
     this.screens('pause');
   }
 
@@ -553,6 +557,7 @@ export class UI {
     this.showHud(false);
     $('menuCoins').innerHTML = `Coins: ${coinHtml(this.save().coins)}`;
     $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'PLAY TUTORIAL';
+    $('bSkipTut').style.display = this.save().tutorialDone ? 'none' : '';
     const top = this.save().scores.slice(0, 3);
     $('topScores').innerHTML =
       `<div class="th"><span>TOP SCORES</span><span>›</span></div>` +
