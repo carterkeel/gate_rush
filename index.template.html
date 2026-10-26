@@ -34,14 +34,14 @@
   @keyframes up { 0%{transform:scale(1.25)} 100%{transform:scale(1)} }
   @keyframes down { 0%{transform:scale(.8)} 100%{transform:scale(1)} }
   #bPause { position:absolute; right:14px; top:calc(max(10px, env(safe-area-inset-top)) + min(8.6vw,50px) * 1.45 + 30px); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
-  #bFast { position:absolute; left:12px; bottom:max(20px, env(safe-area-inset-bottom)); width:54px; height:54px; padding:0; border-radius:50%; font-size:19px; line-height:1; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; overflow:hidden; animation: fastIdle 3.2s ease-in-out infinite; }
+  #bFast { position:absolute; left:12px; bottom:max(20px, env(safe-area-inset-bottom)); width:54px; height:44px; padding:0; border-radius:14px; font-size:19px; line-height:1; color:#fff; border:2px solid #1f2740; background:linear-gradient(#5a6788,#3b4766); box-shadow:0 4px 0 #1f2740; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; overflow:hidden; display:flex; align-items:center; justify-content:center; transition:box-shadow .2s, background .2s; }
   #bFast .x2 { position:relative; z-index:1; }
-  #bFast .chev { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; gap:0; padding-bottom:7px; opacity:0; }
+  #bFast .chev { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; gap:0; padding-bottom:3px; opacity:0; }
   #bFast .chev i { width:8px; height:8px; margin-left:-1px; border-top:3px solid rgba(40,24,0,.55); border-right:3px solid rgba(40,24,0,.55); transform:rotate(45deg); }
-  #bFast.on { background:linear-gradient(#ffd54f,#ff9800); color:#201400; border-color:#7a4a00; animation: fastGlow .9s ease-in-out infinite; }
+  #bFast.on { background:linear-gradient(#ffd54f,#ff9f1a); color:#2a1700; border-color:#7a4a00; box-shadow:0 4px 0 #7a4a00, 0 0 14px rgba(255,194,26,.6); }
   #bFast.on .chev { opacity:1; }
   #bFast.on .chev i:nth-child(2) { animation: chevBlink .7s linear .12s infinite; } #bFast.on .chev i:nth-child(3) { animation: chevBlink .7s linear .24s infinite; } #bFast.on .chev i:nth-child(1) { animation: chevBlink .7s linear 0s infinite; }
-  #bFast.on .x2 { transform:translateY(-10px); font-size:16px; }
+  #bFast.on .x2 { transform:translateY(-6px); font-size:16px; }
   #bFast.pop { animation: fastPop .45s cubic-bezier(.2,1.6,.4,1) 1; }
   @keyframes fastIdle { 0%,80%,100%{transform:scale(1)} 88%{transform:scale(1.12)} 94%{transform:scale(.97)} }
   @keyframes fastGlow { 0%,100%{box-shadow:0 0 8px 2px rgba(255,194,26,.55), 0 0 0 0 rgba(255,194,26,.5); transform:scale(1)} 50%{box-shadow:0 0 18px 6px rgba(255,160,0,.85), 0 0 0 10px rgba(255,194,26,0); transform:scale(1.07)} }
@@ -57,11 +57,11 @@
   .boostToggle .bm.off { opacity:.7; }
   .boostToggle.on { background:linear-gradient(#ffd54f,#ffa000); color:#241600; border-color:#7a4a00; box-shadow:0 4px 0 #7a4a00; }
   .boostToggle.on .bm { background:rgba(0,0,0,.2); }
-  #bBoostHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; color:#fff; border:2px solid #1f2740; background:linear-gradient(#5a6788,#3b4766); box-shadow:0 4px 0 #1f2740; transition:box-shadow .2s, background .2s; }
+  #bBoostHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 52px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; color:#fff; border:2px solid #1f2740; background:linear-gradient(#5a6788,#3b4766); box-shadow:0 4px 0 #1f2740; transition:box-shadow .2s, background .2s; }
   #bBoostHud .bi { font-size:16px; } #bBoostHud .bn { font-size:11px; letter-spacing:.5px; font-family:system-ui,sans-serif; font-weight:800; }
-  #bInstaHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px + 52px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #3d1c80; background:linear-gradient(#b784ff,#7b3fe0); box-shadow:0 4px 0 #3d1c80, 0 0 14px rgba(165,107,255,.55); }
+  #bInstaHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 52px + 52px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #3d1c80; background:linear-gradient(#b784ff,#7b3fe0); box-shadow:0 4px 0 #3d1c80, 0 0 14px rgba(165,107,255,.55); }
   #bInstaHud .bi { font-size:24px; }
-  #bDoubleHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px + 104px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #86204f; background:linear-gradient(#ff8cc0,#e0357f); box-shadow:0 4px 0 #86204f, 0 0 14px rgba(255,79,154,.55); }
+  #bDoubleHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 52px + 104px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #86204f; background:linear-gradient(#ff8cc0,#e0357f); box-shadow:0 4px 0 #86204f, 0 0 14px rgba(255,79,154,.55); }
   #bDoubleHud .bi { font-size:22px; font-family:Impact,'Arial Black',system-ui,sans-serif; font-style:italic; font-weight:900; text-shadow:0 2px 0 rgba(0,0,0,.35); }
   #bDoubleHud.got { animation: instaGot .5s cubic-bezier(.2,1.6,.4,1); }
   #bInstaHud.got { animation: instaGot .5s cubic-bezier(.2,1.6,.4,1); }

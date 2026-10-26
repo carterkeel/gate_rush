@@ -345,14 +345,16 @@ export class World {
     this.hemi.groundColor.copy(p.hemiGround);
     this.sun.color.copy(p.sun);
     const sideMat = this.side.material as THREE.MeshLambertMaterial;
-    sideMat.transparent = true;
-    sideMat.opacity = 1 - this.w[3];
-    this.side.visible = sideMat.opacity > 0.02;
+    sideMat.transparent = false; // must stay opaque: a transparent plane would be drawn over the see-through gate faces
+    this.side.position.y = -0.04 - 9 * this.w[3]; // in the sky the ground drops away so clouds can float below the path
     const fog = this.scene.fog as THREE.Fog;
     fog.near = 40 - 16 * this.w[4] - 6 * this.w[3];
     fog.far = 120 - 34 * this.w[4];
     const lava = this.w[2];
-    for (const r of this.rivers) (r.material as THREE.MeshBasicMaterial).opacity = lava * (0.8 + 0.2 * Math.sin(time * 3));
+    for (const r of this.rivers) {
+      (r.material as THREE.MeshBasicMaterial).opacity = lava * (0.8 + 0.2 * Math.sin(time * 3));
+      r.visible = lava > 0.02;
+    }
     (this.embers.material as THREE.PointsMaterial).color.copy(p.particle);
 
     // recycle props that fell behind the camera
