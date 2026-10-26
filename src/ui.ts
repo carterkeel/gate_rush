@@ -26,6 +26,7 @@ export class UI {
   onPlay = () => {};
   onTutorial = () => {};
   onArmy = () => {};
+  onInsta = () => {};
   onAgain = () => {};
   onMenu = () => {};
   onPause = () => {};
@@ -91,6 +92,7 @@ export class UI {
     $('bPause').onclick = () => this.onPause();
     $('bFast').onclick = () => this.onFast();
     $('bBoostHud').onclick = () => this.onBoostHud();
+    $('bInstaHud').onclick = () => this.onInsta();
     $('army').onclick = () => this.onArmy();
     $('bIntelResume').onclick = () => this.onResume();
     $('bUpgrades').onclick = () => this.showUpgrades();
@@ -141,9 +143,10 @@ export class UI {
 
   // ------------------------------------------------------------- power-up pill + screen flash
   // ------------------------------------------------------------- route bar (a line sliding towards the player)
+  private hudOn = false;
   private routeTicks = new Map<number, HTMLElement>();
   private routeH = 0;
-  setRoute(r: { ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' }[]; fight: { boss: boolean; text: string; tone: string } | null } | null): void {
+  setRoute(r: { ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' | 'skull' | 'boss' }[]; fight: { boss: boolean; text: string; tone: string } | null } | null): void {
     const el = $('route');
     if (!r) {
       el.classList.remove('on');
@@ -154,11 +157,7 @@ export class UI {
       el.querySelector<HTMLImageElement>('.rPlayer')!.src = PLAYER_ICON;
       this.routeH = 0;
     }
-    const img = el.querySelector<HTMLImageElement>('.rSkull')!;
-    const want = r.fight && r.fight.boss ? SKULL_BOSS : SKULL_BONE;
-    if (img.getAttribute('src') !== want) img.src = want;
     el.classList.toggle('boss', !!(r.fight && r.fight.boss));
-    el.classList.toggle('dim', !r.fight);
     for (const t of ['ok', 'tight', 'danger']) el.classList.toggle(t, !!r.fight && r.fight.tone === t);
     const need = el.querySelector<HTMLElement>('.rNeed')!;
     const txt = r.fight ? r.fight.text : '·';
@@ -173,14 +172,15 @@ export class UI {
       if (!d) {
         d = document.createElement('div');
         d.className = `rTick ${t.kind}`;
-        d.innerHTML = '<i></i>';
+        d.innerHTML = t.kind === 'skull' || t.kind === 'boss' ? `<img src="${t.kind === 'boss' ? SKULL_BOSS : SKULL_BONE}" alt="" />` : '<i></i>';
         track.appendChild(d);
         this.routeTicks.set(t.id, d);
       }
       // frac 0 = at the player (bottom), 1 = far end (top); fade in/out at the ends so ticks never pop
       const y = (1 - t.frac) * this.routeH;
       d.style.transform = `translateY(${y.toFixed(1)}px)`;
-      d.style.opacity = String(Math.max(0, Math.min(1, Math.min(t.frac * 8 + 0.2, (1 - t.frac) * 6))));
+      const isSkull = t.kind === 'skull' || t.kind === 'boss';
+      d.style.opacity = isSkull ? '1' : String(Math.max(0, Math.min(1, Math.min(t.frac * 8 + 0.2, (1 - t.frac) * 6))));
     }
     for (const [id, d] of this.routeTicks) {
       if (!seen.has(id)) {
@@ -188,6 +188,24 @@ export class UI {
         this.routeTicks.delete(id);
       }
     }
+  }
+
+  setInsta(count: number, armed: boolean): void {
+    const b = $('bInstaHud');
+    const want = `<span class="bi">⚡</span><span class="bn">×${count}</span>`;
+    if (b.dataset.k !== `${count}`) {
+      b.dataset.k = `${count}`;
+      b.innerHTML = want;
+      if (count > 0) {
+        b.classList.remove('got');
+        void b.offsetWidth;
+        b.classList.add('got');
+      }
+    }
+    b.style.display = count > 0 && this.hudOn ? '' : 'none';
+    b.classList.toggle('on', armed);
+    b.setAttribute('aria-pressed', String(armed));
+    b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use an instakill on the next fight';
   }
 
   setPower(text: string | null, tone = ''): void {
@@ -252,15 +270,36 @@ export class UI {
         requestAnimationFrame(tick);
       });
 
-    // coin discs: the stack gets taller with every coin (squeezed to fit once it is big)
+    // coin discs: stacks grow one coin at a time; when a stack would outgrow the box the coins shrink and
+    // new stacks start next to it
+    const AVAIL_W = Math.max(90, (stack.clientWidth || 170) - 6);
+    const AVAIL_H = 78;
+    let sc = 1;
+    let per = 1;
+    for (const k of [1, 0.8, 0.65, 0.5, 0.4, 0.32, 0.26, 0.2]) {
+      sc = k;
+      per = Math.max(1, Math.floor(AVAIL_H / (5 * k)));
+      if (Math.ceil(coins / per) * (62 * k + 4) <= AVAIL_W) break;
+    }
+    const stackEls: HTMLElement[] = [];
     let shown = 0;
     const addDisc = (n: number) => {
       const i = shown++;
-      const step = Math.max(1.6, Math.min(5, 96 / Math.max(1, coins)));
+      const si = Math.floor(i / per);
+      let col = stackEls[si];
+      if (!col) {
+        col = document.createElement('div');
+        col.className = 'cs';
+        col.style.width = `${62 * sc}px`;
+        stack.appendChild(col);
+        stackEls[si] = col;
+      }
       const d = document.createElement('i');
-      d.style.bottom = `${i * step}px`;
-      d.style.setProperty('--dx', `${((i * 7) % 5) - 2}px`);
-      stack.appendChild(d);
+      d.style.bottom = `${(i % per) * 5 * sc}px`;
+      d.style.width = `${62 * sc}px`;
+      d.style.height = `${15 * sc}px`;
+      d.style.setProperty('--dx', `${((i * 7) % 3) - 1}px`);
+      col.appendChild(d);
       sound.clink(n);
       coinB.textContent = String(shown);
       coinEl.classList.remove('tick');
@@ -409,7 +448,11 @@ export class UI {
   showHud(on: boolean): void {
     if (!on) this.showTutorialTag(false);
     $('hud').classList.toggle('on', on);
-    if (!on) this.setRoute(null);
+    this.hudOn = on;
+    if (!on) {
+      this.setRoute(null);
+      $('bInstaHud').style.display = 'none';
+    }
     this.syncLines();
     if (!on) {
       this.setCombat(null);

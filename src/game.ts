@@ -79,6 +79,7 @@ export class Game {
   private peak: number = CFG.startArmy;
   private kills = 0;
   private bonusCoins = 0;
+  private instaCount = 0; // saved instakills (use them with the purple button)
   private instakill = false; // armed: the next fight is wiped out
   private instaT = -1; // charge-up before the blast during a fight (-1 = none)
   private magnetT = 0; // seconds of coin magnet left
@@ -151,6 +152,13 @@ export class Game {
     this.ui.onMenu = () => this.toMenu();
     this.ui.onPause = () => this.pause();
     this.ui.onArmy = () => this.showIntel();
+    this.ui.onInsta = () => {
+      if (this.mode !== 'run' || this.tutorial || this.inCombat) return;
+      if (this.instaCount > 0) {
+        this.instakill = !this.instakill;
+        sound.power();
+      }
+    };
     this.ui.onFast = () => this.setFast(!this.fast);
     this.ui.onBoostHud = () => {
       this.data.startOn = !this.data.startOn;
@@ -245,6 +253,7 @@ export class Game {
     this.peak = CFG.startArmy;
     this.kills = 0;
     this.bonusCoins = 0;
+    this.instaCount = 0;
     this.instakill = false;
     this.instaT = -1;
     this.magnetT = 0;
@@ -447,9 +456,13 @@ export class Game {
     this.processQueue();
     if (!this.tutorial) {
       const radius = this.magnetT > 0 ? 9 : Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
-      if (this.heldRows.length && !this.inCombat && !this.queue.some((q) => q.type === 'combat')) {
-        for (const r of this.heldRows) this.coins.spawnRow(Math.max(r.from, this.playerS + 6), r.to, r.x0, r.x1);
-        this.heldRows.length = 0;
+      if (this.heldRows.length) {
+        const keep: typeof this.heldRows = [];
+        for (const r of this.heldRows) {
+          if (this.fightBefore(r.from)) keep.push(r);
+          else this.coins.spawnRow(Math.max(r.from, this.playerS + 6), r.to, r.x0, r.x1);
+        }
+        this.heldRows = keep;
       }
       const got = this.coins.update(dt, this.time, this.playerS, this.army.x, radius, (x, sPos) => {
         this.fx.burst(new THREE.Vector3(x, 1.2, -sPos), 0xffd54f, 7, 3.5);
@@ -483,8 +496,8 @@ export class Game {
   }
 
   private updateHud(): void {
-    if (this.instakill) this.ui.setPower('⚡ INSTAKILL READY', 'purple');
-    else if (this.magnetT > 0) this.ui.setPower(`🧲 MAGNET ${Math.ceil(this.magnetT)}s`, 'cyan');
+    this.ui.setInsta(this.instaCount, this.instakill);
+    if (this.magnetT > 0) this.ui.setPower(`🧲 MAGNET ${Math.ceil(this.magnetT)}s`, 'cyan');
     else this.ui.setPower(null);
     this.ui.setArmy(this.army.count);
     this.ui.setDist(this.playerS);
@@ -500,7 +513,7 @@ export class Game {
     return spacingAt(this.playerS) * 5.5;
   }
 
-  /** Left-hand route bar: a line that slides towards the player as they run (and stops when they stop). */
+  /** Left-hand route bar: one timeline that slides towards the player as they run (and stops when they stop). */
   private updateRoute(): void {
     if (this.tutorial) {
       this.ui.setRoute(null);
@@ -509,14 +522,19 @@ export class Game {
     const A = this.army.count;
     const fightItem = this.inCombat ? this.combatZone : (this.queue.find((q) => q.type === 'combat') as CombatZone | undefined) ?? null;
     const W = this.routeWindow();
-    const ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' }[] = [];
+    const ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' | 'skull' | 'boss' }[] = [];
     for (const q of this.queue) {
-      if (q.type === 'combat') break; // only the gates before the next fight
+      if (q.type === 'combat') {
+        // the skull travels down the line like the gates; it waits at the top until it is within range
+        ticks.push({ id: q.id, frac: Math.min(1, (q.s - this.playerS) / W), kind: q.boss ? 'boss' : 'skull' });
+        continue;
+      }
       if (this.splitCtx && this.splitCtx.resolved && q === this.splitCtx.set) continue;
       const frac = (q.s - this.playerS) / W;
-      if (frac > 1.02) break;
+      if (frac > 1.02) continue;
       ticks.push({ id: q.id, frac, kind: q.gates.some((g) => g.bonus) ? 'gold' : q.complex ? 'yellow' : 'plain' });
     }
+    if (this.inCombat && fightItem && !ticks.some((t) => t.id === fightItem.id)) ticks.push({ id: fightItem.id, frac: 0, kind: fightItem.boss ? 'boss' : 'skull' });
     let fight: { boss: boolean; text: string; tone: string } | null = null;
     if (fightItem) {
       if (this.instakill) fight = { boss: fightItem.boss, text: '⚡', tone: 'ok' };
@@ -543,12 +561,20 @@ export class Game {
     this.fx.trailPuff(new THREE.Vector3(this.army.x, 0, -this.playerS + this.army.halfDepth), this.trailColor, 5);
   }
 
+  /** Is there a fight (queued or in progress) between the player and track position `s`? */
+  private fightBefore(s: number): boolean {
+    if (this.inCombat && this.combatZone && this.combatZone.s < s) return true;
+    return this.queue.some((q) => q.type === 'combat' && q.s < s);
+  }
+
   // ------------------------------------------------------------------ spawning
   private ensureAhead(): void {
     // far enough ahead that the route bar can always show the next five gate sections
     const ahead = Math.max(spawnAheadDist(this.speed), this.routeWindow() + 14);
     let guard = 0;
-    while (this.source.cursor + 20 < this.playerS + ahead && guard++ < 12) {
+    // ...and always until the next fight is known, so the route bar can show what it needs from the start
+    const needFight = () => !this.tutorial && !this.inCombat && !this.queue.some((q) => q.type === 'combat');
+    while ((this.source.cursor + 20 < this.playerS + ahead || needFight()) && guard++ < 16) {
       const pending = this.queue.filter((q) => !(this.splitCtx && this.splitCtx.resolved && q === this.splitCtx.set));
       const ref = projectArmy(pending, Math.max(1, this.army.count));
       const item = this.source.next(ref);
@@ -568,7 +594,7 @@ export class Game {
             const from = Math.max(this.coinFrom, this.playerS + 6);
             if (zoneFrom - from >= 5) {
               // never show coins before the enemy ahead is dead: hold the row until the fight is over
-              if (this.queue.some((q) => q.type === 'combat') || this.inCombat) this.heldRows.push({ from, to: zoneFrom, x0: this.lastGateX, x1: tx });
+              if (this.fightBefore(from)) this.heldRows.push({ from, to: zoneFrom, x0: this.lastGateX, x1: tx });
               else this.coins.spawnRow(from, zoneFrom, this.lastGateX, tx);
               this.setsSinceCoins = 0;
               this.coinEvery = 4 + Math.floor(Math.random() * 3);
@@ -706,8 +732,8 @@ export class Game {
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xffc21a, 90, 8);
       for (let i = 0; i < 6; i++) setTimeout(() => sound.coin(i), i * 55);
     } else if (b.kind === 'instakill') {
-      this.instakill = true;
-      this.fx.popup(at, '⚡ INSTAKILL!', 'green big');
+      this.instaCount++;
+      this.fx.popup(at, '⚡ INSTAKILL SAVED', 'green big');
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xa56bff, 110, 9);
       sound.power();
     } else {
@@ -822,6 +848,7 @@ export class Game {
     this.combat.begin();
     if (this.instakill) {
       this.instakill = false;
+      this.instaCount = Math.max(0, this.instaCount - 1);
       this.instaT = 0.55;
       this.ui.flashBanner('⚡ INSTAKILL', 700);
     }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CFG } from './config';
 import { KIND_ORDER } from './combatModel';
-import { angryUnitGeometry } from './models';
+import { unitGeometry } from './models';
 import type { CombatZone, EnemyKind } from './types';
 
 interface Enemy {
@@ -87,7 +87,7 @@ export class CombatSim {
 
   constructor(scene: THREE.Scene) {
     for (const k of KINDS) {
-      const m = new THREE.InstancedMesh(angryUnitGeometry(PARTS_OF[k]), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
+      const m = new THREE.InstancedMesh(unitGeometry(PARTS_OF[k]), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
       m.frustumCulled = false;
       m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_ENEMY * 3), 3);
       m.count = 0;
