@@ -60,6 +60,9 @@ export function evalEffect(e: Effect, army: number): number {
 // ---------------------------------------------------------------- labels
 const SYM: Record<OpKind, string> = { add: '+', sub: '−', mul: '×', div: '÷' };
 
+/** Which power of a thousand the army is in: 0 below 1,000, 1 = K, 2 = M, 3 = B, 4 = T ... Drives the crowd's look. */
+export const armyTier = (n: number): number => (n < 1000 ? 0 : Math.floor(Math.log10(n) / 3));
+
 /** Names for each power of a thousand: K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc, then Ud … Vg (up to 1e63). */
 const SUFFIX = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td', 'Qad', 'Qid', 'Sxd', 'Spd', 'Ocd', 'Nod', 'Vg'];
 

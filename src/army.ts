@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CFG } from './config';
-import { clampArmy } from './logic';
+import { armyTier, clampArmy } from './logic';
 import { unitGeometry } from './models';
 import type { SkinDef } from './storage';
 
@@ -20,8 +20,17 @@ function hash01(i: number): number {
   return (h >>> 0) / 4294967296;
 }
 
+const GOLD = new THREE.Color(0xffd23f);
+const AURA_COLORS = [0x4fa3ff, 0x4fa3ff, 0x4fa3ff, 0x39d2ff, 0xb06bff, 0xff7bd5, 0xffd23f];
+
 export class Army {
   readonly mesh: THREE.InstancedMesh;
+  /** Higher ranks that replace part of the crowd as the number climbs: knights, then golden colossi. Same instance budget. */
+  private rank: THREE.InstancedMesh[] = [];
+  private aura: THREE.Mesh;
+  private auraRing: THREE.Mesh;
+  private pulseT = 0;
+  tier = 0;
   count: number = CFG.startArmy; // exact integer
   x = 0; // anchor (crowd centre) x
   private curX = new Float32Array(MAXI);
@@ -62,6 +71,25 @@ export class Army {
     this.leaderRing.rotation.x = -Math.PI / 2;
     this.leaderRing.position.y = 0.06;
     this.mesh.add(this.leader, this.leaderRing);
+    // rank meshes (knights, colossi), each with its own look; instances are split between the three by tier
+    for (let r = 0; r < 2; r++) {
+      const m = new THREE.InstancedMesh(unitGeometry(this.skinParts), new THREE.MeshLambertMaterial({ vertexColors: true, emissive: r === 0 ? 0x1a1405 : 0x4a3500 }), MAXI);
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.frustumCulled = false;
+      m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAXI * 3), 3);
+      m.instanceColor.setUsage(THREE.DynamicDrawUsage);
+      m.count = 0;
+      this.mesh.add(m);
+      this.rank.push(m);
+    }
+    // the aura under a big crowd: colour and strength follow the tier
+    this.aura = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshBasicMaterial({ color: 0x4fa3ff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    this.aura.rotation.x = -Math.PI / 2;
+    this.aura.position.y = 0.04;
+    this.auraRing = new THREE.Mesh(new THREE.RingGeometry(0.88, 1, 56), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide }));
+    this.auraRing.rotation.x = -Math.PI / 2;
+    this.auraRing.position.y = 0.05;
+    this.mesh.add(this.aura, this.auraRing);
     for (let i = 0; i < MAXI; i++) this.phase[i] = Math.random() * Math.PI * 2;
   }
 
@@ -70,6 +98,8 @@ export class Army {
     const g = unitGeometry(this.skinParts);
     this.mesh.geometry = g;
     this.leader.geometry = g;
+    this.rank[0].geometry = unitGeometry([skin.model, skin.weapon, 'shield']);
+    this.rank[1].geometry = unitGeometry([skin.model === 'human' ? 'orc' : 'human', 'spear', 'shield']);
     this.skinTint.set(skin.tint);
     this.dirty = true;
   }
@@ -84,6 +114,11 @@ export class Army {
     this.curZ.fill(0);
     this.inst = 0;
     this.dirty = true;
+  }
+
+  /** Ring pulse through the aura (called when the army reaches a new tier). */
+  pulse(): void {
+    this.pulseT = 1;
   }
 
   setCount(n: number): void {
@@ -227,24 +262,40 @@ export class Army {
     const bobAmp = running ? 0.1 : 0.02;
     const freq = 9 + speed * 0.35;
     const lean = Math.max(-0.35, Math.min(0.35, -this.vx * 0.02));
+    // tier look: from millions up, a growing share of the crowd becomes knights; from quintillions, golden colossi
+    const g = armyTier(total);
+    this.tier = g;
+    const colossus = g >= 5 ? Math.min(0.3, (g - 4) * 0.05) : 0;
+    const knights = g >= 2 ? Math.min(0.55, (g - 1) * 0.1) : 0;
+    const cnt = [0, 0, 0];
+    const meshes = [this.mesh, this.rank[0], this.rank[1]];
+    const SCALE = [1, 1.3, 1.85];
     for (let i = 0; i < n; i++) {
       const ph = this.phase[i];
-      const bob = Math.abs(Math.sin(time * freq + ph)) * bobAmp * unitScale;
+      const r = hash01(i + 911);
+      const t = r < colossus ? 2 : r < colossus + knights ? 1 : 0;
+      const us = unitScale * SCALE[t];
+      const bob = Math.abs(Math.sin(time * freq + ph)) * bobAmp * us;
       const px = Math.max(-CFG.halfWidth + 0.25, Math.min(CFG.halfWidth - 0.25, this.curX[i]));
       this.tmpP.set(px, bob, this.curZ[i]); // slots are already centred on the anchor
       this.tmpE.set(Math.sin(time * freq + ph) * 0.05, 0, lean);
       this.tmpQ.setFromEuler(this.tmpE);
-      sc.set(unitScale, unitScale, unitScale);
+      sc.set(us, us, us);
       this.tmpM.compose(this.tmpP, this.tmpQ, sc);
-      this.mesh.setMatrixAt(i, this.tmpM);
-      // slight per-unit brightness variation so the crowd does not look cloned
+      const k2 = cnt[t]++;
+      meshes[t].setMatrixAt(k2, this.tmpM);
+      // slight per-unit brightness variation so the crowd does not look cloned; higher ranks lean golden
       this.tmpC.copy(this.skinTint).multiplyScalar(0.88 + 0.24 * hash01(i));
-      this.mesh.setColorAt(i, this.tmpC);
+      if (t > 0) this.tmpC.lerp(GOLD, t === 1 ? 0.18 : 0.45);
+      meshes[t].setColorAt(k2, this.tmpC);
     }
-    this.mesh.count = n;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    for (let t = 0; t < 3; t++) {
+      meshes[t].count = cnt[t];
+      meshes[t].instanceMatrix.needsUpdate = true;
+      if (meshes[t].instanceColor) meshes[t].instanceColor!.needsUpdate = true;
+    }
     this.dirty = false;
+    this.updateAura(dt, time, g);
 
     // leader: sits at the crowd centre (where gates are actually resolved); in a split zone it follows the bigger lane
     const showLeader = total > 0;
@@ -260,6 +311,27 @@ export class Army {
       this.leaderRing.position.x = this.leaderX;
       this.leaderRing.scale.setScalar(Math.max(1, ls * 0.6) * (1 + 0.06 * Math.sin(time * 6)));
     }
+  }
+
+  /** Glowing disc and ring under the crowd: appears at thousands, grows brighter and changes colour with each tier, rainbow from tier 9. */
+  private updateAura(dt: number, time: number, g: number): void {
+    this.pulseT = Math.max(0, this.pulseT - dt * 1.4);
+    const on = g >= 2;
+    this.aura.visible = this.auraRing.visible = on;
+    if (!on) return;
+    const col = g >= 9 ? new THREE.Color().setHSL((time * 0.25) % 1, 0.9, 0.6) : new THREE.Color(AURA_COLORS[Math.min(g, AURA_COLORS.length - 1)]);
+    const R = Math.min(CFG.halfWidth, Math.max(2, this.depth * 0.5 + 1.2));
+    const grow = 1 + this.pulseT * 0.9;
+    const base = Math.min(0.36, 0.06 + 0.03 * g);
+    const cx = this.split ? 0 : this.x;
+    for (const m of [this.aura, this.auraRing]) {
+      (m.material as THREE.MeshBasicMaterial).color.copy(col);
+      m.position.x = cx;
+    }
+    this.aura.scale.setScalar(R * grow);
+    (this.aura.material as THREE.MeshBasicMaterial).opacity = base * (0.8 + 0.2 * Math.sin(time * 3)) + this.pulseT * 0.3;
+    this.auraRing.scale.setScalar(R * grow * (1.04 + 0.04 * Math.sin(time * 4)));
+    (this.auraRing.material as THREE.MeshBasicMaterial).opacity = Math.min(0.9, base * 1.8 + this.pulseT * 0.5);
   }
 
   /** World-space offset (along +z = behind the anchor) of the rearmost row, used for camera framing. */

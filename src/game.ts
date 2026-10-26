@@ -13,7 +13,7 @@ import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
 import { CoinField } from './coins';
-import { clampArmy, evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
+import { armyTier, clampArmy, evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
 import type { SaveData } from './storage';
@@ -82,6 +82,7 @@ export class Game {
   private bonusCoins = 0;
   private instaCount = 0; // saved instakills (use them with the purple button)
   private instakill = false; // armed: the next fight is wiped out
+  private peakTier = 0; // highest army tier (power of a thousand) reached this run
   private doubleCount = 0; // saved x2 army power-up (hold one)
   private instaT = -1; // charge-up before the blast during a fight (-1 = none)
   private bestHl: { gain: number; text: string } | null = null;
@@ -299,6 +300,7 @@ export class Game {
       this.bonusCoins = dev.coins;
       if (dev.infinite) this.instaCount = this.doubleCount = 1;
     }
+    this.peakTier = armyTier(this.army.count);
     this.ui.resetHud();
     this.ui.hideScreens();
     this.ui.showHud(true);
@@ -528,7 +530,21 @@ export class Game {
     this.updateHud();
   }
 
+  /** A new power of a thousand in the army: ring pulse, burst, sting and a banner (millions and up). */
+  private checkTier(): void {
+    const t = armyTier(this.army.count);
+    if (t <= this.peakTier) return;
+    this.peakTier = t;
+    if (this.tutorial || t < 2) return;
+    this.army.pulse();
+    this.ui.flashBanner(`${fmt(Math.pow(10, 3 * t))} ARMY!`, 1300);
+    this.fx.burst(new THREE.Vector3(this.army.x, 1.5, -this.playerS), 0xffd23f, 140, 10);
+    this.fx.shake(0.45);
+    sound.power();
+  }
+
   private updateHud(): void {
+    this.checkTier();
     this.ui.setInsta(this.instaCount, this.instakill);
     this.ui.setDouble(this.doubleCount);
     this.ui.setArmy(this.army.count);
