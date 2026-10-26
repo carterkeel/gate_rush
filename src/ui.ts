@@ -215,17 +215,18 @@ export class UI {
 
   setInsta(count: number, armed: boolean): void {
     const b = $('bInstaHud');
-    const want = `<span class="bi">⚡</span><span class="bn">×${count}</span>`;
-    if (b.dataset.k !== `${count}`) {
-      b.dataset.k = `${count}`;
+    const want = `<span class="bi">⚡</span><span class="bn">${armed ? 'ARMED' : 'READY'}</span>`;
+    const key = `${count}${armed ? 'a' : ''}`;
+    if (b.dataset.k !== key) {
+      b.dataset.k = key;
       b.innerHTML = want;
-      if (count > 0) {
+      if (count > 0 && !armed) {
         b.classList.remove('got');
         void b.offsetWidth;
         b.classList.add('got');
       }
     }
-    b.style.display = count > 0 && this.hudOn ? '' : 'none';
+    b.style.display = (count > 0 || armed) && this.hudOn ? '' : 'none';
     b.classList.toggle('on', armed);
     b.setAttribute('aria-pressed', String(armed));
     b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use an instakill on the next fight';

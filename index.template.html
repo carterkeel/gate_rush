@@ -57,15 +57,15 @@
   .boostToggle .bm.off { opacity:.7; }
   .boostToggle.on { background:linear-gradient(#ffd54f,#ffa000); color:#241600; border-color:#7a4a00; box-shadow:0 4px 0 #7a4a00; }
   .boostToggle.on .bm { background:rgba(0,0,0,.2); }
-  #bBoostHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; }
-  #bBoostHud .bi { font-size:15px; } #bBoostHud .bn { font-size:11px; letter-spacing:.5px; }
+  #bBoostHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; color:#fff; border:2px solid #1f2740; background:linear-gradient(#5a6788,#3b4766); box-shadow:0 4px 0 #1f2740; transition:box-shadow .2s, background .2s; }
+  #bBoostHud .bi { font-size:16px; } #bBoostHud .bn { font-size:11px; letter-spacing:.5px; font-family:system-ui,sans-serif; font-weight:800; }
   #bInstaHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px + 52px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #3d1c80; background:linear-gradient(#b784ff,#7b3fe0); box-shadow:0 4px 0 #3d1c80, 0 0 14px rgba(165,107,255,.55); }
-  #bInstaHud .bi { font-size:16px; } #bInstaHud .bn { font-size:11px; letter-spacing:.5px; font-family:system-ui,sans-serif; font-weight:800; }
+  #bInstaHud .bi { font-size:16px; } #bInstaHud .bn { font-size:10px; letter-spacing:.5px; font-family:system-ui,sans-serif; font-weight:800; }
   #bInstaHud.got { animation: instaGot .5s cubic-bezier(.2,1.6,.4,1); }
   #bInstaHud.on { background:linear-gradient(#e0c8ff,#a56bff); color:#2a0a60; box-shadow:0 4px 0 #3d1c80, 0 0 22px 5px rgba(190,140,255,.95); animation: instaArmed .9s ease-in-out infinite; }
   @keyframes instaGot { 0% { transform:scale(.5) rotate(-12deg); } 60% { transform:scale(1.25) rotate(5deg); } 100% { transform:none; } }
   @keyframes instaArmed { 0%,100% { transform:scale(1); } 50% { transform:scale(1.08); } }
-  #bBoostHud.on { background:linear-gradient(#ffd54f,#ffa000); color:#241600; border-color:#7a4a00; box-shadow:0 0 12px rgba(255,194,26,.55); }
+  #bBoostHud.on { background:linear-gradient(#ffd54f,#ff9f1a); color:#2a1700; border-color:#7a4a00; box-shadow:0 4px 0 #7a4a00, 0 0 14px rgba(255,194,26,.6); }
   #combat.ok .bar i { background:linear-gradient(90deg,#1fe06c,#8cf28f); }
   #combat.tight .bar i { background:linear-gradient(90deg,#ffc21a,#ffe27a); }
   #combat.danger .bar i { background:linear-gradient(90deg,#ff3d4d,#ff8a65); }

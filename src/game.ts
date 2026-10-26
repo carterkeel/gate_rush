@@ -154,8 +154,16 @@ export class Game {
     this.ui.onArmy = () => this.showIntel();
     this.ui.onInsta = () => {
       if (this.mode !== 'run' || this.tutorial || this.inCombat) return;
-      if (this.instaCount > 0) {
-        this.instakill = !this.instakill;
+      if (this.instakill) {
+        // cancel (gives it back), unless a second one is already in hand
+        if (this.instaCount === 0) {
+          this.instaCount = 1;
+          this.instakill = false;
+          sound.power();
+        }
+      } else if (this.instaCount > 0) {
+        this.instaCount--;
+        this.instakill = true;
         sound.power();
       }
     };
@@ -733,8 +741,14 @@ export class Game {
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xffc21a, 90, 8);
       for (let i = 0; i < 6; i++) setTimeout(() => sound.coin(i), i * 55);
     } else if (b.kind === 'instakill') {
-      this.instaCount++;
-      this.fx.popup(at, '⚡ INSTAKILL SAVED', 'green big');
+      // you can hold one: picking up another uses the one you were holding on your next fight
+      if (this.instaCount === 0) {
+        this.instaCount = 1;
+        this.fx.popup(at, '⚡ INSTAKILL SAVED', 'green big');
+      } else if (!this.instakill) {
+        this.instakill = true;
+        this.fx.popup(at, '⚡ USING YOUR LAST ONE', 'green big');
+      } else this.fx.popup(at, '⚡ ALREADY HOLDING ONE', 'yellow');
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xa56bff, 110, 9);
       sound.power();
     } else {
@@ -849,7 +863,6 @@ export class Game {
     this.combat.begin();
     if (this.instakill) {
       this.instakill = false;
-      this.instaCount = Math.max(0, this.instaCount - 1);
       this.instaT = 0.55;
       this.ui.flashBanner('⚡ INSTAKILL', 700);
     }
