@@ -13,7 +13,7 @@ import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
 import { CoinField } from './coins';
-import { evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
+import { clampArmy, evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
 import type { SaveData } from './storage';
@@ -760,7 +760,7 @@ export class Game {
   /** x2 power-up: doubles the crowd on the spot (also works in the middle of a fight). */
   private useDouble(): void {
     const before = this.army.count;
-    const after = Math.min(CFG.armyCap, before * 2);
+    const after = clampArmy(before * 2);
     this.army.setCount(after);
     this.peak = Math.max(this.peak, after);
     const at = new THREE.Vector3(this.army.x, 3.2, -this.playerS);
@@ -818,7 +818,7 @@ export class Game {
     const [gl, gr] = set.gates;
     const l = evalEffect(gl.effect, ctx.L);
     const r = evalEffect(gr.effect, ctx.R);
-    const total = Math.min(CFG.armyCap, l + r);
+    const total = clampArmy(l + r);
     if (this.tutorial && set.tutorialRequired && !set.tutorialRequired(A, total, 0)) {
       ctx.failed = true;
       this.army.setSplitCounts(ctx.L, ctx.R);

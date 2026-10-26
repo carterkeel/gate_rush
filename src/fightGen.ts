@@ -27,7 +27,7 @@ export function composeFight(H: number, D0: number, boss: boolean, titans: numbe
   let wSum = 0;
   const w = out.map((e) => Math.pow(e.hp, 0.6));
   for (const x of w) wSum += x;
-  return out.map((e, i) => ({ ...e, atk: (D0 * w[i]) / wSum }));
+  return out.map((e, i) => ({ ...e, atk: D0 * (w[i] / wSum) }));
 }
 
 export interface BalancedFight {

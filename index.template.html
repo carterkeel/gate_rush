@@ -106,7 +106,7 @@
   #banner { position:absolute; left:50%; top:28%; transform:translateX(-50%); text-align:center; font-size:min(9vw,48px); color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; display:none; width:90%; }
   #banner.on { display:block; animation: ban .5s ease-out; }
   @keyframes ban { from{transform:translateX(-50%) scale(.6); opacity:0} to{transform:translateX(-50%) scale(1); opacity:1} }
-  #hint { position:absolute; left:78px; right:12px; bottom:max(26px, env(safe-area-inset-bottom)); padding:12px 14px; color:#fff; background:linear-gradient(#5a6788,#3b4766); border:2px solid #1f2740; box-shadow:0 4px 0 #1f2740, 0 8px 14px rgba(0,0,0,.35); border-radius:14px; text-align:center; font-family: system-ui, 'Arial Black', sans-serif; font-weight:800; font-size:min(4.2vw,17px); line-height:1.25; display:none; }
+  #hint { position:absolute; left:78px; right:78px; bottom:max(26px, env(safe-area-inset-bottom)); padding:12px 14px; color:#fff; background:linear-gradient(#5a6788,#3b4766); border:2px solid #1f2740; box-shadow:0 4px 0 #1f2740, 0 8px 14px rgba(0,0,0,.35); border-radius:14px; text-align:center; font-family: system-ui, 'Arial Black', sans-serif; font-weight:800; font-size:min(4.2vw,17px); line-height:1.25; display:none; }
   #hint.on { display:block; }
   #hint, #tutTag { max-width:460px; }
   @media (min-width:700px) { #hint, #tutTag { left:50% !important; right:auto !important; width:460px !important; transform:translateX(-50%) !important; } }
@@ -202,7 +202,7 @@
   .screen .coin { border-width:1px; }
   #bSkinsBack, #bScoresBack { position:sticky; bottom:8px; z-index:3; }
 
-  #tutTag { position:absolute; left:78px; right:12px; bottom:calc(max(26px, env(safe-area-inset-bottom)) + 96px); display:none; padding:8px 12px; border-radius:14px; text-align:center; background:linear-gradient(#ffd54f,#ff9f1a); border:2px solid #7a4a00; box-shadow:0 4px 0 #7a4a00; color:#2a1700; font-family:system-ui,sans-serif; font-weight:900; font-size:12px; letter-spacing:4px; }
+  #tutTag { position:absolute; left:78px; right:78px; bottom:calc(max(26px, env(safe-area-inset-bottom)) + 96px); display:none; padding:8px 12px; border-radius:14px; text-align:center; background:linear-gradient(#ffd54f,#ff9f1a); border:2px solid #7a4a00; box-shadow:0 4px 0 #7a4a00; color:#2a1700; font-family:system-ui,sans-serif; font-weight:900; font-size:12px; letter-spacing:4px; }
   #tutTag.on { display:block; }
   .screen h2.sub { font-size:min(4vw,14px); margin-top:8px; opacity:.6; }
   .screen .controls b { min-width:56px; background:rgba(255,255,255,.1); }

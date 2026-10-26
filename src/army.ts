@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { CFG } from './config';
+import { clampArmy } from './logic';
 import { unitGeometry } from './models';
 import type { SkinDef } from './storage';
 
@@ -86,7 +87,7 @@ export class Army {
   }
 
   setCount(n: number): void {
-    this.count = Math.max(0, Math.min(CFG.armyCap, Math.floor(n)));
+    this.count = clampArmy(n);
   }
 
   get unitsPerInstance(): number {
@@ -155,7 +156,7 @@ export class Army {
   /** Apply the lane gate results and keep the lanes separated until exitSplit. */
   setSplitCounts(left: number, right: number): void {
     this.split = { left, right };
-    this.count = Math.min(CFG.armyCap, left + right);
+    this.count = clampArmy(left + right);
   }
 
   exitSplit(): void {

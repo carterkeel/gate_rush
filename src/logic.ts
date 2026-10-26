@@ -20,16 +20,22 @@ export const opE = (op: Op): Effect => ({ t: 'op', op });
 export const seqE = (a: Op, b: Op): Effect => ({ t: 'seq', a, b });
 export const condE = (cmp: Cmp, k: number, yes: Op, no: Op): Effect => ({ t: 'cond', cmp, k, yes, no });
 
+/** Keep a troop count a finite whole number in [0, armyCap]. NaN and infinities never leak into the game. */
+export function clampArmy(n: number): number {
+  if (!(n > 0)) return 0; // also catches NaN
+  return n >= CFG.armyCap ? CFG.armyCap : Math.floor(n);
+}
+
 export function applyOp(a: number, op: Op): number {
   switch (op.kind) {
     case 'add':
-      return Math.min(CFG.armyCap, a + op.n);
+      return clampArmy(a + op.n);
     case 'sub':
       return Math.max(0, a - op.n);
     case 'mul':
-      return Math.min(CFG.armyCap, a * op.n);
+      return clampArmy(a * op.n);
     case 'div':
-      return Math.floor(a / op.n);
+      return op.n > 0 ? clampArmy(a / op.n) : a; // dividing by zero leaves the army alone
   }
 }
 
@@ -54,27 +60,44 @@ export function evalEffect(e: Effect, army: number): number {
 // ---------------------------------------------------------------- labels
 const SYM: Record<OpKind, string> = { add: '+', sub: '−', mul: '×', div: '÷' };
 
-export function fmt(n: number): string {
-  if (n < 10000) return String(n);
-  const units: Array<[number, string]> = [
-    [1e21, 'Sx'],
-    [1e18, 'Qi'],
-    [1e15, 'Qa'],
-    [1e12, 'T'],
-    [1e9, 'B'],
-    [1e6, 'M'],
-    [1e3, 'K'],
-  ];
-  for (const [v, s] of units) {
-    if (n >= v) {
-      const x = n / v;
-      let str = x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2);
-      if (str.includes('.')) str = str.replace(/\.?0+$/, '');
-      return str + s;
-    }
+/** Names for each power of a thousand: K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc, then Ud … Vg (up to 1e63). */
+const SUFFIX = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td', 'Qad', 'Qid', 'Sxd', 'Spd', 'Ocd', 'Nod', 'Vg'];
+
+/** About three significant digits, trailing zeros dropped: 1.25, 12.5, 125. */
+const sig3 = (x: number): string => {
+  const s = x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2);
+  return s.includes('.') ? s.replace(/\.?0+$/, '') : s;
+};
+
+const sci = (n: number): string => n.toExponential(2).replace('e+', 'e').replace(/\.?0+e/, 'e');
+
+/**
+ * The one number formatter for the whole UI.
+ *  - below 10,000 the exact whole number (gate thresholds must stay exact)
+ *  - then 12.5K, 1.5M, 2.5B, 1T, 1.5Qa, … up to Vg (1e63)
+ *  - beyond that scientific notation, e.g. 1.5e66, so the label never runs out of names
+ * NaN shows as 0 and a runaway Infinity as MAX, never as raw text.
+ */
+export function formatLargeNumber(n: number): string {
+  if (Number.isNaN(n)) return '0';
+  if (n < 0) return '-' + formatLargeNumber(-n);
+  if (!Number.isFinite(n)) return 'MAX';
+  if (n < 10000) return String(Math.round(n));
+  const e = Math.floor(Math.log10(n));
+  let g = Math.floor(e / 3);
+  if (g >= SUFFIX.length) return sci(n);
+  let x = n / Math.pow(10, g * 3);
+  let str = sig3(x);
+  if (Number(str) >= 1000) {
+    // rounding carried over (999.6K -> 1M): move up one name
+    g++;
+    if (g >= SUFFIX.length) return sci(n);
+    x = n / Math.pow(10, g * 3);
+    str = sig3(x);
   }
-  return String(n);
+  return str + SUFFIX[g];
 }
+export const fmt = formatLargeNumber;
 
 /** Round to 3 significant digits so the abbreviated label (e.g. "12.3K") is exactly the number used. */
 export function niceRound(n: number): number {
@@ -129,5 +152,5 @@ export function bestSplit(left: Effect, right: Effect, army: number): { total: n
       bestL = l;
     }
   }
-  return { total: Math.min(CFG.armyCap, best), toLeft: bestL };
+  return { total: clampArmy(best), toLeft: bestL };
 }

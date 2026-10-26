@@ -2,3 +2,4 @@ node_modules/
 dist/
 tests/.sim.bundle.mjs
 .DS_Store
+tests/.numbers.bundle.mjs

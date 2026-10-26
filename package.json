@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "node build.mjs",
-    "sim": "node tests/run-sim.mjs"
+    "sim": "node tests/run-sim.mjs",
+    "test:numbers": "node tests/run-numbers.mjs"
   },
   "dependencies": {
     "@types/three": "^0.186.0",

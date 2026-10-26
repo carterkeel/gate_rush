@@ -82,11 +82,26 @@ export function startCost(level: number): number {
   return Math.round((100 * Math.pow(1.3, level - 1)) / 10) * 10;
 }
 
+const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : fallback);
+
+/** Old or damaged saves: keep every number finite (huge peaks survive: JSON writes 1e150 as 1e+150). */
+export function sanitizeSave(d: SaveData): SaveData {
+  d.coins = Math.floor(num(d.coins));
+  d.scores = (Array.isArray(d.scores) ? d.scores : []).map((s) => ({
+    score: num(s.score),
+    distance: num(s.distance),
+    peak: num(s.peak),
+    kills: num(s.kills),
+    date: num(s.date),
+  }));
+  return d;
+}
+
 export function load(): SaveData {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULTS();
-    return { ...DEFAULTS(), ...(JSON.parse(raw) as Partial<SaveData>) };
+    return sanitizeSave({ ...DEFAULTS(), ...(JSON.parse(raw) as Partial<SaveData>) });
   } catch {
     return DEFAULTS();
   }

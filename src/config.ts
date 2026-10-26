@@ -5,7 +5,7 @@ export const CFG = {
   halfWidth: 5,
   // army
   startArmy: 1,
-  armyCap: 1e24, // numeric safety ceiling; far past exact integers, but only the suffix on the number matters up there
+  armyCap: 1e300, // ceiling for troop counts: doubles top out near 1.8e308 and no product in the game multiplies an army by more than a few hundred, so this stays finite; beyond 2^53 only the leading digits matter (a ~40 minute run at best play)
   visualCap: 700, // max rendered instances; beyond this units collapse into "elite" models
   // speed (units/second)
   baseSpeed: 8,
