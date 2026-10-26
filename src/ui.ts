@@ -1,4 +1,5 @@
 import { sound } from './audio';
+import { SKULL_BONE, SKULL_BOSS } from './skullData';
 import { fmt } from './logic';
 import { SKINS, TRAILS, SPEED_COST, START_MAX_LEVEL, startCost, startMeters } from './storage';
 import type { SaveData } from './storage';
@@ -139,6 +140,37 @@ export class UI {
   }
 
   // ------------------------------------------------------------- power-up pill + screen flash
+  // ------------------------------------------------------------- route bar (upcoming gates + next fight)
+  private routeSig = '';
+  setRoute(r: { sets: string[][]; fight: { boss: boolean; text: string; tone: string } | null } | null): void {
+    const el = $('route');
+    if (!r) {
+      el.classList.remove('on');
+      this.routeSig = '';
+      return;
+    }
+    el.classList.add('on');
+    const f = el.querySelector<HTMLElement>('.rFight')!;
+    const img = el.querySelector<HTMLImageElement>('.rSkull')!;
+    const need = el.querySelector<HTMLElement>('.rNeed')!;
+    const want = r.fight && r.fight.boss ? SKULL_BOSS : SKULL_BONE;
+    if (img.getAttribute('src') !== want) img.src = want;
+    f.className = 'rFight' + (r.fight ? ` ${r.fight.tone}${r.fight.boss ? ' boss' : ''}` : ' dim');
+    const txt = r.fight ? r.fight.text : '·';
+    if (need.textContent !== txt) need.textContent = txt;
+    const sig = r.sets.map((s) => s.join(',')).join('|');
+    if (sig !== this.routeSig) {
+      this.routeSig = sig;
+      // far gates on top, the nearest one at the bottom
+      const html = r.sets
+        .slice()
+        .reverse()
+        .map((segs, i, a) => `<div class="rSet${i === a.length - 1 ? ' near' : ''}">${segs.map((t) => `<i class="${t}"></i>`).join('')}</div>`)
+        .join('');
+      el.querySelector('.rGates')!.innerHTML = html;
+    }
+  }
+
   setPower(text: string | null, tone = ''): void {
     const el = $('power');
     if (text === null) {
@@ -358,6 +390,7 @@ export class UI {
   showHud(on: boolean): void {
     if (!on) this.showTutorialTag(false);
     $('hud').classList.toggle('on', on);
+    if (!on) this.setRoute(null);
     this.syncLines();
     if (!on) {
       this.setCombat(null);

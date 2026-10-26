@@ -39,7 +39,6 @@ export class Game {
   private coins: CoinField;
   /** Test hook: sets where the crossing result was below best play. */
   misses: Array<{ kind: string; s: number; A: number; result: number; best: number; idx: number }> = [];
-  private forecasting = false;
   private heldRows: { from: number; to: number; x0: number; x1: number }[] = [];
   private setsSinceCoins = 0;
   private coinEvery = 5;
@@ -213,7 +212,6 @@ export class Game {
     this.setsSinceCoins = 0;
     this.coinEvery = 5;
     this.lastGateX = 0;
-    this.forecasting = false;
     for (const v of this.viewOrder) {
       this.world.scene.remove(v.root);
       v.dispose();
@@ -463,7 +461,7 @@ export class Game {
         sound.coin(this.coinStreak);
       }
     }
-    if (!this.inCombat && !this.tutorial) this.showForecast();
+    this.updateRoute();
     if (this.inCombat) this.stepCombat(dt);
     else if (this.combatClearT > 0) {
       this.combatClearT -= dt;
@@ -497,28 +495,34 @@ export class Game {
     }
   }
 
-  /** Before a fight: show the army the fight needs (the cliff) against the army you have. */
-  private showForecast(): void {
-    const head = this.queue[0];
-    if (!head || head.type !== 'combat' || head.s - this.playerS > 95 || head.s - this.playerS < 0.5) {
-      if (this.forecasting) {
-        this.forecasting = false;
-        this.ui.setCombat(null);
-      }
-      return;
-    }
-    this.forecasting = true;
-    if (this.instakill) {
-      this.ui.setCombat({ text: `${head.boss ? 'BOSS' : 'FIGHT'} AHEAD · ⚡ INSTAKILL\nYOUR ARMY IS SAFE`, frac: 1, boss: head.boss, tone: 'ok' });
+  /** Left-hand route bar: the next gates as coloured lines (gold = power-up) and the next fight as a skull with the army still missing. */
+  private updateRoute(): void {
+    if (this.tutorial) {
+      this.ui.setRoute(null);
       return;
     }
     const A = this.army.count;
-    // enemies grow with an army that beats the reference, so the requirement does too
-    const need = Math.ceil(head.critical * Math.max(head.refArmy, A));
-    const ratio = A / Math.max(1, need);
-    const tone = ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger';
-    const word = tone === 'ok' ? 'SAFE' : tone === 'tight' ? 'CLOSE' : 'TOO WEAK';
-    this.ui.setCombat({ text: `${head.boss ? 'BOSS' : 'FIGHT'} AHEAD · ${word}\nARMY ${fmt(A)}  ·  NEED ${fmt(need)}`, frac: Math.min(1, ratio / 1.4), boss: head.boss, tone });
+    const fightIdx = this.inCombat ? -1 : this.queue.findIndex((q) => q.type === 'combat');
+    const fightItem = this.inCombat ? this.combatZone : fightIdx >= 0 ? (this.queue[fightIdx] as CombatZone) : null;
+    const sets: string[][] = [];
+    for (let i = 0; i < this.queue.length && sets.length < 5; i++) {
+      const q = this.queue[i];
+      if (q.type === 'combat') break; // only the gates before the next fight
+      if (this.splitCtx && this.splitCtx.resolved && q === this.splitCtx.set) continue;
+      sets.push(q.gates.map((g) => (g.bonus ? 'gold' : effectTone(g.effect))));
+    }
+    let fight: { boss: boolean; text: string; tone: string } | null = null;
+    if (fightItem) {
+      if (this.instakill) fight = { boss: fightItem.boss, text: '⚡', tone: 'ok' };
+      else {
+        // enemies grow with an army that beats the reference, so the requirement does too
+        const need = Math.ceil(fightItem.critical * Math.max(fightItem.refArmy, A));
+        const missing = Math.max(0, need - A);
+        const ratio = A / Math.max(1, need);
+        fight = { boss: fightItem.boss, text: missing > 0 ? fmt(missing) : '✓', tone: ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger' };
+      }
+    }
+    this.ui.setRoute({ sets, fight });
   }
 
   private coinsEarned(): number {
