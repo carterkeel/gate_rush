@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script>
+  /* Android app only (Capacitor): extra room at the top for a camera cutout while staying fullscreen */
+  try { var C = window.Capacitor; if (C && C.isNativePlatform && C.isNativePlatform()) document.documentElement.classList.add('apk'); } catch (e) {}
+</script>
+<style>
+  :root { --sat: env(safe-area-inset-top, 0px); }
+  :root.apk { --sat: max(env(safe-area-inset-top, 0px), 34px); }
+</style>
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -20,12 +28,12 @@
   .popup.small { font-size:min(6.5vw,34px); }
   @keyframes pop { 0%{transform:translate(-50%,-30%) scale(.4); opacity:0} 15%{transform:translate(-50%,-70%) scale(1.25); opacity:1} 70%{opacity:1} 100%{transform:translate(-50%,-260%) scale(1); opacity:0} }
 
-  #hud { position:absolute; inset:0; pointer-events:none; display:none; padding: max(10px, env(safe-area-inset-top)) 14px 10px; }
+  #hud { position:absolute; inset:0; pointer-events:none; display:none; padding: max(10px, var(--sat)) 14px 10px; }
   #hud.on { display:block; }
-  .stat { position:absolute; top:max(10px, env(safe-area-inset-top)); text-shadow:0 3px 0 rgba(0,0,0,.5); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; }
+  .stat { position:absolute; top:max(10px, var(--sat)); text-shadow:0 3px 0 rgba(0,0,0,.5); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; }
   #dist { left:12px; font-size:min(6.2vw,30px); }
   #dist small, #coins small { display:block; font-size:.45em; opacity:.85; letter-spacing:2px; -webkit-text-stroke:2px var(--ink); }
-  #coins { left:12px; top:calc(max(10px, env(safe-area-inset-top)) + min(6.2vw,30px) * 1.75 + 12px); text-align:left; font-size:min(5.2vw,24px); color:#ffe27a; }
+  #coins { left:12px; top:calc(max(10px, var(--sat)) + min(6.2vw,30px) * 1.75 + 12px); text-align:left; font-size:min(5.2vw,24px); color:#ffe27a; }
   #army { right:12px; text-align:center; font-size:min(8.6vw,50px); line-height:1; color:#fff; padding:6px 18px 8px; border:0; border-radius:16px; min-width:0; cursor:pointer; pointer-events:auto; touch-action:manipulation; background:linear-gradient(#5b8cff,#2e57d6); box-shadow:inset 0 2px 0 rgba(255,255,255,.32), 0 5px 0 #1a3590, 0 9px 14px rgba(0,0,0,.4); -webkit-text-stroke:0; text-shadow:0 2px 0 rgba(0,0,0,.35); font-family:inherit; transition:transform .08s, box-shadow .08s; }
   #army:active { transform:translateY(4px); box-shadow:inset 0 2px 0 rgba(255,255,255,.2), 0 1px 0 #1a3590, 0 3px 6px rgba(0,0,0,.4); }
   #army span { -webkit-text-stroke:0; }
@@ -33,7 +41,7 @@
   #army.up { animation: up .35s ease-out; } #army.down { animation: down .35s ease-out; }
   @keyframes up { 0%{transform:scale(1.25)} 100%{transform:scale(1)} }
   @keyframes down { 0%{transform:scale(.8)} 100%{transform:scale(1)} }
-  #bPause { position:absolute; right:14px; top:calc(max(10px, env(safe-area-inset-top)) + min(8.6vw,50px) * 1.45 + 30px); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
+  #bPause { position:absolute; right:14px; top:calc(max(10px, var(--sat)) + min(8.6vw,50px) * 1.45 + 30px); width:42px; height:42px; padding:0; border-radius:50%; font-size:18px; line-height:1; pointer-events:auto; touch-action:manipulation; }
   #bFast { position:absolute; left:12px; bottom:max(20px, env(safe-area-inset-bottom)); width:54px; height:44px; padding:0; border-radius:14px; font-size:19px; line-height:1; color:#fff; border:2px solid #1f2740; background:linear-gradient(#5a6788,#3b4766); box-shadow:0 4px 0 #1f2740; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; overflow:hidden; display:flex; align-items:center; justify-content:center; transition:box-shadow .2s, background .2s; }
   #bFast .x2 { position:relative; z-index:1; }
   #bFast .chev { position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; gap:0; padding-bottom:3px; opacity:0; }
@@ -95,7 +103,7 @@
   #combat .bar { height:14px; border-radius:8px; background:rgba(255,255,255,.18); overflow:hidden; margin-top:4px; border:2px solid var(--ink); }
   #combat .bar i { display:block; height:100%; width:100%; background:linear-gradient(90deg,#ff3d4d,#ff8a65); }
 
-  .screen { position:absolute; inset:0; display:none; align-items:center; justify-content:flex-start; flex-direction:column; gap:12px; padding:max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom)); background:radial-gradient(ellipse at 50% 30%, rgba(30,50,100,.55), rgba(5,8,16,.92)); overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
+  .screen { position:absolute; inset:0; display:none; align-items:center; justify-content:flex-start; flex-direction:column; gap:12px; padding:max(16px, var(--sat)) 14px max(16px, env(safe-area-inset-bottom)); background:radial-gradient(ellipse at 50% 30%, rgba(30,50,100,.55), rgba(5,8,16,.92)); overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
   /* spacers centre short screens but let tall ones scroll from the very top (plain justify-content:center clips the top) */
   .screen::before, .screen::after { content:''; flex:1 0 0; min-height:0; }
   .screen > * { max-width:100%; flex-shrink:0; }
@@ -231,7 +239,7 @@
   @keyframes hudIn { from { opacity:0; } to { opacity:1; } }
 
   /* ---- power-up pill and flash ---- */
-  #power { position:absolute; left:70px; top:calc(max(10px, env(safe-area-inset-top)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 60px); display:none; padding:6px 11px; border-radius:999px; font-family:system-ui,sans-serif; font-weight:800; font-size:16px; letter-spacing:0; font-variant-numeric:tabular-nums; color:#fff; border:1px solid rgba(255,255,255,.4); box-shadow:0 0 16px rgba(165,107,255,.6); background:rgba(120,70,220,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation: powerPulse 1.1s ease-in-out infinite; }
+  #power { position:absolute; left:70px; top:calc(max(10px, var(--sat)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 60px); display:none; padding:6px 11px; border-radius:999px; font-family:system-ui,sans-serif; font-weight:800; font-size:16px; letter-spacing:0; font-variant-numeric:tabular-nums; color:#fff; border:1px solid rgba(255,255,255,.4); box-shadow:0 0 16px rgba(165,107,255,.6); background:rgba(120,70,220,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation: powerPulse 1.1s ease-in-out infinite; }
   #power.on { display:block; }
   #power.cyan { background:rgba(20,150,190,.55); box-shadow:0 0 16px rgba(55,230,255,.55); }
   @keyframes powerPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
@@ -277,7 +285,7 @@
   .grid { gap:14px; }
 
   /* ---- route bar: a line that slides towards you; ticks are gate sets, the skull is the next fight ---- */
-  #route { position:absolute; left:6px; top:calc(max(10px, env(safe-area-inset-top)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 58px); width:58px; display:none; flex-direction:column; align-items:center; font-family:system-ui,sans-serif; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
+  #route { position:absolute; left:6px; top:calc(max(10px, var(--sat)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 58px); width:58px; display:none; flex-direction:column; align-items:center; font-family:system-ui,sans-serif; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
   #route.on { display:flex; animation: hudIn .5s ease backwards; }
   .rLabel { font-size:8px; letter-spacing:1.5px; font-weight:800; opacity:.7; }
   .rNeed { white-space:nowrap; font-weight:900; font-size:14px; line-height:1.1; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:2px; }

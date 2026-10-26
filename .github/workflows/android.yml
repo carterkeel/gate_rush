@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - run: npm run build
+      - name: Create the Android project from the web build
+        run: |
+          mkdir www && cp dist/index.html www/index.html
+          npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npx cap add android
+          python3 android-patch/patch.py
+          npx cap sync android
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Name the APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk gate-rush.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-rush-apk
+          path: gate-rush.apk
+      - name: Publish to the "apk-latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view apk-latest >/dev/null 2>&1 || gh release create apk-latest --title "Gate Rush APK (latest)" --notes "Debug-signed Android build of the latest main."
+          gh release upload apk-latest gate-rush.apk --clobber
