@@ -46,8 +46,17 @@ const code = (e: KeyboardEvent): string | null => {
   }
 };
 
-/** Wire up the Konami listener and the Settings panel. `onUnlock` runs once when the code is entered. */
-export function initDev(onUnlock: () => void): void {
+/** A small notice on top of the menus. */
+function toast(title: string, sub: string): void {
+  const el = document.createElement('div');
+  el.className = 'devToast';
+  el.innerHTML = `<b>${title}</b><span>${sub}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+/** Wire up the Konami listener and the Settings panel. The code only counts while `canEnter()` (the menus, never a run). */
+export function initDev(canEnter: () => boolean): void {
   load();
   if (!isWeb()) return;
   const box = document.getElementById('devBox')!;
@@ -91,6 +100,10 @@ export function initDev(onUnlock: () => void): void {
 
   const seen: { k: string; t: number }[] = [];
   window.addEventListener('keydown', (e) => {
+    if (!canEnter()) {
+      seen.length = 0;
+      return;
+    }
     if (e.repeat || (e.target as HTMLElement | null)?.tagName === 'INPUT') return;
     const k = code(e);
     if (!k) return;
@@ -102,7 +115,7 @@ export function initDev(onUnlock: () => void): void {
         dev.unlocked = true;
         save();
         sync();
-        onUnlock();
+        toast('DEV MENU UNLOCKED', 'Find it in Settings');
       }
     }
   });

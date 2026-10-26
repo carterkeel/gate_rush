@@ -178,10 +178,7 @@ export class Game {
         sound.power();
       }
     };
-    initDev(() => {
-      this.ui.flashBanner('DEV MENU UNLOCKED', 1800);
-      sound.power();
-    });
+    initDev(() => this.mode === 'menu');
     this.ui.onDouble = () => {
       if (this.mode !== 'run' || this.tutorial || this.doubleCount === 0) return;
       if (this.splitCtx && !this.splitCtx.resolved) return;
