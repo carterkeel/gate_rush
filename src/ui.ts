@@ -237,6 +237,7 @@ export class UI {
       }
     }
     b.style.display = (count > 0 || armed) && this.hudOn ? '' : 'none';
+    this.packHud();
     b.classList.toggle('on', armed);
     b.setAttribute('aria-pressed', String(armed));
     b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use your instakill';
@@ -254,6 +255,7 @@ export class UI {
       }
     }
     b.style.display = count > 0 && this.hudOn ? '' : 'none';
+    this.packHud();
   }
 
   setPower(text: string | null, tone = ''): void {
@@ -475,6 +477,18 @@ export class UI {
 
   showFast(on: boolean): void {
     $('bFast').style.display = on ? '' : 'none';
+    this.packHud();
+  }
+
+  /** Stack the left-hand HUD buttons from the bottom with no gaps, whichever ones are showing. */
+  packHud(): void {
+    let k = 0;
+    for (const id of ['bFast', 'bBoostHud', 'bInstaHud', 'bDoubleHud']) {
+      const el = $(id);
+      if (el.style.display === 'none') continue;
+      el.style.bottom = `calc(max(20px, env(safe-area-inset-bottom)) + ${k * 52}px)`;
+      k++;
+    }
   }
 
   /** Keep every head-start toggle (menu, pause, summary, in-run button) in step with the save. */
@@ -498,6 +512,7 @@ export class UI {
 
   showBoostHud(on: boolean): void {
     $('bBoostHud').style.display = on && this.save().startLevel > 0 ? '' : 'none';
+    this.packHud();
   }
 
   setFast(on: boolean): void {
@@ -523,6 +538,7 @@ export class UI {
       this.setRoute(null);
       $('bInstaHud').style.display = 'none';
       $('bDoubleHud').style.display = 'none';
+      this.packHud();
     }
     this.syncLines();
     if (!on) {
