@@ -61,6 +61,9 @@
   #bBoostHud .bi { font-size:16px; } #bBoostHud .bn { font-size:11px; letter-spacing:.5px; font-family:system-ui,sans-serif; font-weight:800; }
   #bInstaHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px + 52px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #3d1c80; background:linear-gradient(#b784ff,#7b3fe0); box-shadow:0 4px 0 #3d1c80, 0 0 14px rgba(165,107,255,.55); }
   #bInstaHud .bi { font-size:24px; }
+  #bDoubleHud { position:absolute; left:12px; bottom:calc(max(20px, env(safe-area-inset-bottom)) + 64px + 104px); width:54px; height:44px; padding:0; border-radius:14px; pointer-events:auto; touch-action:manipulation; -webkit-text-stroke:0; display:flex; align-items:center; justify-content:center; line-height:1; color:#fff; border:2px solid #86204f; background:linear-gradient(#ff8cc0,#e0357f); box-shadow:0 4px 0 #86204f, 0 0 14px rgba(255,79,154,.55); }
+  #bDoubleHud .bi { font-size:22px; font-family:Impact,'Arial Black',system-ui,sans-serif; font-style:italic; font-weight:900; text-shadow:0 2px 0 rgba(0,0,0,.35); }
+  #bDoubleHud.got { animation: instaGot .5s cubic-bezier(.2,1.6,.4,1); }
   #bInstaHud.got { animation: instaGot .5s cubic-bezier(.2,1.6,.4,1); }
   #bInstaHud.on { background:linear-gradient(#e0c8ff,#a56bff); color:#2a0a60; box-shadow:0 4px 0 #3d1c80, 0 0 22px 5px rgba(190,140,255,.95); animation: instaArmed .9s ease-in-out infinite; }
   @keyframes instaGot { 0% { transform:scale(.5) rotate(-12deg); } 60% { transform:scale(1.25) rotate(5deg); } 100% { transform:none; } }
@@ -192,6 +195,7 @@
 
   #menu h1 { font-family: Impact, 'Arial Black', 'Helvetica Neue', system-ui, sans-serif; font-weight:900; font-style:italic; font-size:min(21vw,112px); line-height:.88; letter-spacing:3px; margin:0 0 14px; transform:perspective(500px) rotateX(10deg) rotate(-3deg); animation: logoFloat 4s ease-in-out infinite; -webkit-text-stroke:7px #05070d; paint-order:stroke fill; }
   #menu h1 span { display:inline-block; }
+  #summary h2#sumTitle, #sumTitle { font-family: Impact, 'Arial Black', 'Helvetica Neue', system-ui, sans-serif; font-weight:900; font-style:italic; font-size:min(15vw,78px); line-height:.9; letter-spacing:3px; margin:0 0 10px; text-align:center; transform:perspective(500px) rotateX(10deg) rotate(-3deg); -webkit-text-stroke:6px #05070d; paint-order:stroke fill; color:#ff3d4d; text-shadow:0 2px 0 #e02438, 0 4px 0 #b3182b, 0 6px 0 #861020, 0 8px 0 #5a0913, 0 10px 0 #2a0308, 0 18px 22px rgba(0,0,0,.55), 0 0 30px rgba(255,61,77,.4); }
   #menu h1 span:nth-child(1) { color:#fff; text-shadow:0 2px 0 #b7c4e0, 0 4px 0 #8d9bbd, 0 6px 0 #5c6a8f, 0 8px 0 #2b3556, 0 10px 0 #0b1020, 0 18px 22px rgba(0,0,0,.55); }
   #menu h1 span:last-of-type { color:var(--green); text-shadow:0 2px 0 #17c35c, 0 4px 0 #0f9a47, 0 6px 0 #0a7436, 0 8px 0 #064d24, 0 10px 0 #02200f, 0 18px 22px rgba(0,0,0,.55), 0 0 30px rgba(31,224,108,.35); }
   @keyframes logoFloat { 0%,100% { transform:perspective(500px) rotateX(10deg) rotate(-3deg) translateY(0); } 50% { transform:perspective(500px) rotateX(10deg) rotate(-3deg) translateY(-6px); } }
@@ -228,7 +232,7 @@
   /* ---- largest-army bonus ---- */
   #bonus { display:none; position:relative; width:min(88vw,420px); padding:2px 0 4px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; text-align:center; cursor:pointer; }
   #bonus.on { display:flex; flex-direction:column; align-items:center; gap:10px; }
-  .bTitle { font-size:min(4.4vw,15px); letter-spacing:6px; color:#ffe27a; font-weight:700; margin-bottom:2px; }
+  .bTitle { font-size:min(4.4vw,15px); letter-spacing:6px; color:#ffe27a; font-weight:700; margin:6px 0 0; }
   .cStack { display:flex; align-items:flex-end; justify-content:center; gap:5px; width:100%; height:104px; }
   .cs { position:relative; height:100%; flex:0 0 auto; }
   .cStack i { position:absolute; left:0; transform:translateX(var(--dx,0)); border-radius:50%; background:linear-gradient(#ffe27a,#ffb300 60%,#c47f00); box-shadow:0 3px 0 #8a5600, inset 0 2px 0 rgba(255,255,255,.55); animation: discDrop .32s cubic-bezier(.3,1.5,.5,1) backwards; }
@@ -257,7 +261,7 @@
   .screen { gap:16px; }
   .screen button { padding-top:16px; padding-bottom:16px; }
   .screen .row { gap:14px; }
-  #summary { gap:12px; } #summary .row { gap:12px; } #summary .sum { padding:12px 18px; gap:4px 18px; font-size:min(5vw,20px); } #summary .cStack { height:92px; }
+  #summary { gap:16px; } #summary .row { gap:14px; margin-top:0; } #summary .sum { padding:12px 18px; gap:4px 18px; font-size:min(5vw,20px); } #summary .cStack { height:92px; }
   .screen h2 { margin-bottom:10px; }
   #menu h1 { margin-bottom:22px; }
   .grid { gap:14px; }
@@ -317,6 +321,7 @@
     <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
     <button id="bPause" class="ghost" aria-label="Pause" title="Pause (Esc / P)">❚❚</button>
     <button id="bInstaHud" class="ghost" aria-label="Use instakill on the next fight" aria-pressed="false" style="display:none"></button>
+    <button id="bDoubleHud" class="ghost" aria-label="Use x2 army" style="display:none"></button>
     <button id="bBoostHud" class="ghost" aria-label="Head start for next run" aria-pressed="false" style="display:none"></button>
     <button id="bFast" class="ghost" aria-label="Double speed" aria-pressed="false" title="Double speed"><span class="x2">2×</span><span class="chev"><i></i><i></i><i></i></span></button>
     <div id="route" aria-hidden="true">

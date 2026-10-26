@@ -81,6 +81,7 @@ export class Game {
   private bonusCoins = 0;
   private instaCount = 0; // saved instakills (use them with the purple button)
   private instakill = false; // armed: the next fight is wiped out
+  private doubleCount = 0; // saved x2 army power-up (hold one)
   private instaT = -1; // charge-up before the blast during a fight (-1 = none)
   private magnetT = 0; // seconds of coin magnet left
   private bestHl: { gain: number; text: string } | null = null;
@@ -177,6 +178,12 @@ export class Game {
         sound.power();
       }
     };
+    this.ui.onDouble = () => {
+      if (this.mode !== 'run' || this.tutorial || this.doubleCount === 0) return;
+      if (this.splitCtx && !this.splitCtx.resolved) return;
+      this.doubleCount = 0;
+      this.useDouble();
+    };
     this.ui.onFast = () => this.setFast(!this.fast);
     this.ui.onBoostHud = () => {
       this.data.startOn = !this.data.startOn;
@@ -272,6 +279,7 @@ export class Game {
     this.kills = 0;
     this.bonusCoins = 0;
     this.instaCount = 0;
+    this.doubleCount = 0;
     this.instakill = false;
     this.instaT = -1;
     this.magnetT = 0;
@@ -515,6 +523,7 @@ export class Game {
 
   private updateHud(): void {
     this.ui.setInsta(this.instaCount, this.instakill);
+    this.ui.setDouble(this.doubleCount);
     if (this.magnetT > 0) this.ui.setPower(`🧲 ${Math.ceil(this.magnetT)}s`, 'cyan');
     else this.ui.setPower(null);
     this.ui.setArmy(this.army.count);
@@ -743,6 +752,20 @@ export class Game {
     if (this.army.count <= 0) this.die();
   }
 
+  /** x2 power-up: doubles the crowd on the spot (also works in the middle of a fight). */
+  private useDouble(): void {
+    const before = this.army.count;
+    const after = Math.min(CFG.armyCap, before * 2);
+    this.army.setCount(after);
+    this.peak = Math.max(this.peak, after);
+    const at = new THREE.Vector3(this.army.x, 3.2, -this.playerS);
+    this.fx.popup(at, '×2!', 'green big');
+    this.fx.burst(new THREE.Vector3(this.army.x, 1.5, -this.playerS), 0xff4f9a, 120, 9);
+    this.ui.flash('#ff4f9a');
+    this.fx.shake(0.5);
+    sound.power();
+  }
+
   private collectBonus(b: Bonus, gx: number, setS: number): void {
     const at = new THREE.Vector3(gx, 3.2, -setS);
     if (b.kind === 'coins') {
@@ -761,6 +784,16 @@ export class Game {
       } else this.fx.popup(at, '⚡ ALREADY HOLDING ONE', 'yellow');
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xa56bff, 110, 9);
       sound.power();
+    } else if (b.kind === 'double') {
+      if (this.doubleCount === 0) {
+        this.doubleCount = 1;
+        this.fx.popup(at, '×2 SAVED', 'green big');
+      } else {
+        this.fx.popup(at, '×2 USING YOUR LAST ONE', 'green big');
+        this.useDouble();
+      }
+      this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xff4f9a, 110, 9);
+      sound.power();
     } else {
       this.magnetT = 14;
       this.fx.popup(at, 'COIN MAGNET!', 'green big');
@@ -769,7 +802,7 @@ export class Game {
     }
     this.fx.shake(0.4);
     this.trailT = 1.2;
-    this.trailColor = b.kind === 'coins' ? 0xffc21a : b.kind === 'instakill' ? 0xa56bff : 0x37e6ff;
+    this.trailColor = b.kind === 'coins' ? 0xffc21a : b.kind === 'instakill' ? 0xa56bff : b.kind === 'double' ? 0xff4f9a : 0x37e6ff;
   }
 
   // ------------------------------------------------------------------ split & merge (Type C)

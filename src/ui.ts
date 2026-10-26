@@ -28,6 +28,7 @@ export class UI {
   onTutorial = () => {};
   onArmy = () => {};
   onInsta = () => {};
+  onDouble = () => {};
   onAgain = () => {};
   onMenu = () => {};
   onPause = () => {};
@@ -94,6 +95,7 @@ export class UI {
     $('bFast').onclick = () => this.onFast();
     $('bBoostHud').onclick = () => this.onBoostHud();
     $('bInstaHud').onclick = () => this.onInsta();
+    $('bDoubleHud').onclick = () => this.onDouble();
     $('army').onclick = () => this.onArmy();
     $('bIntelResume').onclick = () => this.onResume();
     $('bUpgrades').onclick = () => this.showUpgrades();
@@ -240,6 +242,20 @@ export class UI {
     b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use your instakill';
   }
 
+  setDouble(count: number): void {
+    const b = $('bDoubleHud');
+    if (b.dataset.k !== String(count)) {
+      b.dataset.k = String(count);
+      b.innerHTML = '<span class="bi">×2</span>';
+      if (count > 0) {
+        b.classList.remove('got');
+        void b.offsetWidth;
+        b.classList.add('got');
+      }
+    }
+    b.style.display = count > 0 && this.hudOn ? '' : 'none';
+  }
+
   setPower(text: string | null, tone = ''): void {
     const el = $('power');
     if (text === null) {
@@ -293,8 +309,8 @@ export class UI {
     const box = $('bonus');
     const MILLION = 1_000_000;
     box.innerHTML =
-      `<div class="bTitle">LARGE ARMY BONUS</div>` +
-      `<div class="cStack"></div><div class="bCoin"><span class="coin"></span><b>0</b></div>`;
+      `<div class="bCoin"><b>0</b></div><div class="cStack"></div>` +
+      `<div class="bTitle">LARGE ARMY BONUS</div>`;
     box.classList.toggle('on', coins > 0);
     box.classList.remove('win');
     box.onclick = () => (this.bonusSkip = true);
@@ -506,6 +522,7 @@ export class UI {
     if (!on) {
       this.setRoute(null);
       $('bInstaHud').style.display = 'none';
+      $('bDoubleHud').style.display = 'none';
     }
     this.syncLines();
     if (!on) {
