@@ -259,6 +259,26 @@ class Sound {
     this.tone(f, 0.07, 'square', 0.06);
     this.tone(f * 2, 0.1, 'triangle', 0.05, 0, 0.03);
   }
+  /** Fast descending whirr under the army count-down. */
+  sweep(dur: number): void {
+    if (!this.ok('sweep', 0.5)) return;
+    this.tone(1500, dur, 'sawtooth', 0.05, 220);
+    this.noise(dur, 0.06, 4000, 0.5, 0, 'highpass');
+  }
+  /** One coin landing on the stack; pitch climbs with i. */
+  clink(i: number): void {
+    if (!this.ok('clink', 0.025)) return;
+    const f = 880 * Math.pow(2, (i % 24) / 12);
+    this.tone(f, 0.08, 'square', 0.06);
+    this.tone(f * 1.5, 0.14, 'triangle', 0.08, 0, 0.035);
+  }
+  /** Finish of the army conversion. */
+  jackpot(): void {
+    if (!this.ok('jackpot', 0.3)) return;
+    [784, 988, 1175, 1568].forEach((f, k) => this.tone(f, 0.22, 'triangle', 0.12, 0, k * 0.07));
+    this.tone(2093, 0.6, 'sine', 0.08, 0, 0.3);
+    this.noise(0.35, 0.08, 6000, 0.4, 0.25, 'highpass');
+  }
   boost(on: boolean): void {
     if (!this.ok()) return;
     if (on) {

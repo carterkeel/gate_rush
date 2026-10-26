@@ -157,120 +157,94 @@ export class UI {
     f.classList.add('go');
   }
 
-  // ------------------------------------------------------------- largest-army bonus: the stack turns into coins
+  // ------------------------------------------------------------- largest-army bonus: count-down + growing coin stack
   private bonusRun = 0;
+  private bonusSkip = false;
+
+  private revealStats(): void {
+    $('sumGrid').classList.add('go');
+  }
+
   private playArmyBonus(peak: number, coins: number): void {
     const run = ++this.bonusRun;
+    this.bonusSkip = false;
+    $('sumGrid').classList.remove('go');
     const box = $('bonus');
-    const SLABS = 10;
     const MILLION = 1_000_000;
     box.innerHTML =
-      `<div class="bTitle">LARGEST ARMY</div>` +
-      `<div class="bBody"><div class="bStack">${Array.from({ length: SLABS }, () => '<i></i>').join('')}</div>` +
-      `<div class="bSide"><div class="bNum">0</div><div class="bCoin"><span class="coin"></span><b>0</b></div></div></div>` +
-      `<div class="bRes"></div>`;
+      `<div class="bTitle">BONUS COINS FOR ARMY SIZE</div>` +
+      `<div class="bBody"><div class="bNum">0</div><div class="bRight"><div class="cStack"></div><div class="bCoin"><span class="coin"></span><b>0</b></div></div></div>`;
     box.classList.add('on');
-    const slabs = Array.from(box.querySelectorAll<HTMLElement>('.bStack i')).reverse(); // index 0 = bottom
+    box.onclick = () => (this.bonusSkip = true);
     const num = box.querySelector<HTMLElement>('.bNum')!;
+    const stack = box.querySelector<HTMLElement>('.cStack')!;
     const coinB = box.querySelector<HTMLElement>('.bCoin b')!;
     const coinEl = box.querySelector<HTMLElement>('.bCoin')!;
-    const res = box.querySelector<HTMLElement>('.bRes')!;
     const alive = () => run === this.bonusRun;
-    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-    const tween = (from: number, to: number, ms: number, ease: (t: number) => number) =>
+    const wait = (ms: number) =>
+      new Promise<void>((r) => {
+        const t0 = performance.now();
+        const poll = () => (this.bonusSkip || performance.now() - t0 >= ms ? r() : setTimeout(poll, 16));
+        poll();
+      });
+    const tween = (from: number, to: number, ms: number, ease: (t: number) => number, onK?: (k: number) => void) =>
       new Promise<void>((resolve) => {
         const t0 = performance.now();
         const tick = (now: number) => {
           if (!alive()) return resolve();
-          const k = Math.min(1, (now - t0) / ms);
+          const k = this.bonusSkip ? 1 : Math.min(1, (now - t0) / ms);
           num.textContent = fmt(Math.round(from + (to - from) * ease(k)));
+          onK?.(k);
           if (k < 1) requestAnimationFrame(tick);
           else resolve();
         };
         requestAnimationFrame(tick);
       });
-    const fly = (from: HTMLElement) => {
-      const a = from.getBoundingClientRect();
-      const b = coinEl.getBoundingClientRect();
-      const c = document.createElement('span');
-      c.className = 'coin fly';
-      box.appendChild(c);
-      const bx = box.getBoundingClientRect();
-      const x0 = a.left + a.width / 2 - bx.left - 9;
-      const y0 = a.top + a.height / 2 - bx.top - 9;
-      const x1 = b.left + 14 - bx.left;
-      const y1 = b.top + b.height / 2 - bx.top - 9;
-      const rise = -30 - Math.random() * 30;
-      c.animate(
-        [
-          { transform: `translate(${x0}px,${y0}px) scale(.4)`, opacity: 0 },
-          { transform: `translate(${x0 + (Math.random() - 0.3) * 40}px,${y0 + rise}px) scale(1.15)`, opacity: 1, offset: 0.35 },
-          { transform: `translate(${x1}px,${y1}px) scale(.8)`, opacity: 1 },
-        ],
-        { duration: 520, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' },
-      ).onfinish = () => c.remove();
+
+    // coin discs: the stack gets taller with every coin (squeezed to fit once it is big)
+    let shown = 0;
+    const addDisc = (n: number) => {
+      const i = shown++;
+      const step = Math.max(1.6, Math.min(5, 96 / Math.max(1, coins)));
+      const d = document.createElement('i');
+      d.style.bottom = `${i * step}px`;
+      d.style.setProperty('--dx', `${((i * 7) % 5) - 2}px`);
+      stack.appendChild(d);
+      sound.clink(n);
+      coinB.textContent = String(shown);
+      coinEl.classList.remove('tick');
+      void coinEl.offsetWidth;
+      coinEl.classList.add('tick');
     };
 
     void (async () => {
-      await wait(420); // let the screen finish sliding in
+      await wait(380); // let the screen finish sliding in
       if (!alive()) return;
-      // 1. the stack builds while the number rolls up
-      const filled = coins > 0 ? SLABS : Math.max(1, Math.ceil((peak / MILLION) * SLABS));
-      const build = tween(0, peak, 1100, (t) => 1 - Math.pow(1 - t, 3));
-      for (let i = 0; i < filled; i++) {
-        slabs[i].classList.add('on');
-        await wait(Math.min(90, 800 / filled));
-        if (!alive()) return;
-      }
-      await build;
+      // 1. the army number rolls up
+      await tween(0, peak, 650, (t) => 1 - Math.pow(1 - t, 3));
       if (!alive()) return;
-      await wait(250);
       if (coins <= 0) {
-        // nothing to convert yet: show how close the army was to its first bonus coin
-        const pct = Math.min(99, Math.floor((peak / MILLION) * 100));
-        res.innerHTML = `<b>${pct}%</b> of the way to a bonus coin<small>1 coin for every 1,000,000 in your largest army</small>`;
-        res.classList.add('on');
+        this.revealStats();
         return;
       }
-      // 2. the stack converts into coins, top slab first
-      const steps = Math.min(coins, 14);
-      const gap = Math.max(60, Math.min(170, 1500 / steps));
-      let got = 0;
-      const startNum = peak;
-      const endNum = peak - coins * MILLION;
-      // the part of the army that does not make a whole million stays behind as a short stack
-      const remSlabs = Math.max(0, Math.min(SLABS - 1, Math.round(((peak - coins * MILLION) / MILLION) * SLABS)));
-      const convert = SLABS - remSlabs;
-      let doneSlabs = 0;
-      for (let k = 0; k < steps; k++) {
-        const upto = Math.ceil(((k + 1) / steps) * convert);
-        let slab = slabs[SLABS - 1];
-        while (doneSlabs < upto) {
-          slab = slabs[SLABS - 1 - doneSlabs];
-          slab.classList.add('cash');
-          doneSlabs++;
-        }
-        const part = Math.round(((k + 1) / steps) * coins) - got;
-        got += part;
-        for (let j = 0; j < Math.min(3, part); j++) fly(slab);
-        sound.cash(k);
-        num.textContent = fmt(Math.round(startNum + (endNum - startNum) * ((k + 1) / steps)));
-        setTimeout(() => {
-          if (!alive()) return;
-          coinB.textContent = String(Math.min(coins, Math.round(((k + 1) / steps) * coins)));
-          coinEl.classList.remove('tick');
-          void coinEl.offsetWidth;
-          coinEl.classList.add('tick');
-        }, 480);
-        await wait(gap);
-        if (!alive()) return;
-      }
-      await wait(560);
+      await wait(220);
       if (!alive()) return;
-      coinB.textContent = String(coins);
-      res.innerHTML = `<b>+${coins}</b> ${coins === 1 ? 'COIN' : 'COINS'} FROM YOUR ARMY`;
-      res.classList.add('on', 'win');
-      sound.good(3);
+      // 2. super-fast count-down: a coin lands on the stack at every million
+      const end = peak - coins * MILLION;
+      const dur = Math.max(1100, Math.min(2300, 900 + coins * 70));
+      sound.sweep(dur / 1000);
+      await tween(peak, end, dur, (t) => t * t * (3 - 2 * t), (k) => {
+        const due = Math.min(coins, Math.floor(k * coins + 1e-6));
+        while (shown < due) addDisc(shown);
+      });
+      if (!alive()) return;
+      while (shown < coins) addDisc(shown);
+      num.textContent = fmt(end);
+      box.classList.add('win');
+      sound.jackpot();
+      await wait(650);
+      if (!alive()) return;
+      this.revealStats();
     })();
   }
 
@@ -468,16 +442,18 @@ export class UI {
     $('sumTitle').textContent = s.title;
     $('bAgain').textContent = 'PLAY AGAIN';
     $('sumNew').style.display = s.newBest ? 'block' : 'none';
-    const rows: Array<[string, string, boolean?]> = [
-      ['DISTANCE', `${Math.floor(s.distance)} m`],
-      ['PEAK ARMY', fmt(s.peak)],
-      ['ENEMIES KILLED', String(s.kills)],
-      ...(s.start > 0 ? ([['HEAD START', `+${s.start} m`]] as Array<[string, string, boolean?]>) : []),
-      ['SCORE', fmt(s.score), true],
-      ['COINS EARNED', `+${s.coins - s.armyBonus}`],
-      ...(s.armyBonus > 0 ? ([['ARMY BONUS', `+${s.armyBonus}`]] as Array<[string, string, boolean?]>) : []),
+    const rows: Array<[string, string, string]> = [
+      ['DISTANCE', `${Math.floor(s.distance)} m`, 'cyan'],
+      ['PEAK ARMY', fmt(s.peak), 'green'],
+      ['ENEMIES KILLED', String(s.kills), 'red'],
+      ...(s.start > 0 ? ([['HEAD START', `+${s.start} m`, 'orange']] as Array<[string, string, string]>) : []),
+      ['SCORE', fmt(s.score), 'gold big'],
+      ['COINS EARNED', `+${s.coins - s.armyBonus}`, 'gold'],
+      ...(s.armyBonus > 0 ? ([['ARMY BONUS', `+${s.armyBonus}`, 'purple']] as Array<[string, string, string]>) : []),
     ];
-    $('sumGrid').innerHTML = rows.map(([k, v, big]) => `<div>${k}</div><div class="${big ? 'big' : ''}">${v}</div>`).join('');
+    $('sumGrid').innerHTML = rows
+      .map(([k, v, tone], i) => `<div class="k" style="--d:${i * 0.09}s">${k}</div><div class="v ${tone}" style="--d:${i * 0.09 + 0.05}s">${v}</div>`)
+      .join('');
     const hl = $('sumHl');
     hl.style.display = s.highlight ? 'block' : 'none';
     if (s.highlight) hl.textContent = '★ Best complex choice: ' + s.highlight;

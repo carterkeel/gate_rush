@@ -65,7 +65,7 @@ export class Track {
     this.rng = new Rng(seed);
     this.cursor = firstGateS - spacingAt(0);
     this.nextCombatAfter = this.rng.int(CFG.combatEveryMin, CFG.combatEveryMax);
-    this.bonusEvery = this.rng.int(9, 14);
+    this.bonusEvery = this.rng.int(4, 7);
   }
 
   next(ref: number): TrackItem {
@@ -162,7 +162,7 @@ export class Track {
 
     // rare bonus gate: swap the worst gate of a simple set for coins or a power-up, so taking it costs real army growth
     this.setsSinceBonus++;
-    if (kind === 'simple' && dist >= 150 && this.setsSinceBonus >= this.bonusEvery && gates.length >= 2) {
+    if (kind === 'simple' && dist >= 100 && this.setsSinceBonus >= this.bonusEvery && gates.length >= 2) {
       const vals = gates.map((g) => evalEffect(g.effect, ref));
       let best = 0;
       let worst = 0;
@@ -171,11 +171,11 @@ export class Track {
         if (v < vals[worst]) worst = i;
       });
       if (best !== worst && vals[best] >= ref * 1.05 + 1) {
-        const k = this.rng.weighted([['coins', 0.55], ['instakill', 0.3], ['magnet', 0.15]] as const);
+        const k = this.rng.weighted([['coins', 0.34], ['instakill', 0.4], ['magnet', 0.26]] as const);
         gates[worst].bonus = k === 'coins' ? { kind: 'coins', amount: 100 } : { kind: k };
         gates[worst].effect = opE(mul(1));
         this.setsSinceBonus = 0;
-        this.bonusEvery = this.rng.int(9, 14);
+        this.bonusEvery = this.rng.int(4, 7);
       }
     }
 

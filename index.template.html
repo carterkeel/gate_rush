@@ -220,26 +220,40 @@
   @keyframes flashGo { 0% { opacity:.85; } 100% { opacity:0; } }
 
   /* ---- largest-army bonus ---- */
-  #bonus { display:none; position:relative; width:min(88vw,420px); padding:10px 18px 12px; border-radius:18px; background:rgba(255,255,255,.05); border:1px solid rgba(255,194,26,.28); font-family:system-ui,sans-serif; overflow:hidden; }
+  #bonus { display:none; position:relative; width:min(88vw,420px); padding:14px 18px 16px; border-radius:18px; background:rgba(255,255,255,.05); border:1px solid rgba(255,194,26,.28); font-family:system-ui,sans-serif; overflow:hidden; cursor:pointer; transition:box-shadow .4s, border-color .4s; }
   #bonus.on { display:block; }
-  .bTitle { text-align:center; font-size:11px; letter-spacing:5px; opacity:.65; font-weight:800; margin-bottom:8px; }
-  .bBody { display:flex; align-items:flex-end; justify-content:center; gap:26px; }
-  .bStack { display:flex; flex-direction:column; gap:2px; width:88px; }
-  .bStack i { display:block; height:9px; border-radius:4px; background:rgba(255,255,255,.07); opacity:0; transform:translateY(-16px) scaleX(.4); }
-  .bStack i.on { opacity:1; transform:none; background:linear-gradient(#6c98ff,#2e57d6); box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 2px 0 #1a3590; transition:transform .3s cubic-bezier(.3,1.6,.5,1), opacity .2s; }
-  .bStack i.on.cash { background:linear-gradient(#ffe27a,#ffa000); box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 2px 0 #9a6500, 0 0 14px rgba(255,194,26,.8); animation: slabCash .55s ease-in forwards; }
-  @keyframes slabCash { 0% { transform:scaleX(1); } 35% { transform:scaleX(1.18) translateY(-2px); filter:brightness(1.3); } 100% { transform:scaleX(.15) translateY(-10px); opacity:0; } }
-  .bSide { display:grid; gap:10px; min-width:120px; }
-  .bNum { font-size:30px; font-weight:900; letter-spacing:1px; line-height:1; font-variant-numeric:tabular-nums; }
-  .bCoin { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; background:rgba(255,194,26,.14); border:1px solid rgba(255,194,26,.4); color:#ffe27a; font-size:20px; font-weight:900; justify-self:start; font-variant-numeric:tabular-nums; }
+  #bonus.win { border-color:rgba(255,194,26,.8); box-shadow:0 0 28px rgba(255,194,26,.35); }
+  .bTitle { text-align:center; font-size:11px; letter-spacing:4px; color:#ffe27a; opacity:.9; font-weight:800; margin-bottom:10px; }
+  .bBody { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; min-height:132px; }
+  .bNum { font-size:min(13vw,52px); font-weight:900; letter-spacing:1px; line-height:1; font-variant-numeric:tabular-nums; color:#7dffb0; text-shadow:0 0 18px rgba(31,224,108,.35); align-self:center; }
+  #bonus.win .bNum { color:#c9d6ee; text-shadow:none; }
+  .bRight { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .cStack { position:relative; width:76px; height:110px; }
+  .cStack i { position:absolute; left:50%; width:62px; height:15px; margin-left:-31px; transform:translateX(var(--dx,0)); border-radius:50%; background:linear-gradient(#ffe27a,#ffb300 60%,#c47f00); box-shadow:0 3px 0 #8a5600, inset 0 2px 0 rgba(255,255,255,.55); animation: discDrop .32s cubic-bezier(.3,1.5,.5,1) backwards; }
+  @keyframes discDrop { from { opacity:0; transform:translateX(var(--dx,0)) translateY(-46px) scale(.8); } to { opacity:1; transform:translateX(var(--dx,0)); } }
+  .bCoin { display:inline-flex; align-items:center; gap:8px; padding:5px 14px; border-radius:999px; background:rgba(255,194,26,.14); border:1px solid rgba(255,194,26,.45); color:#ffe27a; font-size:20px; font-weight:900; font-variant-numeric:tabular-nums; }
   .bCoin .coin { margin:0; width:18px; height:18px; }
-  .bCoin.tick { animation: coinTick .3s ease-out; }
-  @keyframes coinTick { 0% { transform:scale(1.25); box-shadow:0 0 18px rgba(255,194,26,.9); } 100% { transform:scale(1); } }
-  #bonus .coin.fly { position:absolute; left:0; top:0; width:18px; height:18px; margin:0; z-index:5; pointer-events:none; }
-  .bRes { text-align:center; margin-top:8px; min-height:22px; font-size:12px; letter-spacing:2px; opacity:0; transform:translateY(8px); transition:opacity .4s, transform .4s; font-weight:700; }
-  .bRes.on { opacity:.9; transform:none; }
-  .bRes b { color:#ffe27a; font-size:15px; } .bRes small { display:block; margin-top:4px; letter-spacing:.5px; opacity:.6; font-weight:500; font-size:11px; }
-  .bRes.win b { font-size:22px; display:inline-block; animation: coinTick .5s ease-out; }
+  .bCoin.tick { animation: coinTick .22s ease-out; }
+  @keyframes coinTick { 0% { transform:scale(1.18); box-shadow:0 0 16px rgba(255,194,26,.9); } 100% { transform:scale(1); } }
+
+  /* ---- run overview: numbers fly in, in colour ---- */
+  .screen .sum .k, .screen .sum .v { opacity:0; }
+  .screen .sum.go .k { animation: flyL .55s cubic-bezier(.2,.9,.2,1) var(--d,0s) both; }
+  .screen .sum.go .v { animation: flyR .55s cubic-bezier(.2,.9,.2,1) var(--d,0s) both; }
+  @keyframes flyL { from { opacity:0; transform:translateX(-70px); } to { opacity:.8; transform:none; } }
+  @keyframes flyR { from { opacity:0; transform:translateX(90px) scale(.9); } to { opacity:1; transform:none; } }
+  .sum .v { font-variant-numeric:tabular-nums; font-weight:800; }
+  .sum .v.cyan { color:#6fd3ff; } .sum .v.green { color:#7dffb0; } .sum .v.red { color:#ff8a96; }
+  .sum .v.orange { color:#ffb74d; } .sum .v.gold { color:#ffd54f; } .sum .v.purple { color:#c9a7ff; }
+  .screen .sum .v.big { font-size:1.5em; color:#ffd54f; text-shadow:0 0 16px rgba(255,194,26,.35); }
+  /* more breathing room on menus */
+  .screen { gap:16px; }
+  .screen button { padding-top:16px; padding-bottom:16px; }
+  .screen .row { gap:14px; }
+  #summary { gap:12px; } #summary .row { gap:12px; } #summary .sum { padding:12px 18px; gap:4px 18px; font-size:min(5vw,20px); } #summary .bBody { min-height:112px; } #summary .cStack { height:92px; }
+  .screen h2 { margin-bottom:10px; }
+  #menu h1 { margin-bottom:22px; }
+  .grid { gap:14px; }
 </style>
 </head>
 <body>
