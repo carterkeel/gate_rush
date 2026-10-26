@@ -177,6 +177,25 @@ export class CombatSim {
     this.ex.fill(0);
   }
 
+  /** Power-up: every living enemy dies at once. Returns what was killed. */
+  annihilate(): { killed: number; titans: number; boss: number } {
+    let killed = 0;
+    let titans = 0;
+    let boss = 0;
+    for (const e of this.enemies) {
+      if (e.hp <= 0) continue;
+      e.hp = 0;
+      e.flash = 1;
+      killed++;
+      if (e.kind === 'titan') titans++;
+      if (e.kind === 'boss') boss++;
+    }
+    this.kills += killed;
+    this.titanKills += titans;
+    this.bossKills += boss;
+    return { killed, titans, boss };
+  }
+
   /** One frame of fighting. Friendly units shoot 1 dmg per 0.6 s; every living enemy kills `atk` units per second. */
   step(dt: number, armyCount: number, armyX: number, armyZ: number): CombatStep {
     let killedNow = 0;

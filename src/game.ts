@@ -16,7 +16,7 @@ import { evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
 import type { SaveData } from './storage';
-import type { CombatZone, GateSet, ItemSource, TrackItem } from './types';
+import type { Bonus, CombatZone, GateSet, ItemSource, TrackItem } from './types';
 
 type Mode = 'menu' | 'run' | 'over' | 'paused';
 
@@ -80,6 +80,9 @@ export class Game {
   private peak: number = CFG.startArmy;
   private kills = 0;
   private bonusCoins = 0;
+  private instakill = false; // armed: the next fight is wiped out
+  private instaT = -1; // charge-up before the blast during a fight (-1 = none)
+  private magnetT = 0; // seconds of coin magnet left
   private bestHl: { gain: number; text: string } | null = null;
   private trailT = 0;
   private trailColor = 0xffffff;
@@ -244,6 +247,10 @@ export class Game {
     this.peak = CFG.startArmy;
     this.kills = 0;
     this.bonusCoins = 0;
+    this.instakill = false;
+    this.instaT = -1;
+    this.magnetT = 0;
+    this.ui.setPower(null);
     this.bestHl = null;
     this.trailT = 0;
     this.overT = 0;
@@ -311,7 +318,7 @@ export class Game {
     const need = Math.ceil(f.critical * Math.max(f.refArmy, A));
     const ratio = A / Math.max(1, need);
     const hp = f.enemies.reduce((a, e) => a + e.hp, 0);
-    const word = ratio >= 1.25 ? 'You are ready for this one.' : ratio >= 1 ? 'Close. Grab the best gates to be safe.' : 'Too weak right now. You need more units.';
+    const word = this.instakill ? '⚡ Instakill is armed: this fight is free.' : ratio >= 1.25 ? 'You are ready for this one.' : ratio >= 1 ? 'Close. Grab the best gates to be safe.' : 'Too weak right now. You need more units.';
     this.ui.showIntel({
       title: f.boss ? 'BOSS FIGHT' : 'NEXT FIGHT',
       rows: [
@@ -424,6 +431,7 @@ export class Game {
   // ------------------------------------------------------------------ run update
   private updateRun(dt: number): void {
     this.runTime += dt;
+    if (this.magnetT > 0) this.magnetT = Math.max(0, this.magnetT - dt);
     this.speed = this.tutorial ? TUTORIAL_SPEED : speedAt(this.runTime) * (this.fast && this.data.speedUnlocked ? 2 : 1);
 
     if (this.keys.left) this.targetX -= CFG.keyboardLateralSpeed * dt;
@@ -440,7 +448,7 @@ export class Game {
     this.revealPending();
     this.processQueue();
     if (!this.tutorial) {
-      const radius = Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
+      const radius = this.magnetT > 0 ? 9 : Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
       if (this.heldRows.length && !this.inCombat && !this.queue.some((q) => q.type === 'combat')) {
         for (const r of this.heldRows) this.coins.spawnRow(Math.max(r.from, this.playerS + 6), r.to, r.x0, r.x1);
         this.heldRows.length = 0;
@@ -477,6 +485,9 @@ export class Game {
   }
 
   private updateHud(): void {
+    if (this.instakill) this.ui.setPower('⚡ INSTAKILL READY', 'purple');
+    else if (this.magnetT > 0) this.ui.setPower(`🧲 MAGNET ${Math.ceil(this.magnetT)}s`, 'cyan');
+    else this.ui.setPower(null);
     this.ui.setArmy(this.army.count);
     this.ui.setDist(this.playerS);
     this.ui.setCoins(this.coinsEarned());
@@ -497,6 +508,10 @@ export class Game {
       return;
     }
     this.forecasting = true;
+    if (this.instakill) {
+      this.ui.setCombat({ text: `${head.boss ? 'BOSS' : 'FIGHT'} AHEAD · ⚡ INSTAKILL\nYOUR ARMY IS SAFE`, frac: 1, boss: head.boss, tone: 'ok' });
+      return;
+    }
     const A = this.army.count;
     // enemies grow with an army that beats the reference, so the requirement does too
     const need = Math.ceil(head.critical * Math.max(head.refArmy, A));
@@ -644,7 +659,9 @@ export class Game {
     this.army.setCount(result);
     const eff = idx >= 0 ? set.gates[idx].effect : null;
     const gx = idx >= 0 ? (set.gates[idx].x0 + set.gates[idx].x1) / 2 : x;
-    this.gateFeedback(eff, A, result, gx, set.s);
+    const bonus = idx >= 0 ? set.gates[idx].bonus : undefined;
+    if (bonus) this.collectBonus(bonus, gx, set.s);
+    else this.gateFeedback(eff, A, result, gx, set.s);
 
     if (!this.tutorial) {
       this.peak = Math.max(this.peak, result);
@@ -668,6 +685,29 @@ export class Game {
       }
     }
     if (this.army.count <= 0) this.die();
+  }
+
+  private collectBonus(b: Bonus, gx: number, setS: number): void {
+    const at = new THREE.Vector3(gx, 3.2, -setS);
+    if (b.kind === 'coins') {
+      this.bonusCoins += b.amount;
+      this.fx.popup(at, `+${b.amount} COINS!`, 'yellow big');
+      this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xffc21a, 90, 8);
+      for (let i = 0; i < 6; i++) setTimeout(() => sound.coin(i), i * 55);
+    } else if (b.kind === 'instakill') {
+      this.instakill = true;
+      this.fx.popup(at, '⚡ INSTAKILL!', 'green big');
+      this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xa56bff, 110, 9);
+      sound.power();
+    } else {
+      this.magnetT = 14;
+      this.fx.popup(at, 'COIN MAGNET!', 'green big');
+      this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0x37e6ff, 90, 8);
+      sound.power();
+    }
+    this.fx.shake(0.4);
+    this.trailT = 1.2;
+    this.trailColor = b.kind === 'coins' ? 0xffc21a : b.kind === 'instakill' ? 0xa56bff : 0x37e6ff;
   }
 
   // ------------------------------------------------------------------ split & merge (Type C)
@@ -769,6 +809,11 @@ export class Game {
     this.playerS = zone.s;
     if (!this.tutorial && zone.refArmy > 0 && this.army.count > zone.refArmy) this.combat.rescale(this.army.count / zone.refArmy);
     this.combat.begin();
+    if (this.instakill) {
+      this.instakill = false;
+      this.instaT = 0.55;
+      this.ui.flashBanner('⚡ INSTAKILL', 700);
+    }
     this.hurtAcc = this.lossShown = 0;
     this.hurtT = this.lossT = 0;
     this.ui.flashBanner(zone.boss ? 'BOSS FIGHT!' : zone.fightNo === 0 ? 'ENEMIES!' : 'TITAN AHEAD!', 1100);
@@ -779,7 +824,24 @@ export class Game {
   }
 
   private stepCombat(dt: number): void {
+    let extra = { killed: 0, titans: 0, boss: 0 };
+    const charging = this.instaT >= 0;
+    if (charging) {
+      this.instaT -= dt;
+      if (this.instaT < 0) {
+        extra = this.combat.annihilate();
+        this.ui.flash('#a56bff');
+        this.fx.shake(1.1);
+        this.fx.burst(new THREE.Vector3(this.army.x, 2, -this.playerS - 10), 0xa56bff, 220, 12);
+        this.fx.burst(new THREE.Vector3(this.army.x, 2, -this.playerS - 10), 0xffffff, 120, 14);
+        sound.blast();
+      }
+    }
     const r = this.combat.step(dt, this.army.count, this.army.x, -this.playerS);
+    if (charging) r.armyLoss = 0; // the army is untouchable while the power-up charges
+    r.killedNow += extra.killed;
+    r.titansKilled += extra.titans;
+    r.bossKilled += extra.boss;
     this.kills = this.combat.kills;
     const zone = this.combatZone;
     this.shotT -= dt;
@@ -880,7 +942,7 @@ export class Game {
     this.mode = 'over';
     this.overT = 0;
     this.overAt = performance.now();
-    this.summary = { title: '', distance: 0, peak: 0, kills: 0, score: 0, coins: 0, start: 0, highlight: null, newBest: false };
+    this.summary = { title: '', distance: 0, peak: 0, kills: 0, score: 0, coins: 0, armyBonus: 0, start: 0, highlight: null, newBest: false };
     this.ui.setHint(null);
   }
 
@@ -904,7 +966,8 @@ export class Game {
     // a head start does not count towards score or coins: only what is run, and the army grown beyond the gift
     const distance = Math.floor(this.playerS - this.startDist);
     const score = distance * CFG.scoreDistMul + Math.max(0, this.peak - this.startArmy) * CFG.scorePeakMul + this.kills * CFG.scoreKillMul;
-    const coins = this.coinsEarned();
+    const armyBonus = this.tutorial ? 0 : Math.floor(this.peak / 1_000_000); // 1 coin per million in the largest army
+    const coins = this.coinsEarned() + armyBonus;
     this.data.coins += coins;
     const newBest = addScore(this.data, { score, distance, peak: this.peak, kills: this.kills, date: Date.now() });
     save(this.data);
@@ -915,6 +978,7 @@ export class Game {
       kills: this.kills,
       score,
       coins,
+      armyBonus,
       start: this.startDist,
       highlight: this.bestHl ? this.bestHl.text : null,
       newBest,

@@ -2,7 +2,11 @@ import type { Effect } from './logic';
 
 export type SetKind = 'simple' | 'A' | 'B' | 'C' | 'D';
 
+/** A gate that pays out something other than army: it leaves the army unchanged (effect is ×1). */
+export type Bonus = { kind: 'coins'; amount: number } | { kind: 'instakill' } | { kind: 'magnet' };
+
 export interface GateDef {
+  bonus?: Bonus;
   effect: Effect;
   x0: number; // lane extents in world x
   x1: number;

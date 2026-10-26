@@ -241,6 +241,24 @@ class Sound {
     this.tone(f, 0.09, 'square', 0.07);
     this.tone(f * 1.5, 0.16, 'triangle', 0.09, 0, 0.06);
   }
+  power(): void {
+    if (!this.ok('power', 0.2)) return;
+    [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.18, 'triangle', 0.13, 0, i * 0.06));
+    this.tone(1568, 0.4, 'sine', 0.08, 0, 0.26);
+  }
+  blast(): void {
+    if (!this.ok('blast', 0.3)) return;
+    this.tone(90, 0.7, 'sawtooth', 0.22, 30);
+    this.noise(0.7, 0.28, 1800, 0.8, 0, 'lowpass');
+    this.tone(1200, 0.5, 'square', 0.08, 200);
+  }
+  /** Army-to-coin conversion tick; pitch climbs with i. */
+  cash(i: number): void {
+    if (!this.ok('cash', 0.03)) return;
+    const f = 700 * Math.pow(2, Math.min(14, i) / 12);
+    this.tone(f, 0.07, 'square', 0.06);
+    this.tone(f * 2, 0.1, 'triangle', 0.05, 0, 0.03);
+  }
   boost(on: boolean): void {
     if (!this.ok()) return;
     if (on) {

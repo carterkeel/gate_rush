@@ -2,7 +2,14 @@ import * as THREE from 'three';
 import { CFG } from './config';
 import { effectLines, effectTone } from './logic';
 import type { Tone } from './logic';
-import type { GateSet } from './types';
+import type { Bonus, GateSet } from './types';
+
+export const BONUS_COLOR = { coins: 0xff9f1a, instakill: 0xa56bff, magnet: 0x37e6ff } as const;
+export function bonusLines(b: Bonus): string[] {
+  if (b.kind === 'coins') return [`+${b.amount}`, 'COINS'];
+  if (b.kind === 'instakill') return ['⚡', 'INSTAKILL'];
+  return ['🧲', 'MAGNET'];
+}
 
 export const TONE_COLOR: Record<Tone, number> = { green: 0x1fe06c, red: 0xff3d4d, yellow: 0xffc21a };
 export const FACE_H = 3.9;
@@ -53,6 +60,7 @@ interface GateObj {
   cx: number;
   fade?: 'shrink' | 'fade';
   bar?: THREE.Mesh;
+  bonus?: boolean;
 }
 
 export class SetView {
@@ -75,7 +83,7 @@ export class SetView {
     const set = this.set;
     set.gates.forEach((def) => {
       const tone = effectTone(def.effect);
-      const color = TONE_COLOR[tone];
+      const color = def.bonus ? BONUS_COLOR[def.bonus.kind] : TONE_COLOR[tone];
       // leave a clear gap between neighbouring gates (frames are 0.2 wide) so their edges never overlap or z-fight
       const w = def.x1 - def.x0 - 0.46;
       const cx = (def.x0 + def.x1) / 2;
@@ -104,7 +112,7 @@ export class SetView {
       addBar(w + t, t, 0, FACE_BOTTOM + FACE_H);
       addBar(w + t, t, 0, FACE_BOTTOM);
 
-      const canvas = drawGateText(effectLines(def.effect), w * PX_PER_UNIT, FACE_H * PX_PER_UNIT);
+      const canvas = drawGateText(def.bonus ? bonusLines(def.bonus) : effectLines(def.effect), w * PX_PER_UNIT, FACE_H * PX_PER_UNIT);
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = 4;
       tex.colorSpace = THREE.SRGBColorSpace;
@@ -114,7 +122,7 @@ export class SetView {
       label.position.set(0, FACE_BOTTOM + FACE_H / 2, 0.05);
       group.add(label);
 
-      const obj: GateObj = { group, face, label, frame, mats, tex, baseHalf: (def.x1 - def.x0) / 2, cx, fade: def.fade };
+      const obj: GateObj = { group, face, label, frame, mats, tex, baseHalf: (def.x1 - def.x0) / 2, cx, fade: def.fade, bonus: !!def.bonus };
       if (def.fade) {
         const barMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, fog: false });
         mats.push(barMat);
@@ -187,7 +195,7 @@ export class SetView {
       }
       g.group.scale.set(sx * pop, pop, 1);
       for (const m of g.mats) {
-        if (m === g.mats[0]) (m as THREE.MeshBasicMaterial).opacity = 0.24 * op;
+        if (m === g.mats[0]) (m as THREE.MeshBasicMaterial).opacity = (g.bonus ? 0.3 + 0.16 * Math.sin(time * 4.5) : 0.24) * op;
         else if (m !== g.bar?.material) (m as THREE.MeshBasicMaterial).opacity = op;
       }
     }

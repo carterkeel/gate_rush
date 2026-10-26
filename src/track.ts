@@ -1,6 +1,6 @@
 import { CFG, spacingAt, complexShareAt } from './config';
 import { Rng } from './rng';
-import { evalEffect, bestSplit, isSafe, opE, add, niceRound } from './logic';
+import { evalEffect, bestSplit, isSafe, opE, add, mul, niceRound } from './logic';
 import type { Effect } from './logic';
 import type { CombatZone, GateDef, GateSet, SetKind, TrackItem } from './types';
 import { addGate, clamp, genSimple, genTypeA, genTypeB, hasNonDisastrous, targetFactor, tile } from './gateGen';
@@ -56,6 +56,8 @@ export class Track {
   private prevKind: SetKind | 'combat' | null = null;
   setsAfterComplexStart = 0;
   complexDebt = 0.5;
+  private setsSinceBonus = 0;
+  private bonusEvery = 0;
   complexAfterStart = 0;
   stats: TrackStats = { sets: 0, complex: 0, combat: 0 };
 
@@ -63,6 +65,7 @@ export class Track {
     this.rng = new Rng(seed);
     this.cursor = firstGateS - spacingAt(0);
     this.nextCombatAfter = this.rng.int(CFG.combatEveryMin, CFG.combatEveryMax);
+    this.bonusEvery = this.rng.int(9, 14);
   }
 
   next(ref: number): TrackItem {
@@ -155,6 +158,25 @@ export class Track {
     // global safety net: a non-disastrous option must exist
     if (!hasNonDisastrous(gates.map((g) => g.effect), ref) && kind !== 'C') {
       gates[0].effect = opE(add(Math.max(2, niceRound(ref * 0.1))));
+    }
+
+    // rare bonus gate: swap the worst gate of a simple set for coins or a power-up, so taking it costs real army growth
+    this.setsSinceBonus++;
+    if (kind === 'simple' && dist >= 150 && this.setsSinceBonus >= this.bonusEvery && gates.length >= 2) {
+      const vals = gates.map((g) => evalEffect(g.effect, ref));
+      let best = 0;
+      let worst = 0;
+      vals.forEach((v, i) => {
+        if (v > vals[best]) best = i;
+        if (v < vals[worst]) worst = i;
+      });
+      if (best !== worst && vals[best] >= ref * 1.05 + 1) {
+        const k = this.rng.weighted([['coins', 0.55], ['instakill', 0.3], ['magnet', 0.15]] as const);
+        gates[worst].bonus = k === 'coins' ? { kind: 'coins', amount: 100 } : { kind: k };
+        gates[worst].effect = opE(mul(1));
+        this.setsSinceBonus = 0;
+        this.bonusEvery = this.rng.int(9, 14);
+      }
     }
 
     this.cursor = s;
