@@ -179,15 +179,38 @@ export class UI {
       // frac 0 = at the player (bottom), 1 = far end (top); fade in/out at the ends so ticks never pop
       const y = (1 - t.frac) * this.routeH;
       d.style.transform = `translateY(${y.toFixed(1)}px)`;
-      const isSkull = t.kind === 'skull' || t.kind === 'boss';
-      d.style.opacity = isSkull ? '1' : String(Math.max(0, Math.min(1, Math.min(t.frac * 8 + 0.2, (1 - t.frac) * 6))));
+      d.style.opacity = String(Math.max(0, Math.min(1, Math.min(t.frac * 8 + 0.2, (1 - t.frac) * 6))));
     }
     for (const [id, d] of this.routeTicks) {
-      if (!seen.has(id)) {
+      if (!seen.has(id) && !d.dataset.dying) {
         d.remove();
         this.routeTicks.delete(id);
       }
     }
+  }
+
+  /** The skull on the route bar blows up into particles when its fight is won. */
+  routeBoom(id: number, boss: boolean): void {
+    const d = this.routeTicks.get(id);
+    if (!d) return;
+    d.dataset.dying = '1';
+    d.classList.add('boom');
+    const cols = boss ? ['#ff7a6a', '#ffc21a', '#fff3b0', '#c9a7ff'] : ['#f1ead6', '#ffb74d', '#fff3b0', '#ff8a96'];
+    for (let i = 0; i < (boss ? 26 : 18); i++) {
+      const b = document.createElement('b');
+      b.className = 'rP';
+      const a = Math.random() * Math.PI * 2;
+      const r = 18 + Math.random() * (boss ? 40 : 30);
+      b.style.setProperty('--dx', `${(Math.cos(a) * r).toFixed(1)}px`);
+      b.style.setProperty('--dy', `${(Math.sin(a) * r).toFixed(1)}px`);
+      b.style.setProperty('--r', `${Math.round(Math.random() * 360)}deg`);
+      b.style.background = cols[i % cols.length];
+      d.appendChild(b);
+    }
+    window.setTimeout(() => {
+      d.remove();
+      this.routeTicks.delete(id);
+    }, 750);
   }
 
   setInsta(count: number, armed: boolean): void {

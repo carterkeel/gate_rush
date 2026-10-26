@@ -271,12 +271,19 @@
   #route.danger .rNeed { color:#ff8a96; } #route.tight .rNeed { color:#ffe27a; } #route.ok .rNeed { color:#7dffb0; }
   .rTick img { position:absolute; left:50%; width:30px; height:30px; transform:translate(-50%,-50%); object-fit:contain; }
   .rTick.boss img { width:38px; height:38px; }
-  #route.danger .rTick.skull img, #route.danger .rTick.boss img { animation: skullPulse 1s ease-in-out infinite; }
+  .rTick img { animation: rPop .35s cubic-bezier(.2,1.5,.4,1) backwards; }
+  @keyframes rPop { from { transform:translate(-50%,-50%) scale(.2); } to { transform:translate(-50%,-50%) scale(1); } }
+  .rTick.boom img { animation: skullBoom .5s ease-out forwards; }
+  @keyframes skullBoom { 0% { transform:translate(-50%,-50%) scale(1); filter:brightness(1); } 30% { transform:translate(-50%,-50%) scale(1.7); filter:brightness(2.4); } 100% { transform:translate(-50%,-50%) scale(2.4); opacity:0; filter:brightness(3); } }
+  .rP { position:absolute; left:50%; top:0; width:5px; height:5px; margin:-2.5px; border-radius:1px; animation: rpFly .7s cubic-bezier(.1,.8,.3,1) forwards; }
+  @keyframes rpFly { from { transform:translate(0,0) rotate(0) scale(1.2); opacity:1; } to { transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.3); opacity:0; } }
+  #route.danger .rTick.skull img, #route.danger .rTick.boss img { animation: skullPulseC 1s ease-in-out infinite; }
+  @keyframes skullPulseC { 0%,100% { transform:translate(-50%,-50%) scale(1); } 50% { transform:translate(-50%,-50%) scale(1.12); } }
   @keyframes skullPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.12); } }
   .rTrack { position:relative; width:34px; height:min(30vh,250px); }
   .rLine { position:absolute; left:50%; top:0; bottom:0; width:3px; margin-left:-1.5px; border-radius:2px; background:linear-gradient(rgba(90,140,255,.15), rgba(90,150,255,.9)); }
   .rTicks { position:absolute; left:-12px; right:-12px; top:-16px; bottom:0; overflow:visible; }
-  .rTick { position:absolute; left:50%; top:0; height:0; will-change:transform; }
+  .rTick { position:absolute; left:0; right:0; top:0; height:0; will-change:transform; }
   .rTick i { position:absolute; left:50%; border-radius:3px; transform:translate(-50%,-50%); }
   .rTick.plain i { width:20px; height:2px; background:rgba(190,215,255,.95); }
   .rTick.yellow i { width:30px; height:6px; background:linear-gradient(#ffd24a,#d99100); box-shadow:0 0 6px rgba(255,194,26,.6); }

@@ -525,8 +525,9 @@ export class Game {
     const ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' | 'skull' | 'boss' }[] = [];
     for (const q of this.queue) {
       if (q.type === 'combat') {
-        // the skull travels down the line like the gates; it waits at the top until it is within range
-        ticks.push({ id: q.id, frac: Math.min(1, (q.s - this.playerS) / W), kind: q.boss ? 'boss' : 'skull' });
+        // the skull appears at the top like any gate and travels down; it stops just in front of the player marker
+        const f = (q.s - this.playerS) / W;
+        if (f <= 1.02) ticks.push({ id: q.id, frac: Math.max(0.1, f), kind: q.boss ? 'boss' : 'skull' });
         continue;
       }
       if (this.splitCtx && this.splitCtx.resolved && q === this.splitCtx.set) continue;
@@ -534,7 +535,7 @@ export class Game {
       if (frac > 1.02) continue;
       ticks.push({ id: q.id, frac, kind: q.gates.some((g) => g.bonus) ? 'gold' : q.complex ? 'yellow' : 'plain' });
     }
-    if (this.inCombat && fightItem && !ticks.some((t) => t.id === fightItem.id)) ticks.push({ id: fightItem.id, frac: 0, kind: fightItem.boss ? 'boss' : 'skull' });
+    if (this.inCombat && fightItem && !ticks.some((t) => t.id === fightItem.id)) ticks.push({ id: fightItem.id, frac: 0.1, kind: fightItem.boss ? 'boss' : 'skull' });
     let fight: { boss: boolean; text: string; tone: string } | null = null;
     if (fightItem) {
       if (this.instakill) fight = { boss: fightItem.boss, text: '⚡', tone: 'ok' };
@@ -965,6 +966,7 @@ export class Game {
       this.fx.popup(at, 'CLEAR!', 'green big');
       this.fx.burst(new THREE.Vector3(this.army.x, 1.5, -this.playerS - 10), 0xffe27a, 80, 8);
     }
+    if (zone && !this.tutorial) this.ui.routeBoom(zone.id, zone.boss);
     this.inCombat = false;
     this.combatZone = null;
     this.combatClearT = 0.9;
