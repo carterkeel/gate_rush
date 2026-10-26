@@ -269,15 +269,26 @@
   .rLabel { font-size:8px; letter-spacing:1.5px; font-weight:800; opacity:.7; }
   .rNeed { white-space:nowrap; font-weight:900; font-size:14px; line-height:1.1; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:2px; }
   #route.danger .rNeed { color:#ff8a96; } #route.tight .rNeed { color:#ffe27a; } #route.ok .rNeed { color:#7dffb0; }
-  .rTick img { position:absolute; left:50%; width:30px; height:30px; transform:translate(-50%,-50%); object-fit:contain; }
-  .rTick.boss img { width:38px; height:38px; }
-  .rTick img { animation: rPop .35s cubic-bezier(.2,1.5,.4,1) backwards; }
+  .rTick .sk { position:absolute; left:50%; width:32px; height:32px; transform:translate(-50%,-50%); filter:drop-shadow(0 2px 0 rgba(0,0,0,.5)); }
+  .rTick .sk svg { display:block; width:100%; height:100%; overflow:visible; }
+  .rTick.boss .sk { width:40px; height:40px; }
+  .rTick .sk { animation: rPop .35s cubic-bezier(.2,1.5,.4,1) backwards; }
   @keyframes rPop { from { transform:translate(-50%,-50%) scale(.2); } to { transform:translate(-50%,-50%) scale(1); } }
-  .rTick.boom img { animation: skullBoom .5s ease-out forwards; }
-  @keyframes skullBoom { 0% { transform:translate(-50%,-50%) scale(1); filter:brightness(1); } 30% { transform:translate(-50%,-50%) scale(1.7); filter:brightness(2.4); } 100% { transform:translate(-50%,-50%) scale(2.4); opacity:0; filter:brightness(3); } }
+  .rBoom { position:absolute; left:50%; top:0; width:0; height:0; }
+  .rBoom.bossB { transform:scale(1.25); }
+  .rPiece { position:absolute; left:-16px; top:-16px; width:32px; height:32px; animation: pieceFly .8s cubic-bezier(.15,.7,.3,1) forwards; }
+  .rPiece svg { display:block; width:100%; height:100%; overflow:visible; }
+  .rBoom.bossB .rPiece { left:-20px; top:-20px; width:40px; height:40px; }
+  @keyframes pieceFly { 0% { transform:translate(0,0) rotate(0) scale(1); filter:brightness(1); opacity:1; } 12% { transform:translate(calc(var(--dx)*.08),calc(var(--dy)*.08)) rotate(calc(var(--r)*.08)) scale(1.15); filter:brightness(1.9); opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.7); filter:brightness(1.2); opacity:0; } }
+  .rFlash { position:absolute; left:-30px; top:-30px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle, #fff 0%, rgba(255,226,122,.9) 35%, rgba(255,160,40,0) 70%); animation: flashPop .42s ease-out forwards; }
+  @keyframes flashPop { 0% { transform:scale(.2); opacity:1; } 100% { transform:scale(2); opacity:0; } }
+  .rRing { position:absolute; left:-14px; top:-14px; width:28px; height:28px; border-radius:50%; border:3px solid #ffd54f; box-shadow:0 0 10px #ffb300; animation: ringOut .6s ease-out forwards; }
+  @keyframes ringOut { 0% { transform:scale(.3); opacity:1; } 100% { transform:scale(3.2); opacity:0; border-width:1px; } }
+  .rSmoke { position:absolute; left:-5px; top:-5px; width:10px; height:10px; border-radius:50%; background:rgba(205,210,225,.55); animation: smokeUp .8s ease-out forwards; }
+  @keyframes smokeUp { 0% { transform:translate(0,0) scale(.4); opacity:.9; } 100% { transform:translate(var(--dx),var(--dy)) scale(2.4); opacity:0; } }
   .rP { position:absolute; left:50%; top:0; width:5px; height:5px; margin:-2.5px; border-radius:1px; animation: rpFly .7s cubic-bezier(.1,.8,.3,1) forwards; }
   @keyframes rpFly { from { transform:translate(0,0) rotate(0) scale(1.2); opacity:1; } to { transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.3); opacity:0; } }
-  #route.danger .rTick.skull img, #route.danger .rTick.boss img { animation: skullPulseC 1s ease-in-out infinite; }
+  #route.danger .rTick.skull .sk, #route.danger .rTick.boss .sk { animation: skullPulseC 1s ease-in-out infinite; }
   @keyframes skullPulseC { 0%,100% { transform:translate(-50%,-50%) scale(1); } 50% { transform:translate(-50%,-50%) scale(1.12); } }
   @keyframes skullPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.12); } }
   .rTrack { position:relative; width:34px; height:min(30vh,250px); }

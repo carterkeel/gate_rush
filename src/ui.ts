@@ -1,5 +1,6 @@
 import { sound } from './audio';
-import { PLAYER_ICON, SKULL_BONE, SKULL_BOSS } from './skullData';
+import { PLAYER_ICON } from './skullData';
+import { skullSvg } from './skullSvg';
 import { fmt } from './logic';
 import { SKINS, TRAILS, SPEED_COST, START_MAX_LEVEL, startCost, startMeters } from './storage';
 import type { SaveData } from './storage';
@@ -172,7 +173,7 @@ export class UI {
       if (!d) {
         d = document.createElement('div');
         d.className = `rTick ${t.kind}`;
-        d.innerHTML = t.kind === 'skull' || t.kind === 'boss' ? `<img src="${t.kind === 'boss' ? SKULL_BOSS : SKULL_BONE}" alt="" />` : '<i></i>';
+        d.innerHTML = t.kind === 'skull' || t.kind === 'boss' ? `<span class="sk">${skullSvg(t.kind === 'boss')}</span>` : '<i></i>';
         track.appendChild(d);
         this.routeTicks.set(t.id, d);
       }
@@ -189,28 +190,35 @@ export class UI {
     }
   }
 
-  /** The skull on the route bar blows up into particles when its fight is won. */
+  /** The skull on the route bar cracks apart: pieces fly, a ring and flash burst, sparks and smoke follow. */
   routeBoom(id: number, boss: boolean): void {
     const d = this.routeTicks.get(id);
     if (!d) return;
     d.dataset.dying = '1';
     d.classList.add('boom');
-    const cols = boss ? ['#ff7a6a', '#ffc21a', '#fff3b0', '#c9a7ff'] : ['#f1ead6', '#ffb74d', '#fff3b0', '#ff8a96'];
-    for (let i = 0; i < (boss ? 26 : 18); i++) {
-      const b = document.createElement('b');
-      b.className = 'rP';
-      const a = Math.random() * Math.PI * 2;
-      const r = 18 + Math.random() * (boss ? 40 : 30);
-      b.style.setProperty('--dx', `${(Math.cos(a) * r).toFixed(1)}px`);
-      b.style.setProperty('--dy', `${(Math.sin(a) * r).toFixed(1)}px`);
-      b.style.setProperty('--r', `${Math.round(Math.random() * 360)}deg`);
-      b.style.background = cols[i % cols.length];
-      d.appendChild(b);
+    const svg = skullSvg(boss);
+    const cut = [
+      ['polygon(0 0,50% 0,50% 72%,0 72%)', -26, -24, -75],
+      ['polygon(50% 0,100% 0,100% 72%,50% 72%)', 27, -28, 85],
+      ['polygon(0 72%,100% 72%,100% 100%,0 100%)', 3, 32, 28],
+    ] as const;
+    const k = boss ? 1.3 : 1;
+    let html = '<div class="rFlash"></div><div class="rRing"></div>';
+    for (const [clip, dx, dy, rot] of cut) {
+      html += `<span class="rPiece" style="clip-path:${clip};--dx:${dx * k}px;--dy:${dy * k}px;--r:${rot}deg">${svg}</span>`;
     }
+    for (let i = 0; i < 4; i++) html += `<b class="rSmoke" style="--dx:${((Math.random() - 0.5) * 40).toFixed(0)}px;--dy:${(-6 - Math.random() * 22).toFixed(0)}px;animation-delay:${(i * 0.04).toFixed(2)}s"></b>`;
+    const cols = boss ? ['#ffc21a', '#ff7a6a', '#fff3b0', '#c9a7ff'] : ['#fff3b0', '#ffb74d', '#ffe27a', '#ff8a96'];
+    for (let i = 0; i < (boss ? 22 : 14); i++) {
+      const a = (i / (boss ? 22 : 14)) * Math.PI * 2 + Math.random() * 0.4;
+      const r = (22 + Math.random() * 30) * k;
+      html += `<b class="rP" style="--dx:${(Math.cos(a) * r).toFixed(1)}px;--dy:${(Math.sin(a) * r).toFixed(1)}px;--r:${Math.round(Math.random() * 360)}deg;background:${cols[i % cols.length]}"></b>`;
+    }
+    d.innerHTML = `<div class="rBoom ${boss ? 'bossB' : ''}">${html}</div>`;
     window.setTimeout(() => {
       d.remove();
       this.routeTicks.delete(id);
-    }, 750);
+    }, 900);
   }
 
   setInsta(count: number, armed: boolean): void {
