@@ -10,15 +10,20 @@ split lanes, time-pressure gates, and titan and boss fights. TypeScript + three.
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screens/menu.jpg" width="19%" alt="Main menu">
-  <img src="assets/screens/neo.jpg" width="19%" alt="Neo biome">
-  <img src="assets/screens/forest.jpg" width="19%" alt="Forest biome">
-  <img src="assets/screens/lava.jpg" width="19%" alt="Lava biome">
-  <img src="assets/screens/boss.jpg" width="19%" alt="Boss approaching">
+  <img src="assets/screens/menu.jpg" width="13%" alt="Main menu">
+  <img src="assets/screens/neo.jpg" width="13%" alt="Neo City biome">
+  <img src="assets/screens/forest.jpg" width="13%" alt="Forest biome">
+  <img src="assets/screens/lava.jpg" width="13%" alt="Lava biome">
+  <img src="assets/screens/sky.jpg" width="13%" alt="Cloud Kingdom biome">
+  <img src="assets/screens/reef.jpg" width="13%" alt="Sunken Reef biome">
+  <img src="assets/screens/boss.jpg" width="13%" alt="Saved power-ups and the route bar">
 </p>
 
 ## Controls
-Drag or swipe, or use A / D or the arrow keys. The 2× button (bottom left) doubles your run speed. Pause with the ❚❚ button, Esc or P (it also pauses when you switch tabs). The first "Play" runs a short tutorial; "How to play" replays it.
+Drag or swipe, or use A / D or the arrow keys. The 2× button (bottom left) doubles your run speed. Pause with the ❚❚ button, Esc or P (it also pauses when you switch tabs). The first "Play" runs a short tutorial; Settings has a controls guide and a button to replay it.
+
+## Android app
+Every push to `main` builds an APK with GitHub Actions (Capacitor). Download `gate-rush.apk` from the [apk-latest release](https://github.com/carterkeel/gate_rush/releases/tag/apk-latest). It is the same game, fullscreen with a little extra top margin for camera cutouts and without the keyboard hints.
 
 ## Develop
 ```
