@@ -622,6 +622,10 @@ export class UI {
   showSummary(s: RunSummary): void {
     this.showHud(false);
     $('sumTitle').textContent = s.title;
+    // the title slams down at about 0.5 s: punch the screen red as it lands
+    setTimeout(() => {
+      if ($('summary').classList.contains('on')) this.flash('#ff3d4d');
+    }, 480);
     $('bAgain').textContent = 'PLAY AGAIN';
     $('sumNew').style.display = s.newBest ? 'block' : 'none';
     const rows: Array<[string, string, string]> = [

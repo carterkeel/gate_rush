@@ -95,7 +95,7 @@
   #banner { position:absolute; left:50%; top:28%; transform:translateX(-50%); text-align:center; font-size:min(9vw,48px); color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; display:none; width:90%; }
   #banner.on { display:block; animation: ban .5s ease-out; }
   @keyframes ban { from{transform:translateX(-50%) scale(.6); opacity:0} to{transform:translateX(-50%) scale(1); opacity:1} }
-  #hint { position:absolute; left:50%; bottom:max(26px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(92vw,560px); padding:12px 16px; background:var(--panel); border:2px solid var(--yellow); border-radius:14px; text-align:center; font-family: system-ui, 'Arial Black', sans-serif; font-weight:900; font-size:min(4.6vw,20px); display:none; }
+  #hint { position:absolute; left:78px; right:12px; bottom:max(26px, env(safe-area-inset-bottom)); padding:12px 14px; color:#fff; background:linear-gradient(#5a6788,#3b4766); border:2px solid #1f2740; box-shadow:0 4px 0 #1f2740, 0 8px 14px rgba(0,0,0,.35); border-radius:14px; text-align:center; font-family: system-ui, 'Arial Black', sans-serif; font-weight:800; font-size:min(4.2vw,17px); line-height:1.25; display:none; }
   #hint.on { display:block; }
   #combat { position:absolute; left:50%; bottom:max(22px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(64vw,320px); display:none; text-align:center; font-size:min(4.4vw,19px); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; }
   #combat { padding:8px 14px 10px; border-radius:16px; background:rgba(14,22,48,.62); border:2px solid rgba(120,170,255,.45); box-shadow:0 6px 20px rgba(0,0,0,.45); -webkit-backdrop-filter:blur(10px) saturate(1.3); backdrop-filter:blur(10px) saturate(1.3); }
@@ -189,7 +189,7 @@
   .screen .coin { border-width:1px; }
   #bSkinsBack, #bScoresBack { position:sticky; bottom:8px; z-index:3; }
 
-  #tutTag { position:absolute; left:50%; transform:translateX(-50%); bottom:calc(max(26px, env(safe-area-inset-bottom)) + 92px); display:none; padding:6px 16px; border-radius:999px; background:rgba(255,194,26,.2); border:1px solid rgba(255,194,26,.7); color:var(--yellow); font-family:system-ui,sans-serif; font-weight:800; font-size:12px; letter-spacing:4px; }
+  #tutTag { position:absolute; left:78px; right:12px; bottom:calc(max(26px, env(safe-area-inset-bottom)) + 96px); display:none; padding:8px 12px; border-radius:14px; text-align:center; background:linear-gradient(#ffd54f,#ff9f1a); border:2px solid #7a4a00; box-shadow:0 4px 0 #7a4a00; color:#2a1700; font-family:system-ui,sans-serif; font-weight:900; font-size:12px; letter-spacing:4px; }
   #tutTag.on { display:block; }
   .screen h2.sub { font-size:min(4vw,14px); margin-top:8px; opacity:.6; }
   .screen .controls b { min-width:56px; background:rgba(255,255,255,.1); }
@@ -213,6 +213,18 @@
     68% { transform:perspective(500px) translateY(-14px) rotateX(10deg) rotate(-4deg) scale(.99,1.05); }
     82% { transform:perspective(500px) translateY(4px) rotateX(10deg) rotate(-3deg) scale(1.01,.98); }
     100% { opacity:1; transform:perspective(500px) rotateX(10deg) rotate(-3deg); }
+  }
+  #pauseIcon { display:flex; gap:16px; margin:6px 0 10px; transform:perspective(500px) rotateX(10deg) rotate(-3deg); }
+  #pauseIcon i { display:block; width:min(15vw,64px); height:min(30vw,128px); border-radius:12px; border:6px solid #05070d; box-sizing:border-box; background:#fff; box-shadow:0 2px 0 #b7c4e0, 0 4px 0 #8d9bbd, 0 6px 0 #5c6a8f, 0 8px 0 #2b3556, 0 10px 0 #0b1020, 0 18px 22px rgba(0,0,0,.55); }
+  #pauseIcon i:last-child { background:var(--green); box-shadow:0 2px 0 #17c35c, 0 4px 0 #0f9a47, 0 6px 0 #0a7436, 0 8px 0 #064d24, 0 10px 0 #02200f, 0 18px 22px rgba(0,0,0,.55), 0 0 30px rgba(31,224,108,.35); }
+  #pause.on:not(.out) #pauseIcon i { animation: barDrop .7s cubic-bezier(.3,.7,.3,1) both, logoFloat 4s ease-in-out .8s infinite; }
+  #pause.on:not(.out) #pauseIcon i:last-child { animation-delay: .12s, .9s; }
+  @keyframes barDrop {
+    0% { opacity:0; transform:translateY(-300px) rotate(-14deg) scale(1.3); }
+    10% { opacity:1; }
+    55% { transform:translateY(14px) scale(1.04,.88); }
+    75% { transform:translateY(-8px) scale(.99,1.03); }
+    100% { opacity:1; transform:none; }
   }
   #summary h2#sumTitle, #sumTitle { font-family: Impact, 'Arial Black', 'Helvetica Neue', system-ui, sans-serif; font-weight:900; font-style:italic; font-size:min(15vw,78px); line-height:.9; letter-spacing:3px; margin:0 0 10px; text-align:center; transform:perspective(500px) rotateX(10deg) rotate(-3deg); -webkit-text-stroke:6px #05070d; paint-order:stroke fill; color:#ff3d4d; text-shadow:0 2px 0 #e02438, 0 4px 0 #b3182b, 0 6px 0 #861020, 0 8px 0 #5a0913, 0 10px 0 #2a0308, 0 18px 22px rgba(0,0,0,.55), 0 0 30px rgba(255,61,77,.4); }
   #menu h1 span:nth-child(1) { color:#fff; text-shadow:0 2px 0 #b7c4e0, 0 4px 0 #8d9bbd, 0 6px 0 #5c6a8f, 0 8px 0 #2b3556, 0 10px 0 #0b1020, 0 18px 22px rgba(0,0,0,.55); }
@@ -390,7 +402,7 @@
   </div>
 
   <div id="pause" class="screen">
-    <h2>PAUSED</h2>
+    <div id="pauseIcon" aria-label="Paused"><i></i><i></i></div>
     <div class="tag" id="pauseInfo"></div>
     <button id="bResume">RESUME</button>
     <button id="bRestart" class="warn">RESTART</button>

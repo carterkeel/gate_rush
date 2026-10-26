@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CFG, speedAt, spawnAheadDist, spacingAt } from './config';
 import { World } from './world';
-import { BIOMES, biomeIndex } from './biomes';
+import { biomeIndex } from './biomes';
 import { Army } from './army';
 import { Fx } from './fx';
 import { CombatSim } from './enemies';
@@ -510,7 +510,6 @@ export class Game {
     if (bi !== this.lastBiome) {
       this.lastBiome = bi;
       if (!this.tutorial) {
-        this.ui.flashBanner(BIOMES[bi].name, 1800);
         sound.biome();
         sound.setBiome(bi);
       }
