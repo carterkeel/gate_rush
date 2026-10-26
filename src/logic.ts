@@ -57,6 +57,9 @@ const SYM: Record<OpKind, string> = { add: '+', sub: '−', mul: '×', div: '÷'
 export function fmt(n: number): string {
   if (n < 10000) return String(n);
   const units: Array<[number, string]> = [
+    [1e21, 'Sx'],
+    [1e18, 'Qi'],
+    [1e15, 'Qa'],
     [1e12, 'T'],
     [1e9, 'B'],
     [1e6, 'M'],

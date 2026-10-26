@@ -1065,7 +1065,7 @@ export class Game {
     // a head start does not count towards score or coins: only what is run, and the army grown beyond the gift
     const distance = Math.floor(this.playerS - this.startDist);
     const score = distance * CFG.scoreDistMul + Math.max(0, this.peak - this.startArmy) * CFG.scorePeakMul + this.kills * CFG.scoreKillMul;
-    const armyBonus = this.tutorial ? 0 : Math.floor(this.peak / 1_000_000); // 1 coin per million in the largest army
+    const armyBonus = this.tutorial ? 0 : Math.min(1500, Math.floor(this.peak / 1_000_000)); // 1 coin per million in the largest army (capped so the animation stays sane)
     const coins = this.coinsEarned() + armyBonus;
     this.data.coins += coins;
     const newBest = addScore(this.data, { score, distance, peak: this.peak, kills: this.kills, date: Date.now() });

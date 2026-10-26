@@ -654,7 +654,7 @@ export class UI {
   }
 
   // ------------------------------------------------------------- upgrades
-  showUpgrades(): void {
+  showUpgrades(fresh = true): void {
     const d = this.save();
     const lvl = d.startLevel;
     const next = lvl + 1;
@@ -700,15 +700,15 @@ export class UI {
         sound.good(2.5);
         this.persist();
         this.onUpgrade();
-        this.showUpgrades();
+        this.showUpgrades(false); // redraw in place: no screen transition, so you can keep buying
       };
     });
     this.syncBoost();
-    this.screens('upgrades');
+    if (fresh) this.screens('upgrades');
   }
 
   // ------------------------------------------------------------- skins
-  showSkins(): void {
+  showSkins(fresh = true): void {
     const d = this.save();
     $('skinCoins').innerHTML = `Coins: ${coinHtml(d.coins)}  •  cosmetics only`;
     const mk = (kind: 'skin' | 'trail') => {
@@ -734,7 +734,7 @@ export class UI {
     };
     $('skinGrid').innerHTML = mk('skin');
     $('trailGrid').innerHTML = mk('trail');
-    this.screens('skins');
+    if (fresh) this.screens('skins');
     document.querySelectorAll<HTMLButtonElement>('#skins button[data-id]').forEach((b) => {
       b.onclick = () => {
         const id = b.dataset.id!;
@@ -751,7 +751,7 @@ export class UI {
         else d.trail = id;
         this.persist();
         this.onChange();
-        this.showSkins();
+        this.showSkins(false);
       };
     });
   }

@@ -5,7 +5,7 @@ export const CFG = {
   halfWidth: 5,
   // army
   startArmy: 1,
-  armyCap: 1_000_000_000, // numeric safety ceiling (integers stay exact far below 2^53)
+  armyCap: 1e24, // numeric safety ceiling; far past exact integers, but only the suffix on the number matters up there
   visualCap: 700, // max rendered instances; beyond this units collapse into "elite" models
   // speed (units/second)
   baseSpeed: 8,
