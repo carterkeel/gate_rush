@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CFG } from './config';
 import { KIND_ORDER } from './combatModel';
-import { unitGeometry } from './models';
+import { angryUnitGeometry } from './models';
 import type { CombatZone, EnemyKind } from './types';
 
 interface Enemy {
@@ -16,6 +16,9 @@ interface Enemy {
   flash: number;
   gone: number; // death animation 0..1
   yaw: number; // small random facing offset
+  hop: number; // 0..1 while mid-hop, -1 when standing
+  hopT: number; // seconds until the next hop
+  hopH: number; // height of the current hop
 }
 
 const SCALE: Record<EnemyKind, number> = { grunt: 1, brute: 1.45, titan: 2.5, boss: 4.4 };
@@ -71,6 +74,7 @@ export class CombatSim {
   private s = new THREE.Vector3();
   private c = new THREE.Color();
   private up = new THREE.Vector3(0, 1, 0);
+  private eu = new THREE.Euler();
   active = false;
   timeLeft = 0;
   totalHp = 0;
@@ -83,7 +87,7 @@ export class CombatSim {
 
   constructor(scene: THREE.Scene) {
     for (const k of KINDS) {
-      const m = new THREE.InstancedMesh(unitGeometry(PARTS_OF[k]), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
+      const m = new THREE.InstancedMesh(angryUnitGeometry(PARTS_OF[k]), new THREE.MeshLambertMaterial({ vertexColors: true }), MAX_ENEMY);
       m.frustumCulled = false;
       m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_ENEMY * 3), 3);
       m.count = 0;
@@ -104,7 +108,7 @@ export class CombatSim {
   place(zone: CombatZone): void {
     const byKind: Record<EnemyKind, Enemy[]> = { grunt: [], brute: [], titan: [], boss: [] };
     for (const e of zone.enemies) {
-      byKind[e.kind].push({ kind: e.kind, hp: e.hp, max: e.hp, atk: e.atk, x: 0, z: 0, scale: SCALE[e.kind], flash: 0, gone: 0, yaw: (Math.random() - 0.5) * 0.9 });
+      byKind[e.kind].push({ kind: e.kind, hp: e.hp, max: e.hp, atk: e.atk, x: 0, z: 0, scale: SCALE[e.kind], flash: 0, gone: 0, yaw: (Math.random() - 0.5) * 0.9, hop: -1, hopT: Math.random() * 2.4, hopH: 0.3 });
     }
     let z = -(zone.s + CFG.combatStopGap);
     const rows = (list: Enemy[], maxCols: number, dx: number, dz: number) => {
@@ -136,7 +140,7 @@ export class CombatSim {
 
   /** Advance the fade-in while the army is still approaching (step() does it during the fight). */
   idle(dt: number): void {
-    if (this.appear < 1 && this.enemies.length) this.render(dt);
+    if (this.enemies.length) this.render(dt); // keeps them hopping and glaring while they wait
   }
 
   /** Enemies scale with the army that actually arrives: a bigger army meets proportionally bigger enemies. */
@@ -338,9 +342,31 @@ export class CombatSim {
       if (e.gone >= 1) continue;
       e.flash = Math.max(0, e.flash - dt * 6);
       const sc = e.scale * MODEL_K * (e.kind === 'grunt' ? 0.85 + 0.35 * Math.min(1, e.max / 12) : 1) * (1 - e.gone) * (0.7 + 0.3 * ease);
-      this.p.set(e.x, e.gone * 0.4, e.z);
-      this.q.setFromAxisAngle(this.up, Math.PI + e.yaw); // face the oncoming army (+z), a little off-axis
-      this.s.set(sc, sc, sc);
+      // impatient hopping: every now and then an enemy jumps (squashing on take-off and landing)
+      let hy = 0;
+      let sy = 1;
+      if (e.gone <= 0 && this.appear >= 1) {
+        e.hopT -= dt;
+        if (e.hop < 0 && e.hopT <= 0) {
+          e.hop = 0;
+          e.hopH = (0.25 + Math.random() * 0.55) * (e.kind === 'boss' ? 0.5 : e.kind === 'titan' ? 0.6 : 1);
+        }
+        if (e.hop >= 0) {
+          e.hop += dt / (e.kind === 'grunt' ? 0.42 : 0.6);
+          if (e.hop >= 1) {
+            e.hop = -1;
+            e.hopT = 0.3 + Math.random() * 2.2;
+          } else {
+            hy = Math.sin(Math.PI * e.hop) * e.hopH * Math.pow(e.scale, 0.45);
+            sy = 1 - 0.13 * Math.cos(2 * Math.PI * e.hop);
+          }
+        }
+      }
+      const sxz = 1 / Math.sqrt(sy);
+      this.p.set(e.x, e.gone * 0.4 + hy, e.z);
+      // face the oncoming army (+z), a little off-axis, leaning forward aggressively
+      this.q.setFromEuler(this.eu.set(-0.2, Math.PI + e.yaw, 0, 'YXZ'));
+      this.s.set(sc * sxz, sc * sy, sc * sxz);
       this.m.compose(this.p, this.q, this.s);
       const mesh = this.meshes[e.kind];
       const n = used[e.kind]++;

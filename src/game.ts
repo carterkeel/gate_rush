@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CFG, speedAt, spawnAheadDist } from './config';
+import { CFG, speedAt, spawnAheadDist, spacingAt } from './config';
 import { World } from './world';
 import { BIOMES, biomeIndex } from './biomes';
 import { Army } from './army';
@@ -495,21 +495,27 @@ export class Game {
     }
   }
 
-  /** Left-hand route bar: the next gates as coloured lines (gold = power-up) and the next fight as a skull with the army still missing. */
+  /** How many metres the route bar shows: about five gate sections at the current spacing. */
+  private routeWindow(): number {
+    return spacingAt(this.playerS) * 5.5;
+  }
+
+  /** Left-hand route bar: a line that slides towards the player as they run (and stops when they stop). */
   private updateRoute(): void {
     if (this.tutorial) {
       this.ui.setRoute(null);
       return;
     }
     const A = this.army.count;
-    const fightIdx = this.inCombat ? -1 : this.queue.findIndex((q) => q.type === 'combat');
-    const fightItem = this.inCombat ? this.combatZone : fightIdx >= 0 ? (this.queue[fightIdx] as CombatZone) : null;
-    const sets: string[][] = [];
-    for (let i = 0; i < this.queue.length && sets.length < 5; i++) {
-      const q = this.queue[i];
+    const fightItem = this.inCombat ? this.combatZone : (this.queue.find((q) => q.type === 'combat') as CombatZone | undefined) ?? null;
+    const W = this.routeWindow();
+    const ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' }[] = [];
+    for (const q of this.queue) {
       if (q.type === 'combat') break; // only the gates before the next fight
       if (this.splitCtx && this.splitCtx.resolved && q === this.splitCtx.set) continue;
-      sets.push(q.gates.map((g) => (g.bonus ? 'gold' : effectTone(g.effect))));
+      const frac = (q.s - this.playerS) / W;
+      if (frac > 1.02) break;
+      ticks.push({ id: q.id, frac, kind: q.gates.some((g) => g.bonus) ? 'gold' : q.complex ? 'yellow' : 'plain' });
     }
     let fight: { boss: boolean; text: string; tone: string } | null = null;
     if (fightItem) {
@@ -519,10 +525,10 @@ export class Game {
         const need = Math.ceil(fightItem.critical * Math.max(fightItem.refArmy, A));
         const missing = Math.max(0, need - A);
         const ratio = A / Math.max(1, need);
-        fight = { boss: fightItem.boss, text: missing > 0 ? fmt(missing) : '✓', tone: ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger' };
+        fight = { boss: fightItem.boss, text: missing > 0 ? fmt(missing) : 'READY', tone: ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger' };
       }
     }
-    this.ui.setRoute({ sets, fight });
+    this.ui.setRoute({ ticks, fight });
   }
 
   private coinsEarned(): number {
@@ -539,7 +545,8 @@ export class Game {
 
   // ------------------------------------------------------------------ spawning
   private ensureAhead(): void {
-    const ahead = spawnAheadDist(this.speed);
+    // far enough ahead that the route bar can always show the next five gate sections
+    const ahead = Math.max(spawnAheadDist(this.speed), this.routeWindow() + 14);
     let guard = 0;
     while (this.source.cursor + 20 < this.playerS + ahead && guard++ < 12) {
       const pending = this.queue.filter((q) => !(this.splitCtx && this.splitCtx.resolved && q === this.splitCtx.set));

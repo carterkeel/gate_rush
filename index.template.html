@@ -255,27 +255,29 @@
   #menu h1 { margin-bottom:22px; }
   .grid { gap:14px; }
 
-  /* ---- route bar: upcoming gates and the next fight ---- */
-  #route { position:absolute; left:10px; top:calc(max(10px, env(safe-area-inset-top)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 62px); width:42px; display:none; flex-direction:column; align-items:center; gap:8px; padding:7px 4px 9px; border-radius:14px; background:rgba(10,16,38,.4); border:1px solid rgba(130,175,255,.3); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); box-shadow:0 6px 18px rgba(0,0,0,.4); font-family:system-ui,sans-serif; }
+  /* ---- route bar: a line that slides towards you; ticks are gate sets, the skull is the next fight ---- */
+  #route { position:absolute; left:6px; top:calc(max(10px, env(safe-area-inset-top)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 58px); width:58px; display:none; flex-direction:column; align-items:center; font-family:system-ui,sans-serif; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
   #route.on { display:flex; animation: hudIn .5s ease backwards; }
-  .rFight { display:flex; flex-direction:column; align-items:center; gap:1px; }
-  .rSkull { width:36px; height:36px; object-fit:contain; filter:drop-shadow(0 3px 0 rgba(0,0,0,.45)); transition:transform .2s; }
-  .rFight.boss .rSkull { width:42px; height:42px; }
-  .rFight.dim .rSkull { opacity:.35; filter:grayscale(.6); }
-  .rNeed { font-weight:900; font-size:13px; letter-spacing:.3px; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.6); font-variant-numeric:tabular-nums; }
-  .rFight.danger .rNeed { color:#ff8a96; } .rFight.tight .rNeed { color:#ffe27a; } .rFight.ok .rNeed { color:#7dffb0; }
-  .rFight.danger .rSkull { animation: skullPulse 1s ease-in-out infinite; }
+  .rLabel { font-size:8px; letter-spacing:1.5px; font-weight:800; opacity:.7; }
+  .rNeed { white-space:nowrap; font-weight:900; font-size:14px; line-height:1.1; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:2px; }
+  #route.danger .rNeed { color:#ff8a96; } #route.tight .rNeed { color:#ffe27a; } #route.ok .rNeed { color:#7dffb0; }
+  .rSkull { width:38px; height:38px; object-fit:contain; transition:opacity .3s; }
+  #route.boss .rSkull { width:44px; height:44px; }
+  #route.dim .rSkull { opacity:.3; filter:grayscale(.6); }
+  #route.danger .rSkull { animation: skullPulse 1s ease-in-out infinite; }
   @keyframes skullPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.12); } }
-  .rGates { display:flex; flex-direction:column; gap:7px; align-items:center; width:100%; padding-top:2px; border-top:1px solid rgba(255,255,255,.12); }
-  .rSet { display:flex; gap:2px; width:100%; height:8px; animation: rIn .3s ease-out backwards; }
-  .rSet.near { height:10px; }
-  @keyframes rIn { from { opacity:0; transform:translateY(-8px) scaleX(.6); } to { opacity:1; transform:none; } }
-  .rSet i { flex:1; border-radius:3px; background:#888; box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
-  .rSet i.green { background:linear-gradient(#41f08a,#12a850); } .rSet i.red { background:linear-gradient(#ff6070,#cc2a3c); } .rSet i.yellow { background:linear-gradient(#ffd24a,#d99100); }
-  .rSet i.gold { background:linear-gradient(#fff3b0,#ffc21a 55%,#ff9f1a); box-shadow:0 0 8px 2px rgba(255,194,26,.9), inset 0 1px 0 #fff; animation: goldShine 1s ease-in-out infinite; }
-  @keyframes goldShine { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.5); box-shadow:0 0 14px 4px rgba(255,214,90,1), inset 0 1px 0 #fff; } }
-  .rSet i.gold::after { content:''; display:block; height:100%; border-radius:3px; background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,.85) 50%, transparent 70%); background-size:200% 100%; animation: sheen 1.1s linear infinite; }
+  .rTrack { position:relative; width:34px; height:min(30vh,250px); }
+  .rLine { position:absolute; left:50%; top:0; bottom:0; width:3px; margin-left:-1.5px; border-radius:2px; background:linear-gradient(rgba(90,140,255,.15), rgba(90,150,255,.9)); }
+  .rTicks { position:absolute; inset:0; overflow:hidden; }
+  .rTick { position:absolute; left:50%; top:0; height:0; will-change:transform; }
+  .rTick i { position:absolute; left:50%; border-radius:3px; transform:translate(-50%,-50%); }
+  .rTick.plain i { width:20px; height:2px; background:rgba(190,215,255,.95); }
+  .rTick.yellow i { width:30px; height:6px; background:linear-gradient(#ffd24a,#d99100); box-shadow:0 0 6px rgba(255,194,26,.6); }
+  .rTick.gold i { width:34px; height:7px; background:linear-gradient(#fff3b0,#ffc21a 55%,#ff9f1a); box-shadow:0 0 10px 3px rgba(255,194,26,.95); animation: goldShine 1s ease-in-out infinite; overflow:hidden; }
+  @keyframes goldShine { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.5); } }
+  .rTick.gold i::after { content:''; position:absolute; inset:0; background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,.9) 50%, transparent 70%); background-size:200% 100%; animation: sheen 1.1s linear infinite; }
   @keyframes sheen { from { background-position:200% 0; } to { background-position:-100% 0; } }
+  .rPlayer { width:30px; height:30px; margin-top:-4px; animation: skullPulse 1.6s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -293,8 +295,11 @@
     <button id="bBoostHud" class="ghost" aria-label="Head start for next run" aria-pressed="false" style="display:none"></button>
     <button id="bFast" class="ghost" aria-label="Double speed" aria-pressed="false" title="Double speed"><span class="x2">2×</span><span class="chev"><i></i><i></i><i></i></span></button>
     <div id="route" aria-hidden="true">
-      <div class="rFight"><img class="rSkull" alt="" /><div class="rNeed">·</div></div>
-      <div class="rGates"></div>
+      <div class="rLabel">NEEDED</div>
+      <div class="rNeed">·</div>
+      <img class="rSkull" alt="" />
+      <div class="rTrack"><div class="rLine"></div><div class="rTicks"></div></div>
+      <img class="rPlayer" alt="" />
     </div>
     <div id="tutTag">TUTORIAL</div>
     <div id="power"></div>
