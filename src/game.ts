@@ -153,7 +153,17 @@ export class Game {
     this.ui.onPause = () => this.pause();
     this.ui.onArmy = () => this.showIntel();
     this.ui.onInsta = () => {
-      if (this.mode !== 'run' || this.tutorial || this.inCombat) return;
+      if (this.mode !== 'run' || this.tutorial) return;
+      if (this.inCombat) {
+        // use it right now, in the middle of the fight
+        if (this.instaCount > 0 && this.instaT < 0) {
+          this.instaCount--;
+          this.instaT = 0.55;
+          this.ui.flashBanner('⚡ INSTAKILL', 700);
+          sound.power();
+        }
+        return;
+      }
       if (this.instakill) {
         // cancel (gives it back), unless a second one is already in hand
         if (this.instaCount === 0) {
@@ -463,7 +473,7 @@ export class Game {
     this.revealPending();
     this.processQueue();
     if (!this.tutorial) {
-      const radius = this.magnetT > 0 ? 9 : Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
+      const radius = Math.min(3.4, 0.8 + 0.1 * Math.sqrt(this.army.count));
       if (this.heldRows.length) {
         const keep: typeof this.heldRows = [];
         for (const r of this.heldRows) {
@@ -474,7 +484,7 @@ export class Game {
       }
       const got = this.coins.update(dt, this.time, this.playerS, this.army.x, radius, (x, sPos) => {
         this.fx.burst(new THREE.Vector3(x, 1.2, -sPos), 0xffd54f, 7, 3.5);
-      });
+      }, this.magnetT > 0);
       if (got > 0) {
         this.bonusCoins += got;
         this.coinStreak = this.time - this.lastPickT < 0.7 ? this.coinStreak + got : got;
@@ -505,7 +515,7 @@ export class Game {
 
   private updateHud(): void {
     this.ui.setInsta(this.instaCount, this.instakill);
-    if (this.magnetT > 0) this.ui.setPower(`🧲 MAGNET ${Math.ceil(this.magnetT)}s`, 'cyan');
+    if (this.magnetT > 0) this.ui.setPower(`🧲 ${Math.ceil(this.magnetT)}s`, 'cyan');
     else this.ui.setPower(null);
     this.ui.setArmy(this.army.count);
     this.ui.setDist(this.playerS);

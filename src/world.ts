@@ -75,13 +75,57 @@ function rockGeometry(): THREE.BufferGeometry {
   return g;
 }
 
+function cloudGeometry(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const puffs: [number, number, number, number][] = [[0, 0, 0, 1.2], [1.2, -0.15, 0.2, 0.9], [-1.2, -0.2, -0.1, 0.85], [0.4, 0.55, 0, 0.8], [-0.5, 0.35, 0.4, 0.7]];
+  for (const [x, y, z, r] of puffs) {
+    const g = new THREE.SphereGeometry(r, 9, 7);
+    g.translate(x, y, z);
+    parts.push(paint(g, (yy) => new THREE.Color(0xdde8ff).lerp(new THREE.Color(0xffffff), Math.min(1, Math.max(0, (yy + 0.5) / 2)))));
+  }
+  const g = mergeGeometries(parts)!;
+  g.computeVertexNormals();
+  return g;
+}
+
+function coralGeometry(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const add = (g: THREE.BufferGeometry, col: number) => parts.push(paint(g, flat(col)));
+  const stem = new THREE.CylinderGeometry(0.16, 0.26, 2.2, 6);
+  stem.translate(0, 1.1, 0);
+  add(stem, 0xff6f91);
+  const b1 = new THREE.CylinderGeometry(0.1, 0.17, 1.5, 6);
+  b1.rotateZ(0.7);
+  b1.translate(0.6, 1.9, 0);
+  add(b1, 0xff8fab);
+  const b2 = new THREE.CylinderGeometry(0.1, 0.16, 1.3, 6);
+  b2.rotateZ(-0.7);
+  b2.translate(-0.55, 1.6, 0.1);
+  add(b2, 0xff5d8f);
+  const kelp = new THREE.ConeGeometry(0.2, 4.4, 5);
+  kelp.translate(1.3, 2.2, -0.3);
+  add(kelp, 0x2fd18b);
+  const kelp2 = new THREE.ConeGeometry(0.16, 3.2, 5);
+  kelp2.translate(-1.2, 1.6, 0.3);
+  add(kelp2, 0x1fae7a);
+  const shell = new THREE.SphereGeometry(0.55, 8, 6);
+  shell.scale(1, 0.6, 1);
+  shell.translate(0.2, 0.2, 0.9);
+  add(shell, 0xffd166);
+  const g = mergeGeometries(parts)!;
+  g.computeVertexNormals();
+  return g;
+}
+
 const PROPS = 72;
 const EMBERS = 150;
-type PropType = 0 | 1 | 2; // 0 neo pillar, 1 tree, 2 lava spire
+type PropType = 0 | 1 | 2 | 3 | 4; // one per biome: pillar, tree, lava spire, cloud, coral
+const NTYPES = 5;
 
 interface Prop {
   type: PropType;
   x: number;
+  y: number;
   z: number;
   sx: number;
   sy: number;
@@ -106,7 +150,7 @@ export class World {
   private emberPos = new Float32Array(EMBERS * 3);
   private emberSeed = new Float32Array(EMBERS);
   private pal = emptyPalette();
-  private w = [1, 0, 0];
+  private w = [1, 0, 0, 0, 0];
   private tmp = new THREE.Matrix4();
   private tq = new THREE.Quaternion();
   private te = new THREE.Euler();
@@ -156,9 +200,11 @@ export class World {
 
     // three prop families share one pool; each family is its own instanced mesh
     const pillarMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    const mats = [pillarMat, new THREE.MeshLambertMaterial({ vertexColors: true }), new THREE.MeshLambertMaterial({ vertexColors: true })];
-    const geos = [new THREE.BoxGeometry(1, 1, 1), treeGeometry(), rockGeometry()];
-    for (let t = 0; t < 3; t++) {
+    const vc = () => new THREE.MeshLambertMaterial({ vertexColors: true });
+    const cloudMat = new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x7f93b8 });
+    const mats = [pillarMat, vc(), vc(), cloudMat, vc()];
+    const geos = [new THREE.BoxGeometry(1, 1, 1), treeGeometry(), rockGeometry(), cloudGeometry(), coralGeometry()];
+    for (let t = 0; t < NTYPES; t++) {
       const m = new THREE.InstancedMesh(geos[t], mats[t], PROPS);
       m.frustumCulled = false;
       m.count = 0;
@@ -167,7 +213,7 @@ export class World {
       this.meshes.push(m);
     }
     for (let i = 0; i < PROPS; i++) {
-      this.props.push({ type: 0, x: 0, z: 0, sx: 1, sy: 1, rot: 0, tone: 0 });
+      this.props.push({ type: 0, x: 0, y: 0, z: 0, sx: 1, sy: 1, rot: 0, tone: 0 });
       this.respawn(i, 0, true);
     }
     this.writeProps();
@@ -188,8 +234,12 @@ export class World {
 
   private pickType(distAhead: number): PropType {
     biomeWeights(distAhead, this.w);
-    const r = Math.random();
-    return (r < this.w[0] ? 0 : r < this.w[0] + this.w[1] ? 1 : 2) as PropType;
+    let r = Math.random();
+    for (let t = 0; t < NTYPES - 1; t++) {
+      if (r < this.w[t]) return t as PropType;
+      r -= this.w[t];
+    }
+    return (NTYPES - 1) as PropType;
   }
 
   private respawn(i: number, playerS: number, init: boolean): void {
@@ -208,19 +258,30 @@ export class World {
       p.x = side * (CFG.halfWidth + 2.2 + Math.random() * 24);
       p.sx = 0.9 + Math.random() * 1.1;
       p.sy = 0.9 + Math.random() * 1.2;
-    } else {
+    } else if (p.type === 2) {
       p.x = side * (CFG.halfWidth + 4.6 + Math.random() * 22);
       p.sx = 0.9 + Math.random() * 1.5;
       p.sy = 0.8 + Math.random() * 1.4;
+    } else if (p.type === 3) {
+      // clouds float all around the path: below, beside and high above
+      p.x = side * (CFG.halfWidth + 2 + Math.random() * 30);
+      p.y = -7 + Math.random() * 15;
+      if (Math.abs(p.x) < CFG.halfWidth + 6 && p.y > -1) p.y = -2 - Math.random() * 5;
+      p.sx = 1.6 + Math.random() * 2.8;
+      p.sy = 0.8 + Math.random() * 0.8;
+    } else {
+      p.x = side * (CFG.halfWidth + 2.4 + Math.random() * 22);
+      p.sx = 0.8 + Math.random() * 1.2;
+      p.sy = 0.8 + Math.random() * 1.3;
     }
   }
 
   private writeProps(): void {
-    const n = [0, 0, 0];
+    const n = [0, 0, 0, 0, 0];
     for (const p of this.props) {
       const mesh = this.meshes[p.type];
       const k = n[p.type]++;
-      this.tp.set(p.x, p.type === 0 ? p.sy / 2 - 0.05 : -0.05, p.z);
+      this.tp.set(p.x, p.type === 0 ? p.sy / 2 - 0.05 : p.type === 3 ? p.y : -0.05, p.z);
       if (p.type === 0) {
         this.tq.identity();
         this.ts.set(p.sx, p.sy, p.sx);
@@ -236,7 +297,7 @@ export class World {
       mesh.setMatrixAt(k, this.tmp);
       mesh.setColorAt(k, this.tc);
     }
-    for (let t = 0; t < 3; t++) {
+    for (let t = 0; t < NTYPES; t++) {
       this.meshes[t].count = n[t];
       this.meshes[t].instanceMatrix.needsUpdate = true;
       if (this.meshes[t].instanceColor) this.meshes[t].instanceColor!.needsUpdate = true;
@@ -283,6 +344,13 @@ export class World {
     this.hemi.color.copy(p.hemiSky);
     this.hemi.groundColor.copy(p.hemiGround);
     this.sun.color.copy(p.sun);
+    const sideMat = this.side.material as THREE.MeshLambertMaterial;
+    sideMat.transparent = true;
+    sideMat.opacity = 1 - this.w[3];
+    this.side.visible = sideMat.opacity > 0.02;
+    const fog = this.scene.fog as THREE.Fog;
+    fog.near = 40 - 16 * this.w[4] - 6 * this.w[3];
+    fog.far = 120 - 34 * this.w[4];
     const lava = this.w[2];
     for (const r of this.rivers) (r.material as THREE.MeshBasicMaterial).opacity = lava * (0.8 + 0.2 * Math.sin(time * 3));
     (this.embers.material as THREE.PointsMaterial).color.copy(p.particle);
@@ -298,8 +366,8 @@ export class World {
     if (moved) this.writeProps();
 
     // drifting particles: rise fast over lava, wander over the forest, hang over the city
-    const rise = 0.35 + 2.6 * this.w[2];
-    const wob = 0.5 + 1.6 * this.w[1];
+    const rise = 0.35 + 2.6 * this.w[2] + 1.5 * this.w[4];
+    const wob = 0.5 + 1.6 * this.w[1] + 0.9 * this.w[4] + 0.6 * this.w[3];
     for (let i = 0; i < EMBERS; i++) {
       const o = i * 3;
       const sd = this.emberSeed[i];

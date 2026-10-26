@@ -112,7 +112,7 @@ class Sound {
   }
   /** Each biome plays the loop in a different key. */
   setBiome(i: number): void {
-    this.transpose = [0, 3, -2, 5][i % 4];
+    this.transpose = [0, 3, -2, 5, -4][i % 5];
   }
 
   private applyMusicGain(): void {

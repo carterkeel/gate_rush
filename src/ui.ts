@@ -223,7 +223,7 @@ export class UI {
 
   setInsta(count: number, armed: boolean): void {
     const b = $('bInstaHud');
-    const want = `<span class="bi">⚡</span><span class="bn">${armed ? 'ARMED' : 'READY'}</span>`;
+    const want = `<span class="bi">⚡</span>`;
     const key = `${count}${armed ? 'a' : ''}`;
     if (b.dataset.k !== key) {
       b.dataset.k = key;
@@ -237,7 +237,7 @@ export class UI {
     b.style.display = (count > 0 || armed) && this.hudOn ? '' : 'none';
     b.classList.toggle('on', armed);
     b.setAttribute('aria-pressed', String(armed));
-    b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use an instakill on the next fight';
+    b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use your instakill';
   }
 
   setPower(text: string | null, tone = ''): void {
