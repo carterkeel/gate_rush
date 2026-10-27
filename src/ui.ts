@@ -498,7 +498,7 @@ export class UI {
     for (const id of ['bFast', 'bBoostHud', 'bInstaHud', 'bDoubleHud']) {
       const el = $(id);
       if (el.style.display === 'none') continue;
-      el.style.bottom = `calc(max(20px, env(safe-area-inset-bottom)) + ${k * 52}px)`;
+      el.style.bottom = `calc(max(20px, env(safe-area-inset-bottom)) + ${k * 60}px)`;
       k++;
     }
   }

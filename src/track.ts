@@ -59,6 +59,7 @@ export class Track {
   private setsSinceBonus = 0;
   private bonusEvery = 0;
   complexAfterStart = 0;
+  private minNextS = 0;
   stats: TrackStats = { sets: 0, complex: 0, combat: 0 };
 
   constructor(seed?: number, firstGateS = 30) {
@@ -86,7 +87,10 @@ export class Track {
     this.fights++;
     const f = balancedFight(ref, stop, this.fights, this.rng);
     // the next gate set starts beyond the whole enemy formation (plus a margin), so nothing clips into it
-    this.cursor = stop + CFG.combatStopGap + formationDepth(f.enemies) + 6;
+    // the next gate set sits just beyond the rearmost enemy (split zones need a little more room)
+    const rear = stop + CFG.combatStopGap + formationDepth(f.enemies);
+    this.minNextS = rear + 3;
+    this.cursor = rear + 3 - spacingAt(rear);
     this.setsSinceCombat = 0;
     this.nextCombatAfter = this.rng.int(CFG.combatEveryMin, CFG.combatEveryMax);
     this.prevKind = 'combat';
@@ -147,7 +151,11 @@ export class Track {
     let gap = spacingAt(this.cursor);
     if (kind === 'C') gap = Math.max(gap, CFG.splitZoneLength + 2);
     if (this.prevKind === 'C') gap = Math.max(gap, CFG.splitZoneLength + 2);
-    const s = this.cursor + gap;
+    let s = this.cursor + gap;
+    if (this.minNextS > 0) {
+      s = Math.max(s, this.minNextS + (kind === 'C' ? 6 : 0));
+      this.minNextS = 0;
+    }
     dist = s;
 
     const set: GateSet = {
