@@ -76,6 +76,13 @@ export class UI {
     };
     $('bSettings').onclick = () => open('menu');
     $('bPauseSettings').onclick = () => open('pause');
+    $('bReport').onclick = () => {
+      $('rStatus').textContent = '';
+      $('rStatus').className = 'rStatus';
+      this.screens('report');
+    };
+    $('bReportBack').onclick = () => this.screens('settings');
+    this.bindReport();
     $('bSettingsBack').onclick = () => (from === 'pause' ? this.screens('pause') : this.showMenu());
     const bind = (id: string, outId: string, get: () => number, set: (v: number) => void, preview: boolean) => {
       const el = $(id) as HTMLInputElement;
@@ -126,9 +133,65 @@ export class UI {
       if (el.scrollHeight > el.clientHeight + 1) el.classList.add('ovf');
     });
   }
+  /** Bug report form (Web3Forms). Plain POST of the form fields plus a few lines of device info. */
+  private bindReport(): void {
+    const msg = $('rMsg') as HTMLTextAreaElement;
+    const email = $('rEmail') as HTMLInputElement;
+    const send = $('bReportSend') as HTMLButtonElement;
+    const status = $('rStatus');
+    let lastSent = 0;
+    const say = (t: string, cls: string) => {
+      status.textContent = t;
+      status.className = `rStatus ${cls}`;
+    };
+    send.onclick = async () => {
+      msg.classList.remove('bad');
+      email.classList.remove('bad');
+      const text = msg.value.trim();
+      if (text.length < 10) {
+        msg.classList.add('bad');
+        say('Please describe the bug in a few words.', 'err');
+        return;
+      }
+      if (email.value.trim() && !email.validity.valid) {
+        email.classList.add('bad');
+        say('That email address does not look right.', 'err');
+        return;
+      }
+      if (Date.now() - lastSent < 20000) {
+        say('Please wait a few seconds before sending another.', 'err');
+        return;
+      }
+      const best = this.save().scores[0];
+      const info = [
+        `Platform: ${document.documentElement.classList.contains('apk') ? 'Android app' : 'Web'}`,
+        `Screen: ${window.innerWidth}x${window.innerHeight} @${window.devicePixelRatio || 1}x`,
+        `Best run: ${best ? `${fmt(best.score)} (${fmtInt(Math.floor(best.distance))} m)` : 'none yet'}`,
+        `Device: ${navigator.userAgent}`,
+      ].join('\n');
+      const data = new FormData($('reportForm') as HTMLFormElement);
+      data.set('message', `${text}\n\n---\n${info}`);
+      send.disabled = true;
+      send.textContent = 'SENDING…';
+      say('Sending your report…', 'wait');
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { Accept: 'application/json' }, body: data });
+        const j = await res.json().catch(() => ({ success: false }));
+        if (!res.ok || !j.success) throw new Error('send failed');
+        lastSent = Date.now();
+        msg.value = '';
+        say('Thanks! Your report was sent.', 'ok');
+      } catch {
+        say('Could not send. Check your connection and try again.', 'err');
+      }
+      send.disabled = false;
+      send.textContent = 'SEND REPORT';
+    };
+  }
+
   private screens(on: string | null): void {
     requestAnimationFrame(() => this.fitScreens());
-    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'upgrades', 'intel']) {
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'report', 'upgrades', 'intel']) {
       const el = $(id);
       const t = this.screenTimers.get(id);
       if (t) {

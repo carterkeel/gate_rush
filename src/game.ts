@@ -234,6 +234,8 @@ export class Game {
   }
 
   private key(e: KeyboardEvent, down: boolean): void {
+    const tag = (e.target as HTMLElement | null)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return; // typing in a form must not steer, pause or resume
     if (down && !e.repeat && (e.code === 'Escape' || e.code === 'KeyP')) {
       if (this.mode === 'run') this.pause();
       else if (this.mode === 'paused') this.resume();

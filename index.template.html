@@ -593,6 +593,7 @@
       <div><b class="pi">⚡</b><span><strong>Instakill.</strong> Walk through a purple ⚡ gate to save one (you can hold one). Tap the purple button before a fight to arm it, or mid-fight to wipe out every enemy.</span></div>
       <div><b class="pd">×2</b><span><strong>Double army.</strong> Walk through a pink ×2 gate to save one (you can hold one). Tap the pink button to double your army on the spot, even mid-fight. A second pickup is used right away.</span></div>
     </div>
+    <button id="bReport" class="alt">REPORT A BUG</button>
     <div id="devBox" style="display:none">
       <h2 class="sub">DEV MENU</h2>
       <button id="devToggle" class="ghost">DEV MODE: OFF</button>
@@ -603,6 +604,22 @@
       </div>
     </div>
     <div class="stickyBack"><button id="bSettingsBack" class="ghost">BACK</button></div>
+  </div>
+
+  <div id="report" class="screen">
+    <h2>REPORT A BUG</h2>
+    <form id="reportForm" class="learn reportCard" novalidate autocomplete="off">
+      <input type="hidden" name="access_key" value="1a53990b-49bf-43c4-b336-0cece89e0d07" />
+      <input type="hidden" name="subject" value="Gate Rush: bug report" />
+      <input type="hidden" name="from_name" value="Gate Rush" />
+      <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none" />
+      <label><span>WHAT WENT WRONG?</span><textarea id="rMsg" name="message" rows="5" maxlength="1500" placeholder="Tell us what happened and what you were doing" required></textarea></label>
+      <label><span>YOUR NAME <em>(OPTIONAL)</em></span><input id="rName" name="name" type="text" maxlength="60" autocomplete="off" /></label>
+      <label><span>YOUR EMAIL <em>(OPTIONAL, SO WE CAN REPLY)</em></span><input id="rEmail" name="email" type="email" maxlength="120" inputmode="email" autocomplete="off" /></label>
+      <p id="rStatus" class="rStatus" role="status" aria-live="polite"></p>
+    </form>
+    <button id="bReportSend" class="warn">SEND REPORT</button>
+    <div class="stickyBack"><button id="bReportBack" class="ghost">BACK</button></div>
   </div>
 
   <div id="tutDone" class="screen">
@@ -657,4 +674,18 @@
 </style>
 <style>
   #banner { white-space:normal !important; overflow-wrap:anywhere; }
+</style>
+<style>
+  /* bug report form: same card, label and input look as the rest of the menus */
+  .reportCard { display:grid; gap:14px; padding:16px 14px; }
+  .reportCard label { display:grid; gap:8px; font-size:12px; letter-spacing:3px; font-weight:800; text-align:left; }
+  .reportCard label em { font-style:normal; opacity:.55; letter-spacing:2px; font-weight:700; }
+  .reportCard input[type=text], .reportCard input[type=email], .reportCard textarea { width:100%; box-sizing:border-box; padding:12px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:#fff; font:inherit; font-size:16px; font-weight:600; letter-spacing:.5px; outline:none; -webkit-text-stroke:0; }
+  .reportCard textarea { resize:none; min-height:112px; line-height:1.35; }
+  .reportCard ::placeholder { color:rgba(255,255,255,.4); font-weight:600; }
+  .reportCard input:focus, .reportCard textarea:focus { border-color:rgba(120,170,255,.8); box-shadow:0 0 0 3px rgba(91,140,255,.25); }
+  .reportCard .bad { border-color:rgba(255,80,90,.85); }
+  .rStatus { margin:0; min-height:0; font-size:14px; font-weight:700; letter-spacing:1px; text-align:center; font-family:system-ui,sans-serif; }
+  .rStatus:empty { display:none; }
+  .rStatus.ok { color:#35e98a; } .rStatus.err { color:#ff8a96; } .rStatus.wait { color:#ffe27a; }
 </style>
