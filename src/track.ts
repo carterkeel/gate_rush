@@ -1,6 +1,6 @@
 import { CFG, spacingAt, complexShareAt } from './config';
 import { Rng } from './rng';
-import { evalEffect, bestSplit, isSafe, opE, add, mul, niceRound } from './logic';
+import { evalEffect, isSafe, opE, add, mul, niceRound } from './logic';
 import type { Effect } from './logic';
 import type { CombatZone, GateDef, GateSet, SetKind, TrackItem } from './types';
 import { addGate, clamp, genSimple, genTypeA, genTypeB, hasNonDisastrous, targetFactor, tile } from './gateGen';

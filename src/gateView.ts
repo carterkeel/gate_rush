@@ -158,12 +158,12 @@ export class SetView {
     const g = this.gates[i];
     if (!g.fade) return { x0: def.x0, x1: def.x1 };
     // the gate narrows (never fully closes) so the army centre must be under the shrinking frame at the plane
-    const p = this.fadeProgress(g);
+    const p = this.fadeProgress();
     const half = g.baseHalf * (1 - 0.8 * p);
     return { x0: g.cx - half, x1: g.cx + half };
   }
 
-  private fadeProgress(g: GateObj): number {
+  private fadeProgress(): number {
     if (!this.revealed) return 0;
     return Math.min(1, Math.max(0, (this.elapsed - CFG.timePressureFadeStartSec) / CFG.timePressureFadeDurSec));
   }
@@ -183,7 +183,7 @@ export class SetView {
       let sx = 1;
       let op = this.opacity;
       if (g.fade) {
-        const p = this.fadeProgress(g);
+        const p = this.fadeProgress();
         sx = 1 - 0.8 * p;
         if (g.fade === 'fade') op *= 1 - 0.55 * p;
         if (g.bar) {

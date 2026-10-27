@@ -16,7 +16,7 @@ export interface FightResult {
  * every friendly unit fires 1 shot per 0.6 s (1 damage), every living enemy kills `atk` units per second.
  */
 export function simulateFight(army: number, enemies: EnemySpec[], maxSec: number = CFG.combatMaxSec, dt = 0.05): FightResult {
-  const order = enemies.map((e, i) => i).sort((a, b) => KIND_ORDER[enemies[a].kind] - KIND_ORDER[enemies[b].kind] || a - b);
+  const order = enemies.map((_, i) => i).sort((a, b) => KIND_ORDER[enemies[a].kind] - KIND_ORDER[enemies[b].kind] || a - b);
   const hp = order.map((i) => enemies[i].hp);
   const atk = order.map((i) => enemies[i].atk);
   let A = army;

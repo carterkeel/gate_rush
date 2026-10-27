@@ -14,7 +14,7 @@ import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
 import { CoinField } from './coins';
-import { armyTier, clampArmy, evalEffect, effectText, effectTone, fmt, fmtInt, bestSplit } from './logic';
+import { armyTier, clampArmy, evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
 import type { SaveData } from './storage';
@@ -350,7 +350,7 @@ export class Game {
     this.keys.left = this.keys.right = false;
     sound.setPaused(true);
     sound.pause(true);
-    this.ui.showPause(this.tutorial ? 'TUTORIAL' : `ARMY ${fmt(this.army.count)}  ·  ${fmtInt(Math.floor(this.playerS))} m`);
+    this.ui.showPause();
   }
 
   /** Army button: pause and show how strong the next fight is against the army you have. */
@@ -648,9 +648,9 @@ export class Game {
         const zoneTo = item.s + (gates ? (item.split ? half : 0) + 1.4 : CFG.combatStopGap + formationDepth(item.enemies));
         if (gates) {
           this.setsSinceCoins++;
+          const b = bestResult(item, Math.max(1, ref));
+          const tx = item.split ? (b.index === 0 ? -3.2 : 3.2) : (item.gates[b.index].x0 + item.gates[b.index].x1) / 2;
           if (this.setsSinceCoins >= this.coinEvery) {
-            const b = bestResult(item, Math.max(1, ref));
-            const tx = item.split ? (b.index === 0 ? -3.2 : 3.2) : (item.gates[b.index].x0 + item.gates[b.index].x1) / 2;
             const from = Math.max(this.coinFrom, this.playerS + 6);
             if (zoneFrom - from >= 5) {
               // never show coins before the enemy ahead is dead: hold the row until the fight is over
@@ -660,8 +660,7 @@ export class Game {
               this.coinEvery = 4 + Math.floor(Math.random() * 3);
             }
           }
-          const bb = bestResult(item, Math.max(1, ref));
-          this.lastGateX = item.split ? (bb.index === 0 ? -3.2 : 3.2) : (item.gates[bb.index].x0 + item.gates[bb.index].x1) / 2;
+          this.lastGateX = tx;
         }
         this.coinFrom = zoneTo;
       }
@@ -1030,12 +1029,13 @@ export class Game {
 
   /** Screen position (px) just above the enemies' heads, where the health bar floats. */
   private barAnchor: { x: number; y: number; z: number } | null = null;
+  private barV = new THREE.Vector3();
   private enemyBarAt(): { x: number; y: number } | null {
     // fixed for the whole fight (taken from the full formation when it starts), so the bar stays put while enemies fall
     if (!this.barAnchor) this.barAnchor = this.combat.headAnchor;
     const a = this.barAnchor;
     if (!a) return null;
-    const v = new THREE.Vector3(a.x, a.y, a.z).project(this.world.camera);
+    const v = this.barV.set(a.x, a.y, a.z).project(this.world.camera);
     if (v.z > 1) return null;
     return { x: (v.x * 0.5 + 0.5) * window.innerWidth, y: (-v.y * 0.5 + 0.5) * window.innerHeight };
   }

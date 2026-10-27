@@ -12,7 +12,10 @@ const result = await build({
   logLevel: 'info',
 });
 const js = result.outputFiles[0].text.replace(/<\/script>/gi, '<\\/script>');
-const html = readFileSync('index.template.html', 'utf8').replace('/*__BUNDLE__*/', () => js);
+const css = readFileSync('src/styles.css', 'utf8');
+const html = readFileSync('index.template.html', 'utf8')
+  .replace('/*__CSS__*/', () => css)
+  .replace('/*__BUNDLE__*/', () => js);
 writeFileSync('dist/index.html', html);
 // GitHub Pages serves the committed docs/ folder
 mkdirSync('docs', { recursive: true });

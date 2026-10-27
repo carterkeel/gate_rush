@@ -236,8 +236,13 @@ export class UI {
   private hudOn = false;
   private routeTicks = new Map<number, HTMLElement>();
   private routeH = 0;
+  private routeEl = $('route');
+  private routeNeed = this.routeEl.querySelector<HTMLElement>('.rNeed')!;
+  private routeTrack = this.routeEl.querySelector<HTMLElement>('.rTicks')!;
+  private routeSeen = new Set<number>();
+  /** Left-hand route bar. Called every frame: elements are cached and only changed values are written. */
   setRoute(r: { ticks: { id: number; frac: number; kind: 'plain' | 'yellow' | 'gold' | 'skull' | 'boss' }[]; fight: { boss: boolean; text: string; tone: string } | null } | null): void {
-    const el = $('route');
+    const el = this.routeEl;
     if (!r) {
       el.classList.remove('on');
       return;
@@ -249,13 +254,13 @@ export class UI {
     }
     el.classList.toggle('boss', !!(r.fight && r.fight.boss));
     for (const t of ['ok', 'tight', 'danger']) el.classList.toggle(t, !!r.fight && r.fight.tone === t);
-    const need = el.querySelector<HTMLElement>('.rNeed')!;
     const txt = r.fight ? r.fight.text : '·';
-    if (need.textContent !== txt) need.textContent = txt;
+    if (this.routeNeed.textContent !== txt) this.routeNeed.textContent = txt;
 
-    const track = el.querySelector<HTMLElement>('.rTicks')!;
+    const track = this.routeTrack;
     if (!this.routeH) this.routeH = track.clientHeight || 200;
-    const seen = new Set<number>();
+    const seen = this.routeSeen;
+    seen.clear();
     for (const t of r.ticks) {
       seen.add(t.id);
       let d = this.routeTicks.get(t.id);
@@ -267,9 +272,10 @@ export class UI {
         this.routeTicks.set(t.id, d);
       }
       // frac 0 = at the player (bottom), 1 = far end (top); fade in/out at the ends so ticks never pop
-      const y = (1 - t.frac) * this.routeH;
-      d.style.transform = `translateY(${y.toFixed(1)}px)`;
-      d.style.opacity = String(Math.max(0, Math.min(1, Math.min(t.frac * 8 + 0.2, (1 - t.frac) * 6))));
+      const tf = `translateY(${((1 - t.frac) * this.routeH).toFixed(1)}px)`;
+      if (d.style.transform !== tf) d.style.transform = tf;
+      const op = String(+Math.max(0, Math.min(1, Math.min(t.frac * 8 + 0.2, (1 - t.frac) * 6))).toFixed(3));
+      if (d.style.opacity !== op) d.style.opacity = op;
     }
     for (const [id, d] of this.routeTicks) {
       if (!seen.has(id) && !d.dataset.dying) {
@@ -310,18 +316,17 @@ export class UI {
     }, 900);
   }
 
+  /** Instakill HUD button. Called every frame, so it only touches the DOM when something changed. */
   setInsta(count: number, armed: boolean): void {
     const b = $('bInstaHud');
-    const want = `<span class="bi">⚡</span><span class="bs">KILL</span>`;
     const key = `${count}${armed ? 'a' : ''}`;
+    const state = `${key}|${this.hudOn}`;
+    if (b.dataset.s === state) return;
+    b.dataset.s = state;
     if (b.dataset.k !== key) {
       b.dataset.k = key;
-      b.innerHTML = want;
-      if (count > 0 && !armed) {
-        b.classList.remove('got');
-        void b.offsetWidth;
-        b.classList.add('got');
-      }
+      b.innerHTML = '<span class="bi">⚡</span><span class="bs">KILL</span>';
+      if (count > 0 && !armed) this.replay(b, 'got');
     }
     b.style.display = (count > 0 || armed) && this.hudOn ? '' : 'none';
     this.packHud();
@@ -330,19 +335,26 @@ export class UI {
     b.title = armed ? 'Instakill armed for the next fight (tap to cancel)' : 'Tap to use your instakill';
   }
 
+  /** x2 HUD button. Called every frame, so it only touches the DOM when something changed. */
   setDouble(count: number): void {
     const b = $('bDoubleHud');
+    const state = `${count}|${this.hudOn}`;
+    if (b.dataset.s === state) return;
+    b.dataset.s = state;
     if (b.dataset.k !== String(count)) {
       b.dataset.k = String(count);
       b.innerHTML = '<span class="bi">×2</span><span class="bs">ARMY</span>';
-      if (count > 0) {
-        b.classList.remove('got');
-        void b.offsetWidth;
-        b.classList.add('got');
-      }
+      if (count > 0) this.replay(b, 'got');
     }
     b.style.display = count > 0 && this.hudOn ? '' : 'none';
     this.packHud();
+  }
+
+  /** Restart a one-shot CSS animation class on an element. */
+  private replay(el: HTMLElement, cls: string): void {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
   }
 
   setPower(text: string | null, tone = ''): void {
@@ -358,9 +370,7 @@ export class UI {
   flash(color: string): void {
     const f = $('flash');
     f.style.background = color;
-    f.classList.remove('go');
-    void f.offsetWidth;
-    f.classList.add('go');
+    this.replay(f, 'go');
   }
 
   // ------------------------------------------------------------- largest-army bonus: count-down + growing coin stack
@@ -549,7 +559,7 @@ export class UI {
     }
   }
 
-  showPause(info: string): void {
+  showPause(): void {
     this.screens('pause');
   }
 
@@ -572,7 +582,11 @@ export class UI {
     for (const id of ['bFast', 'bBoostHud', 'bInstaHud', 'bDoubleHud']) {
       const el = $(id);
       if (el.style.display === 'none') continue;
-      el.style.bottom = `calc(max(20px, env(safe-area-inset-bottom)) + ${k * 60}px)`;
+      const bottom = `calc(max(20px, env(safe-area-inset-bottom)) + ${k * 60}px)`;
+      if (el.dataset.bottom !== bottom) {
+        el.dataset.bottom = bottom;
+        el.style.bottom = bottom;
+      }
       k++;
     }
   }
@@ -607,13 +621,11 @@ export class UI {
 
   setFast(on: boolean): void {
     const b = $('bFast');
-    b.classList.remove('pop');
-    void b.offsetWidth;
-    b.classList.add('pop');
+    this.replay(b, 'pop');
     this.fastOn = on;
     this.syncLines();
-    $('bFast').classList.toggle('on', on);
-    $('bFast').setAttribute('aria-pressed', String(on));
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
   }
 
   showTutorialTag(on: boolean): void {
@@ -662,8 +674,7 @@ export class UI {
     this.armyV.textContent = fmt(n);
     if (this.lastArmy >= 0) {
       this.armyEl.classList.remove('up', 'down');
-      void this.armyEl.offsetWidth;
-      this.armyEl.classList.add(up ? 'up' : 'down');
+      this.replay(this.armyEl, up ? 'up' : 'down');
     }
     this.lastArmy = n;
   }
@@ -717,13 +728,12 @@ export class UI {
     this.hint.classList.toggle('on', !!text);
   }
   private barPos: { x: number; y: number } | null = null;
-  setCombat(state: { text: string; frac: number; boss?: boolean; tone?: 'ok' | 'tight' | 'danger'; at?: { x: number; y: number } | null } | null): void {
+  setCombat(state: { text: string; frac: number; boss?: boolean; at?: { x: number; y: number } | null } | null): void {
     const wasOn = this.combat.classList.contains('on');
     if (state) window.clearTimeout(this.combatHideT);
     this.combat.classList.toggle('on', !!state);
     if (!state) this.combat.classList.remove('placed');
     if (state) {
-      for (const t of ['ok', 'tight', 'danger']) this.combat.classList.toggle(t, state.tone === t);
       this.combat.classList.toggle('boss', !!state.boss);
       $('combatT').textContent = state.text;
       if (state.at) {

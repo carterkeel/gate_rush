@@ -31,7 +31,20 @@ npm install
 npm run build       # bundles to dist/index.html and docs/index.html (the GitHub Pages site)
 npm run typecheck
 npm run sim         # fairness simulation of the gate and fight generators
+npm run test:numbers
 ```
+
+Project layout:
+
+| Path | What it is |
+|---|---|
+| `index.template.html` | Page markup (menus, HUD). `build.mjs` inlines the CSS and the JS bundle into it. |
+| `src/styles.css` | All styles, in cascade order (later sections refine earlier ones). |
+| `src/main.ts` → `src/game.ts` | Entry point and the game loop: run state, spawning, gate crossing, fights, scoring. |
+| `src/ui.ts` | Every DOM screen and HUD element. Per-frame setters only write to the DOM when a value changes. |
+| `src/track.ts`, `gateGen*.ts`, `fightGen.ts`, `combatModel.ts` | Level generation and fight balancing (pure, seeded, covered by `npm run sim`). |
+| `src/enemies.ts`, `army.ts`, `world.ts`, `gateView.ts`, `coins.ts`, `fx.ts` | three.js scene objects. |
+| `src/storage.ts`, `audio.ts`, `dev.ts`, `config.ts` | Save data, generated sound, hidden dev menu, tuning constants. |
 
 ## Gold
 Gold is earned by distance, by picking up the spinning coins laid between gate sets, and by playing the best gate. They buy skins, trails and upgrades.

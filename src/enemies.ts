@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CFG } from './config';
 import { KIND_ORDER } from './combatModel';
 import { unitGeometry } from './models';
@@ -367,8 +366,9 @@ export class CombatSim {
       this.m.compose(this.p, this.q, this.s);
       this.bullets.setMatrixAt(n++, this.m);
     }
+    // skip the GPU upload when there were and are no bullets in flight
+    if (n > 0 || this.bullets.count > 0) this.bullets.instanceMatrix.needsUpdate = true;
     this.bullets.count = n;
-    this.bullets.instanceMatrix.needsUpdate = true;
   }
 
   private updateEnemyBullets(dt: number): void {
@@ -391,8 +391,8 @@ export class CombatSim {
       this.m.compose(this.p, this.q, this.s);
       this.ebullets.setMatrixAt(n++, this.m);
     }
+    if (n > 0 || this.ebullets.count > 0) this.ebullets.instanceMatrix.needsUpdate = true;
     this.ebullets.count = n;
-    this.ebullets.instanceMatrix.needsUpdate = true;
   }
 
   private render(dt: number): void {

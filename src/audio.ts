@@ -27,7 +27,6 @@ class Sound {
   private noiseBuf!: AudioBuffer;
   private mode: Mode = 'menu';
   private paused = false;
-  private timer = 0;
   private nextT = 0;
   private step = 0;
   private transpose = 0;
@@ -78,7 +77,7 @@ class Sound {
       const d = this.noiseBuf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       this.nextT = ctx.currentTime + 0.1;
-      this.timer = window.setInterval(() => this.schedule(), 40);
+      window.setInterval(() => this.schedule(), 40);
       this.applyMusicGain();
     } catch {
       this.ctx = null;

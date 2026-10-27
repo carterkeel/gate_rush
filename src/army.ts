@@ -50,7 +50,6 @@ export class Army {
   depth = 1; // current crowd depth along the path, for camera framing
   private skinTint = new THREE.Color(0xffffff);
   private skinParts: string[] = ['human', 'sword'];
-  private dirty = true;
   /** The player: one big golden unit at the crowd centre, so it is always clear which gate you walked through. */
   private leader: THREE.Mesh;
   private leaderRing: THREE.Mesh;
@@ -101,7 +100,6 @@ export class Army {
     this.rank[0].geometry = unitGeometry([skin.model, skin.weapon, 'shield']);
     this.rank[1].geometry = unitGeometry([skin.model === 'human' ? 'orc' : 'human', 'spear', 'shield']);
     this.skinTint.set(skin.tint);
-    this.dirty = true;
   }
 
   reset(): void {
@@ -113,7 +111,6 @@ export class Army {
     this.curX.fill(0);
     this.curZ.fill(0);
     this.inst = 0;
-    this.dirty = true;
   }
 
   /** Ring pulse through the aura (called when the army reaches a new tier). */
@@ -299,7 +296,6 @@ export class Army {
       meshes[t].instanceMatrix.needsUpdate = true;
       if (meshes[t].instanceColor) meshes[t].instanceColor!.needsUpdate = true;
     }
-    this.dirty = false;
     this.updateAura(dt, time, g);
 
     // leader: sits at the crowd centre (where gates are actually resolved); in a split zone it follows the bigger lane
@@ -324,7 +320,7 @@ export class Army {
     const on = g >= 2;
     this.aura.visible = this.auraRing.visible = on;
     if (!on) return;
-    const col = g >= 9 ? new THREE.Color().setHSL((time * 0.25) % 1, 0.9, 0.6) : new THREE.Color(AURA_COLORS[Math.min(g, AURA_COLORS.length - 1)]);
+    const col = g >= 9 ? this.tmpC.setHSL((time * 0.25) % 1, 0.9, 0.6) : this.tmpC.set(AURA_COLORS[Math.min(g, AURA_COLORS.length - 1)]);
     const R = Math.min(CFG.halfWidth, Math.max(2, this.depth * 0.5 + 1.2));
     const grow = 1 + this.pulseT * 0.9;
     const base = Math.min(0.36, 0.06 + 0.03 * g);

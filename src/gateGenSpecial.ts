@@ -31,7 +31,7 @@ export function genTypeD(ctx: GenCtx, rng: Rng, risk: number): GateDef[] {
   const gates = tile(effs, rng);
 
   // rank by result for the reference army; the juiciest gates are the ones that fade
-  const order = gates.map((g, i) => i).sort((a, b) => evalEffect(gates[b].effect, A) - evalEffect(gates[a].effect, A));
+  const order = gates.map((_, i) => i).sort((a, b) => evalEffect(gates[b].effect, A) - evalEffect(gates[a].effect, A));
   const fadeCount = n === 4 && rng.chance(0.5) ? 2 : 1;
   for (let k = 0; k < fadeCount; k++) gates[order[k]].fade = rng.chance(0.5) ? 'shrink' : 'fade';
 
