@@ -3,3 +3,8 @@ dist/
 tests/.sim.bundle.mjs
 .DS_Store
 tests/.numbers.bundle.mjs
+
+# signing keys must never be committed
+*.jks
+*.keystore
+*.p12
