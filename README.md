@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/social-preview.png" alt="Gate Rush" width="720"></p>
+<p align="center"><img src="assets/banner.png" alt="Gate Rush" width="720"></p>
 
 # Gate Rush
 

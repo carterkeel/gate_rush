@@ -17,5 +17,6 @@ writeFileSync('dist/index.html', html);
 // GitHub Pages serves the committed docs/ folder
 mkdirSync('docs', { recursive: true });
 writeFileSync('docs/index.html', html);
-copyFileSync('assets/logo.svg', 'docs/logo.svg');
+copyFileSync('assets/favicon.png', 'docs/favicon.png');
+copyFileSync('assets/apple-touch-icon.png', 'docs/apple-touch-icon.png');
 console.log(`dist/index.html  ${(html.length / 1024).toFixed(0)} KB`);
