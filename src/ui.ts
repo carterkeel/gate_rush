@@ -653,7 +653,7 @@ export class UI {
       if (state.at) {
         const w = this.combat.offsetWidth || 160;
         const x = Math.max(w / 2 + 8, Math.min(window.innerWidth - w / 2 - 8, state.at.x));
-        const y = Math.max(86, state.at.y - 6);
+        const y = Math.max(114, state.at.y - 6);
         // heavy smoothing: the bar glides to its spot and ignores camera shake
         if (!this.barPos || !this.combat.classList.contains('placed')) this.barPos = { x, y };
         else this.barPos = { x: this.barPos.x + (x - this.barPos.x) * 0.08, y: this.barPos.y + (y - this.barPos.y) * 0.08 };
