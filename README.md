@@ -1,6 +1,6 @@
-<p align="center"><img src="assets/banner.png" alt="Gate Rush" width="720"></p>
+<p align="center"><img src="assets/banner.png" alt="Gate Rush: Multiply &amp; Conquer" width="720"></p>
 
-# Gate Rush
+# Gate Rush: Multiply & Conquer
 
 An infinite gate-math runner / crowd shooter. Slide your army left and right through +, −, ×, ÷ gates,
 split lanes, time-pressure gates, and titan and boss fights. TypeScript + three.js, bundled with esbuild.

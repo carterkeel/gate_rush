@@ -25,7 +25,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0f1c" />
-<title>Gate Rush</title>
+<title>Gate Rush: Multiply &amp; Conquer</title>
 <style>
   :root { --green:#1fe06c; --red:#ff3d4d; --yellow:#ffc21a; --ink:#05070d; --panel:rgba(10,15,28,.86); --edge:rgba(140,180,255,.25); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
@@ -454,6 +454,9 @@
   /* in-run gold: same coin + shining number as the menus, without the box */
   #coins.goldBox { width:auto; padding:0; border:0; background:none; border-radius:0; justify-content:flex-start; -webkit-text-stroke:0; text-shadow:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
   #coins.goldBox b { font-size:18px; font-weight:800; }
+  /* subtitle under the logo */
+  #tagline { margin:-12px 0 20px; font-family:Impact,'Arial Black','Helvetica Neue',system-ui,sans-serif; font-weight:900; font-style:italic; font-size:min(5vw,22px); letter-spacing:4px; color:#ffd54f; -webkit-text-stroke:4px #05070d; paint-order:stroke fill; text-shadow:0 3px 0 #7a4a00, 0 8px 14px rgba(0,0,0,.55); transform:perspective(500px) rotateX(10deg) rotate(-3deg); text-align:center; white-space:nowrap; }
+  @media (max-height:800px) { #tagline { margin:-6px 0 10px; font-size:min(4.4vw,18px); } }
 </style>
 </head>
 <body>
@@ -486,6 +489,7 @@
 
   <div id="menu" class="screen on">
     <h1><span>GATE</span><br /><span>RUSH</span></h1>
+    <div id="tagline">MULTIPLY &amp; CONQUER</div>
     <button id="bPlay">PLAY</button>
     <button id="bSkipTut" class="ghost" style="display:none">SKIP TUTORIAL</button>
     <button id="bSkins" class="alt">SKINS</button>

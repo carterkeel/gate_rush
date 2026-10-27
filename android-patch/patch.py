@@ -22,7 +22,7 @@ st.write_text(t)
 sv = root / 'res/values/strings.xml'
 t = sv.read_text()
 t = re.sub(r'(<string name="app_name">)[^<]*', r'\1Gate Rush', t)
-t = re.sub(r'(<string name="title_activity_main">)[^<]*', r'\1Gate Rush', t)
+t = re.sub(r'(<string name="title_activity_main">)[^<]*', r'\1Gate Rush: Multiply &amp; Conquer', t)
 sv.write_text(t)
 shutil.copytree('android-patch/res', root / 'res', dirs_exist_ok=True)
 bg = root / 'res/values/ic_launcher_background.xml'
