@@ -558,7 +558,7 @@ export class UI {
   showMenu(): void {
     this.syncBoost();
     this.showHud(false);
-    $('menuCoins').innerHTML = `<span>GOLD</span><i class="coin"></i><b>${fmtInt(this.save().coins)}</b>`;
+    $('menuCoins').innerHTML = `<i class="coin"></i><b>${fmtInt(this.save().coins)}</b>`;
     $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'PLAY TUTORIAL';
     $('bSkipTut').style.display = this.save().tutorialDone ? 'none' : '';
     const top = this.save().scores.slice(0, 3);
@@ -672,7 +672,7 @@ export class UI {
     const lvl = d.startLevel;
     const next = lvl + 1;
     const maxed = lvl >= START_MAX_LEVEL;
-    $('upCoins').innerHTML = `<span>GOLD</span><i class="coin"></i><b>${fmtInt(d.coins)}</b>`;
+    $('upCoins').innerHTML = `<i class="coin"></i><b>${fmtInt(d.coins)}</b>`;
     const pips = Array.from({ length: START_MAX_LEVEL }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('');
     const canStart = !maxed && d.coins >= startCost(next);
     const canSpeed = !d.speedUnlocked && d.coins >= SPEED_COST;
@@ -723,7 +723,7 @@ export class UI {
   // ------------------------------------------------------------- skins
   showSkins(fresh = true): void {
     const d = this.save();
-    $('skinCoins').innerHTML = `<span>GOLD</span><i class="coin"></i><b>${fmtInt(d.coins)}</b>`;
+    $('skinCoins').innerHTML = `<i class="coin"></i><b>${fmtInt(d.coins)}</b>`;
     const mk = (kind: 'skin' | 'trail') => {
       const list = kind === 'skin' ? SKINS : TRAILS;
       const owned = kind === 'skin' ? d.ownedSkins : d.ownedTrails;

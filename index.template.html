@@ -19,7 +19,6 @@
   .devopts input::-webkit-outer-spin-button, .devopts input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; } .devopts input { -moz-appearance:textfield; }
   .devopts label { display:flex; flex-direction:column; align-items:center; gap:8px; font-size:12px; letter-spacing:3px; font-weight:800; text-align:center; }
   .devopts input { width:min(78vw,280px); box-sizing:border-box; padding:12px 14px; border-radius:14px; border:2px solid #1f2740; background:#0e1424; color:#fff; font:inherit; font-size:18px; font-weight:800; text-align:center; letter-spacing:1px; }
-  :root.apk { --sat: max(env(safe-area-inset-top, 0px), 34px); }
 </style>
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <meta charset="utf-8" />
@@ -69,7 +68,8 @@
   @keyframes chevBlink { 0%,100%{opacity:.25} 50%{opacity:1} }
   #speedlines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity .35s; z-index:1; }
   #speedlines.on { opacity:1; }
-  .coin { display:inline-block; width:.95em; height:.95em; margin:0 .3em 0 .1em; border-radius:50%; vertical-align:-.14em; background:radial-gradient(circle at 35% 30%, #fff7b8, #ffc21a 55%, #c47f00); border:2px solid #6b4200; box-shadow:inset 0 -2px 0 rgba(0,0,0,.22); -webkit-text-stroke:0; }
+  .coin { display:inline-block; width:.95em; height:.95em; margin:0 .3em 0 .1em; border-radius:50%; vertical-align:-.14em; background:radial-gradient(circle at 35% 30%, #fff7b8, #ffc21a 55%, #c47f00); border:2px solid #6b4200; box-shadow:inset 0 -2px 0 rgba(0,0,0,.22); -webkit-text-stroke:0; position:relative; }
+  .coin::after { content:'$'; position:absolute; inset:0; display:grid; place-items:center; font:900 .62em/1 system-ui,sans-serif; color:#7a4a00; text-shadow:0 1px 0 rgba(255,255,255,.55); -webkit-text-fill-color:#7a4a00; letter-spacing:0; }
   button .coin { width:.9em; height:.9em; }
   .boostToggle { -webkit-text-stroke:0; text-shadow:none; display:inline-flex; align-items:center; justify-content:center; gap:10px; font-size:14px; letter-spacing:1.5px; padding:9px 14px; }
   .boostToggle .bt { font-weight:900; }
@@ -431,6 +431,8 @@
   .goldBox b { background:linear-gradient(100deg,#ffc21a 0%,#ffd54f 38%,#fffbe0 50%,#ffd54f 62%,#ffc21a 100%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:goldShineText 2.4s linear infinite; }
   @keyframes goldShineText { from { background-position:150% 0; } to { background-position:-100% 0; } }
   @keyframes coinGlint { 0%,100% { filter:brightness(1); transform:scale(1); } 50% { filter:brightness(1.35); transform:scale(1.12); } }
+  .goldBox .coin { width:22px; height:22px; }
+  .goldBox .coin::after { font-size:15px; }
 </style>
 </head>
 <body>

@@ -6,7 +6,7 @@ import type { Bonus, GateSet } from './types';
 
 export const BONUS_COLOR = { coins: 0xff9f1a, instakill: 0xa56bff, double: 0xff4f9a } as const;
 export function bonusLines(b: Bonus): string[] {
-  if (b.kind === 'coins') return [`+${b.amount}`, 'COINS'];
+  if (b.kind === 'coins') return [`+${b.amount}`, 'GOLD'];
   if (b.kind === 'instakill') return ['⚡', 'KILL'];
   if (b.kind === 'double') return ['×2', 'ARMY'];
   return ['', ''];
