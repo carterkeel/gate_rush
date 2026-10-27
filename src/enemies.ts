@@ -167,7 +167,7 @@ export class CombatSim {
     for (const e of this.enemies) r += Math.max(0, e.hp);
     return r;
   }
-  /** How much of the fight is left, 1 → 0. Half by enemy count, half by hit points, so the bar keeps moving even when one boss holds most of the HP, and always hits 0 when everything is dead. */
+  /** How much of the fight is left, 1 → 0: the remaining hit points as a share of the total, so the bar always matches the HP number. It hits 0 when everything is dead, and falls back to the head count if the numbers are too big to track. */
   get progressLeft(): number {
     const n = this.enemies.length;
     if (n === 0) return 0;
@@ -182,8 +182,13 @@ export class CombatSim {
       max += e.max;
     }
     if (alive === 0) return 0;
-    const byHp = Number.isFinite(hp) && Number.isFinite(max) && max > 0 ? Math.min(1, hp / max) : alive / n;
-    return Math.max(0, Math.min(1, 0.5 * byHp + 0.5 * (alive / n)));
+    if (Number.isFinite(hp) && Number.isFinite(max) && max > 0) {
+      let v = Math.min(1, hp / max);
+      // if the hit points are so huge that damage no longer registers in the sum, fall back to the head count
+      if (v >= 0.9999 && alive < n) v = Math.min(v, alive / n);
+      return Math.max(0, v);
+    }
+    return alive / n;
   }
   /** World point just above the heads of the surviving enemies (centre of the formation, over its rearmost row). */
   get headAnchor(): { x: number; y: number; z: number } | null {
