@@ -1014,7 +1014,7 @@ export class Game {
     const label = zone && zone.boss ? 'BOSS FIGHT' : 'ENEMIES';
     this.ui.setCombat({
       boss: !!(zone && zone.boss),
-      text: `${label}  ${fmt(r.remainingHp)} HP   ${r.timeLeft.toFixed(1)}s`,
+      text: `${label}\n${fmt(r.remainingHp)} HP  ·  ${r.timeLeft.toFixed(1)}s`,
       frac: r.remainingHp / Math.max(1, this.combat.totalHp),
     });
     if (r.done) this.endCombat(r.remainingHp);

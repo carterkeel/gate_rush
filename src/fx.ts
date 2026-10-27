@@ -91,7 +91,7 @@ export class Fx {
     el.style.left = `${((v.x + 1) / 2) * 100}%`;
     el.style.top = `${((1 - v.y) / 2) * 100}%`;
     this.overlay.appendChild(el);
-    setTimeout(() => el.remove(), 1000);
+    setTimeout(() => el.remove(), 1300);
   }
 
   update(dt: number): void {

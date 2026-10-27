@@ -49,12 +49,12 @@ export class UI {
   private combat = $('combat');
   private lastArmy = -1;
   private bannerTimer = 0;
+  private bannerFade = 0;
   private lastDist = -1;
   private lastCoins = -1;
 
   constructor(private save: () => SaveData, private persist: () => void) {
     $('bPlay').onclick = () => this.onPlay();
-    $('bSkipTut').onclick = () => this.onSkipTutorial();
     $('tutTag').onclick = () => this.onSkipTutorial();
     $('bTutorial').onclick = () => this.onTutorial();
     $('bSkins').onclick = () => this.showSkins();
@@ -568,8 +568,7 @@ export class UI {
     this.syncBoost();
     this.showHud(false);
     $('menuCoins').innerHTML = `<i class="coin"></i><b>${fmtInt(this.save().coins)}</b>`;
-    $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'PLAY TUTORIAL';
-    $('bSkipTut').style.display = this.save().tutorialDone ? 'none' : '';
+    $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'START TUTORIAL';
     const top = this.save().scores.slice(0, 3);
     $('topScores').innerHTML =
       `<div class="th"><span>TOP SCORES</span><span>›</span></div>` +
@@ -615,11 +614,14 @@ export class UI {
   }
   flashBanner(text: string, ms = 1400): void {
     this.banner.textContent = text;
-    this.banner.classList.remove('on');
+    this.banner.className = /TRY AGAIN|BOSS|TITAN|ENEM/.test(text) ? 'red' : /GO!|ARMY|TUTORIAL/.test(text) ? 'green' : 'yellow';
     void this.banner.offsetWidth;
     this.banner.classList.add('on');
     window.clearTimeout(this.bannerTimer);
-    this.bannerTimer = window.setTimeout(() => this.banner.classList.remove('on'), ms);
+    window.clearTimeout(this.bannerFade);
+    // fade out before removing, so a call-out never just vanishes
+    this.bannerFade = window.setTimeout(() => this.banner.classList.add('out'), Math.max(200, ms - 280));
+    this.bannerTimer = window.setTimeout(() => this.banner.classList.remove('on', 'out'), ms);
   }
   setHint(text: string | null): void {
     if (text) this.hint.textContent = text;
