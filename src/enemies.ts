@@ -77,6 +77,7 @@ export class CombatSim {
   private eu = new THREE.Euler();
   active = false;
   timeLeft = 0;
+  private payAcc = 0;
   totalHp = 0;
   kills = 0;
   titanKills = 0;
@@ -159,6 +160,7 @@ export class CombatSim {
     this.timeLeft = CFG.combatMaxSec;
     this.shotAcc = 0;
     this.lossAcc = 0;
+    this.payAcc = 0;
     this.eAcc = 0;
   }
 
@@ -270,6 +272,32 @@ export class CombatSim {
           if (e.kind === 'boss') bossKilled++;
         }
       }
+      // Troops that can't win in time pay the rest with their lives (1 unit per hit point). That cost used to land all at
+      // once when the clock ran out; now it is paid steadily, so the health bar drains over the whole fight.
+      if (this.timeLeft > 0) {
+        let rem = 0;
+        for (const e of this.enemies) if (e.hp > 0) rem += e.hp;
+        const shortfall = rem - (armyCount / CFG.shotIntervalSec) * this.timeLeft;
+        if (shortfall > 0) {
+          this.payAcc += shortfall * Math.min(1, dt / this.timeLeft);
+          let pay = Math.min(Math.floor(this.payAcc), armyCount);
+          this.payAcc -= Math.floor(this.payAcc);
+          armyLoss += pay;
+          for (const e of alive) {
+            if (pay <= 0) break;
+            if (e.hp <= 0) continue;
+            const d = Math.min(pay, e.hp);
+            e.hp -= d;
+            pay -= d;
+            e.flash = 1;
+            if (e.hp <= 0) {
+              killedNow++;
+              if (e.kind === 'titan') titansKilled++;
+              if (e.kind === 'boss') bossKilled++;
+            }
+          }
+        }
+      }
       this.kills += killedNow;
       this.titanKills += titansKilled;
       this.bossKills += bossKilled;
@@ -278,7 +306,7 @@ export class CombatSim {
       let dps = 0;
       for (const e of this.enemies) if (e.hp > 0) dps += e.atk;
       this.lossAcc += dps * dt;
-      armyLoss = Math.min(armyCount, Math.floor(this.lossAcc));
+      armyLoss = Math.min(armyCount, armyLoss + Math.floor(this.lossAcc));
       this.lossAcc -= Math.floor(this.lossAcc);
       this.eAcc += Math.min(45, Math.max(4, dps * 1.6)) * dt;
       const stillAlive = this.enemies.filter((e) => e.hp > 0);
