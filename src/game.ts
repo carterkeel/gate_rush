@@ -769,7 +769,7 @@ export class Game {
           this.bonusCoins += 5;
           const swing = (result - worst) / Math.max(1, A);
           if (eff && swing > 0 && (!this.bestHl || swing >= this.bestHl.gain)) {
-            this.bestHl = { gain: swing, text: `${effectText(eff)} turned ${fmt(A)} into ${fmt(result)}` };
+            this.bestHl = { gain: swing, text: `${effectText(eff)}  ·  ${fmt(A)} → ${fmt(result)}` };
           }
         }
       }
@@ -856,7 +856,7 @@ export class Game {
         const worst = Math.min(evalEffect(gl.effect, A), evalEffect(gr.effect, A));
         const swing = (total - worst) / Math.max(1, A);
         if (swing > 0 && (!this.bestHl || swing >= this.bestHl.gain)) {
-          this.bestHl = { gain: swing, text: `Split lanes (${fmt(ctx.L)} left / ${fmt(ctx.R)} right) turned ${fmt(A)} into ${fmt(total)}` };
+          this.bestHl = { gain: swing, text: `Split lanes  ·  ${fmt(A)} → ${fmt(total)}` };
         }
       }
     }

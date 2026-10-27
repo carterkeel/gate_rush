@@ -630,10 +630,6 @@ export class UI {
   showSummary(s: RunSummary): void {
     this.showHud(false);
     $('sumTitle').textContent = s.title;
-    // the title slams down at about 0.5 s: punch the screen red as it lands
-    setTimeout(() => {
-      if ($('summary').classList.contains('on')) this.flash('#ff3d4d');
-    }, 480);
     $('bAgain').textContent = 'PLAY AGAIN';
     $('sumNew').style.display = s.newBest ? 'block' : 'none';
     const rows: Array<[string, string, string]> = [
@@ -648,7 +644,7 @@ export class UI {
       .join('');
     const hl = $('sumHl');
     hl.style.display = s.highlight ? 'block' : 'none';
-    if (s.highlight) hl.textContent = '★ Best complex choice: ' + s.highlight;
+    if (s.highlight) hl.textContent = '★ Best move: ' + s.highlight;
     this.syncBoost();
     this.screens('summary');
     this.playArmyBonus(s.peak, s.armyBonus);
