@@ -1021,7 +1021,7 @@ export class Game {
 
     this.ui.setCombat({
       boss: !!(zone && zone.boss),
-      text: `${zone && zone.boss ? 'BOSS  ' : ''}${fmt(r.remainingHp)} HP`,
+      text: `${zone && zone.boss ? 'BOSS  ' : ''}${fmt(r.remainingHp)} HP  ·  ${Math.ceil(r.timeLeft)}s`,
       frac: this.combat.progressLeft,
       at: this.enemyBarAt(),
     });
@@ -1043,7 +1043,7 @@ export class Game {
   private endCombat(remaining: number): void {
     this.barAnchor = null;
     this.combat.active = false;
-    this.ui.setCombat(null);
+    this.ui.finishCombat();
     sound.setMode('run');
     const zone = this.combatZone;
     const A = this.army.count;

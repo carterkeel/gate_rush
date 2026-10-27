@@ -718,6 +718,8 @@ export class UI {
   }
   private barPos: { x: number; y: number } | null = null;
   setCombat(state: { text: string; frac: number; boss?: boolean; tone?: 'ok' | 'tight' | 'danger'; at?: { x: number; y: number } | null } | null): void {
+    const wasOn = this.combat.classList.contains('on');
+    if (state) window.clearTimeout(this.combatHideT);
     this.combat.classList.toggle('on', !!state);
     if (!state) this.combat.classList.remove('placed');
     if (state) {
@@ -735,9 +737,34 @@ export class UI {
         this.combat.style.left = `${this.barPos.x.toFixed(1)}px`;
         this.combat.style.top = `${this.barPos.y.toFixed(1)}px`;
       }
-      ($('combatBar') as HTMLElement).style.width = `${Math.max(0, Math.min(1, state.frac)) * 100}%`;
+      const bar = $('combatBar') as HTMLElement;
+      const pct = Number.isFinite(state.frac) ? Math.max(0, Math.min(1, state.frac)) * 100 : 0;
+      if (!wasOn) {
+        // a new fight: jump straight to its value instead of animating from the last fight's leftovers
+        bar.style.transition = 'none';
+        bar.style.width = `${pct}%`;
+        void bar.offsetWidth;
+        bar.style.transition = '';
+      } else bar.style.width = `${pct}%`;
+      bar.dataset.pct = pct.toFixed(2);
     }
   }
+
+  /** Fight resolved: drain whatever is left to zero so the bar visibly empties, then hide it. */
+  finishCombat(): void {
+    if (!this.combat.classList.contains('on')) return;
+    const bar = $('combatBar') as HTMLElement;
+    $('combatT').textContent = `${this.combat.classList.contains('boss') ? 'BOSS  ' : ''}0 HP`;
+    bar.style.transition = 'width .35s ease-in';
+    bar.style.width = '0%';
+    bar.dataset.pct = '0';
+    window.clearTimeout(this.combatHideT);
+    this.combatHideT = window.setTimeout(() => {
+      bar.style.transition = '';
+      this.setCombat(null);
+    }, 520);
+  }
+  private combatHideT = 0;
 
   // ------------------------------------------------------------- summary
   showSummary(s: RunSummary): void {
