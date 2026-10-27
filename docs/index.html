@@ -495,7 +495,7 @@
   #banner.on.out { animation: banOut .28s ease-in forwards; }
   @keyframes banPop { 0% { opacity:0; transform:translateX(-50%) rotate(-3deg) scale(.3); } 60% { opacity:1; transform:translateX(-50%) rotate(-3deg) scale(1.18); } 100% { opacity:1; transform:translateX(-50%) rotate(-3deg) scale(1); } }
   @keyframes banOut { from { opacity:1; transform:translateX(-50%) rotate(-3deg) scale(1); } to { opacity:0; transform:translateX(-50%) rotate(-3deg) translateY(-24px) scale(.92); } }
-  .powerups .pi { background:linear-gradient(#b784ff,#7b3fe0); } .powerups .pd { background:linear-gradient(#ff8cc0,#e0357f); font-family:Impact,'Arial Black',system-ui,sans-serif; font-style:italic; }
+  .screen .powerups .pi { background:linear-gradient(#b784ff,#7b3fe0); } .screen .powerups .pd { background:linear-gradient(#ff8cc0,#e0357f); font-family:Impact,'Arial Black',system-ui,sans-serif; font-style:italic; }
   .powerups div { align-items:flex-start; } .powerups span { font-size:min(3.8vw,14px); line-height:1.35; font-weight:600; opacity:.92; } .powerups strong { font-weight:800; }
 </style>
 </head>
@@ -591,8 +591,8 @@
     <button id="bTutorial" class="alt">REPLAY TUTORIAL</button>
     <h2 class="sub">POWER-UPS</h2>
     <div class="learn controls powerups">
-      <div><b class="pi">⚡</b><span><strong>Instakill.</strong> Walk through a purple ⚡ gate to save one (you can hold several). Tap the purple button before a fight to arm it, or tap it mid-fight to wipe out every enemy.</span></div>
-      <div><b class="pd">×2</b><span><strong>Double army.</strong> Walk through a pink ×2 gate to save one (you can hold one). Tap the pink button any time to double your army on the spot.</span></div>
+      <div><b class="pi">⚡</b><span><strong>Instakill.</strong> Walk through a purple ⚡ gate to save one (you can hold one). Tap the purple button before a fight to arm it, or mid-fight to wipe out every enemy.</span></div>
+      <div><b class="pd">×2</b><span><strong>Double army.</strong> Walk through a pink ×2 gate to save one (you can hold one). Tap the pink button to double your army on the spot, even mid-fight. A second pickup is used right away.</span></div>
     </div>
     <div id="devBox" style="display:none">
       <h2 class="sub">DEV MENU</h2>
