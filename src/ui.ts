@@ -643,8 +643,8 @@ export class UI {
       .map(([k, v, tone], i) => `<div class="k" style="--d:${i * 0.09}s">${k}</div><div class="v ${tone}" style="--d:${i * 0.09 + 0.05}s">${v}</div>`)
       .join('');
     const hl = $('sumHl');
-    hl.style.display = s.highlight ? 'block' : 'none';
-    if (s.highlight) hl.textContent = '★ Best move: ' + s.highlight;
+    // the 'best move' line is switched off for now (the run still tracks it in s.highlight)
+    hl.style.display = 'none';
     this.syncBoost();
     this.screens('summary');
     this.playArmyBonus(s.peak, s.armyBonus);
