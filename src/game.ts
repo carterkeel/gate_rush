@@ -343,7 +343,7 @@ export class Game {
     this.keys.left = this.keys.right = false;
     sound.setPaused(true);
     sound.pause(true);
-    this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`, !!this.tutorial);
+    this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`);
   }
 
   /** Army button: pause and show how strong the next fight is against the army you have. */

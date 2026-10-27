@@ -202,7 +202,8 @@
   .screen .coin { border-width:1px; }
   #bSkinsBack, #bScoresBack { position:sticky; bottom:8px; z-index:3; }
 
-  #tutTag { position:absolute; left:78px; right:78px; bottom:calc(max(26px, env(safe-area-inset-bottom)) + 96px); display:none; padding:8px 12px; border-radius:14px; text-align:center; background:linear-gradient(#ffd54f,#ff9f1a); border:2px solid #7a4a00; box-shadow:0 4px 0 #7a4a00; color:#2a1700; font-family:system-ui,sans-serif; font-weight:900; font-size:12px; letter-spacing:4px; }
+  #tutTag { position:absolute; left:78px; right:78px; bottom:calc(max(26px, env(safe-area-inset-bottom)) + 96px); display:none; padding:8px 12px; border-radius:14px; text-align:center; background:linear-gradient(#ffd54f,#ff9f1a); border:2px solid #7a4a00; box-shadow:0 4px 0 #7a4a00; color:#2a1700; font-family:system-ui,sans-serif; font-weight:900; font-size:12px; letter-spacing:4px; pointer-events:auto; touch-action:manipulation; cursor:pointer; margin:0; -webkit-text-stroke:0; }
+  #tutTag:active { transform:translateY(3px); box-shadow:0 1px 0 #7a4a00; }
   #tutTag.on { display:block; }
   .screen h2.sub { font-size:min(4vw,14px); margin-top:8px; opacity:.6; }
   .screen .controls b { min-width:56px; background:rgba(255,255,255,.1); }
@@ -374,7 +375,7 @@
       <div class="rTrack"><div class="rLine"></div><div class="rTicks"></div></div>
       <img class="rPlayer" alt="" />
     </div>
-    <div id="tutTag">TUTORIAL</div>
+    <button id="tutTag" aria-label="Skip the tutorial">SKIP TUTORIAL</button>
     <div id="power"></div>
     <div id="banner"></div>
     <div id="combat"><div id="combatT">ENEMIES</div><div class="bar"><i id="combatBar"></i></div></div>
@@ -419,7 +420,6 @@
     <div id="pauseIcon" aria-label="Paused"><i></i><i></i></div>
     <div class="tag" id="pauseInfo"></div>
     <button id="bResume">RESUME</button>
-    <button id="bSkipTutPause" class="ghost" style="display:none">SKIP TUTORIAL</button>
     <button id="bRestart" class="warn">RESTART</button>
     <button class="ghost boostToggle" style="display:none"></button>
     <button id="bPauseSettings" class="ghost">SETTINGS</button>
