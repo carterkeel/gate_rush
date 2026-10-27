@@ -603,6 +603,11 @@
         <button id="devInf" class="ghost">∞ POWER-UPS: OFF</button>
       </div>
     </div>
+    <h2 class="sub">PRIVACY</h2>
+    <div class="learn controls privacy">
+      <div><b>🔒</b><span>No accounts, ads or tracking. Your progress stays on this device. Only bug reports you send leave it.</span></div>
+    </div>
+    <button id="bPrivacy" class="alt">PRIVACY POLICY</button>
     <div class="stickyBack"><button id="bSettingsBack" class="ghost">BACK</button></div>
   </div>
 
@@ -697,4 +702,20 @@
 <style>
   .rNote { margin:0; text-align:center; font-size:12px; line-height:1.4; letter-spacing:.5px; font-weight:600; opacity:.6; font-family:system-ui,sans-serif; }
   .rNote a { color:#9bc0ff; }
+</style>
+<style>
+  /* button icons: drawn for this game (inline SVG masks), they take the button's text colour */
+  .ic::before, #bPlay::before, #bSkins::before, #bUpgrades::before, #bSettings::before, #bReport::before, #tutTag::before { content:''; display:inline-block; width:1.15em; height:1.15em; margin-right:.6em; vertical-align:-.2em; background:currentColor; -webkit-mask:var(--ic) center/contain no-repeat; mask:var(--ic) center/contain no-repeat; filter:drop-shadow(0 1px 0 rgba(0,0,0,.25)); }
+  #bPlay { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4.5v15l12.5-7.5z' fill='black'/%3E%3C/svg%3E"); } #bSkins { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 3L2.5 6.2l2.6 4.3L8 9v12h8V9l2.9 1.5 2.6-4.3L16 3c-.5 1.9-2.1 3.2-4 3.2S8.5 4.9 8 3z' fill='black'/%3E%3C/svg%3E"); } #bUpgrades { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l9 10h-5.5v9h-7v-9H3z' fill='black'/%3E%3C/svg%3E"); } #bSettings { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M19.52 10.87 L22.15 11.04 L22.15 12.96 L19.52 13.13 L18.11 16.52 L19.86 18.50 L18.50 19.86 L16.52 18.11 L13.13 19.52 L12.96 22.15 L11.04 22.15 L10.87 19.52 L7.48 18.11 L5.50 19.86 L4.14 18.50 L5.89 16.52 L4.48 13.13 L1.85 12.96 L1.85 11.04 L4.48 10.87 L5.89 7.48 L4.14 5.50 L5.50 4.14 L7.48 5.89 L10.87 4.48 L11.04 1.85 L12.96 1.85 L13.13 4.48 L16.52 5.89 L18.50 4.14 L19.86 5.50 L18.11 7.48Z M12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 1 0 0-6.8Z' fill='black'/%3E%3C/svg%3E"); } #bReport { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='14.2' rx='5' ry='6.4' fill='black'/%3E%3Ccircle cx='12' cy='6.6' r='3.1' fill='black'/%3E%3Cpath d='M7 11.2H2.8M7 15H2.8M17 11.2h4.2M17 15h4.2M8 19.2l-3 2.3M16 19.2l3 2.3M9.8 4.2L7.6 2M14.2 4.2L16.4 2' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round'/%3E%3C/svg%3E"); } #tutTag { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4.5 5.5l7 6.5-7 6.5M12.5 5.5l7 6.5-7 6.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  #tutTag::before { margin-right:.5em; vertical-align:-.25em; }
+  /* shiny PLAY: a soft light sweep crosses the button every few seconds */
+  #menu #bPlay { position:relative; overflow:hidden; isolation:isolate; }
+  #menu #bPlay::after { content:''; position:absolute; top:-20%; bottom:-20%; left:-70%; width:45%; transform:skewX(-20deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent); animation:playShine 3.2s ease-in-out 1.2s infinite; pointer-events:none; z-index:2; }
+  @keyframes playShine { 0% { left:-70%; } 45%,100% { left:130%; } }
+  @media (prefers-reduced-motion:reduce) { #menu #bPlay::after { animation:none; opacity:0; } }
+</style>
+<style>
+  .privacy div { align-items:flex-start; } .privacy span { font-size:min(3.8vw,14px); line-height:1.35; font-weight:600; opacity:.92; }
+  #bPrivacy { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2L4 5.2v6c0 5 3.4 8.6 8 10.3 4.6-1.7 8-5.3 8-10.3v-6z' fill='black'/%3E%3C/svg%3E"); }
+  #bPrivacy::before { content:''; display:inline-block; width:1.15em; height:1.15em; margin-right:.6em; vertical-align:-.2em; background:currentColor; -webkit-mask:var(--ic) center/contain no-repeat; mask:var(--ic) center/contain no-repeat; }
 </style>

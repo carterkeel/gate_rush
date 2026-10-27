@@ -81,6 +81,7 @@ export class UI {
       $('rStatus').className = 'rStatus';
       this.screens('report');
     };
+    $('bPrivacy').onclick = () => window.open('https://carterkeel.github.io/gate_rush/privacy.html', '_blank', 'noopener');
     $('bReportBack').onclick = () => this.screens('settings');
     this.bindReport();
     $('bSettingsBack').onclick = () => (from === 'pause' ? this.screens('pause') : this.showMenu());
