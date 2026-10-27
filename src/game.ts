@@ -13,7 +13,7 @@ import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
 import { CoinField } from './coins';
-import { armyTier, clampArmy, evalEffect, effectText, effectTone, fmt, bestSplit } from './logic';
+import { armyTier, clampArmy, evalEffect, effectText, effectTone, fmt, fmtInt, bestSplit } from './logic';
 import type { Effect } from './logic';
 import { SKINS, TRAILS, addScore, load, save, startMeters } from './storage';
 import type { SaveData } from './storage';
@@ -197,7 +197,7 @@ export class Game {
       save(this.data);
       this.ui.syncBoost();
       const m = startMeters(this.data.startLevel);
-      this.ui.flashBanner(this.data.startOn ? `HEAD START +${m} m NEXT RUN` : 'HEAD START OFF', 1300);
+      this.ui.flashBanner(this.data.startOn ? `HEAD START +${m}\u00A0m NEXT RUN` : 'HEAD START OFF', 1300);
     };
     this.ui.onResume = () => this.resume();
     this.ui.onRestart = () => this.startRun(this.tutorial !== null);
@@ -316,7 +316,7 @@ export class Game {
     this.ui.syncBoost();
     this.ui.setDist(0);
     this.ui.setCoins(0);
-    this.ui.flashBanner(tutorial ? 'TUTORIAL' : boost > 0 ? `HEAD START +${boost} m` : 'GO!', boost > 0 ? 1600 : 1000);
+    this.ui.flashBanner(tutorial ? 'TUTORIAL' : boost > 0 ? `HEAD START +${boost}\u00A0m` : 'GO!', boost > 0 ? 1600 : 1000);
     sound.setMode('run');
     sound.setBiome(0);
     sound.setPaused(false);
@@ -343,7 +343,7 @@ export class Game {
     this.keys.left = this.keys.right = false;
     sound.setPaused(true);
     sound.pause(true);
-    this.ui.showPause(this.tutorial ? 'Tutorial' : `${Math.floor(this.playerS)} m  ·  army ${this.army.count}`);
+    this.ui.showPause(this.tutorial ? 'TUTORIAL' : `ARMY ${fmt(this.army.count)}  ·  ${fmtInt(Math.floor(this.playerS))} m`);
   }
 
   /** Army button: pause and show how strong the next fight is against the army you have. */

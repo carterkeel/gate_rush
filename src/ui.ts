@@ -1,7 +1,7 @@
 import { sound } from './audio';
 import { PLAYER_ICON } from './skullData';
 import { skullSvg } from './skullSvg';
-import { fmt } from './logic';
+import { fmt, fmtInt } from './logic';
 import { SKINS, TRAILS, SPEED_COST, START_MAX_LEVEL, startCost, startMeters } from './storage';
 import type { SaveData } from './storage';
 
@@ -21,7 +21,7 @@ export interface RunSummary {
   newBest: boolean;
 }
 
-const coinHtml = (n: number | string) => `<span class="coin"></span>${n}`;
+const coinHtml = (n: number | string) => `<span class="coin"></span>${typeof n === 'number' ? fmtInt(n) : n}`;
 
 export class UI {
   onPlay = () => {};
@@ -228,7 +228,7 @@ export class UI {
 
   setInsta(count: number, armed: boolean): void {
     const b = $('bInstaHud');
-    const want = `<span class="bi">⚡</span>`;
+    const want = `<span class="bi">⚡</span><span class="bs">KILL</span>`;
     const key = `${count}${armed ? 'a' : ''}`;
     if (b.dataset.k !== key) {
       b.dataset.k = key;
@@ -250,7 +250,7 @@ export class UI {
     const b = $('bDoubleHud');
     if (b.dataset.k !== String(count)) {
       b.dataset.k = String(count);
-      b.innerHTML = '<span class="bi">×2</span>';
+      b.innerHTML = '<span class="bi">×2</span><span class="bs">ARMY</span>';
       if (count > 0) {
         b.classList.remove('got');
         void b.offsetWidth;
@@ -502,12 +502,16 @@ export class UI {
       ? `<span class="bt">➤ HEAD START</span><span class="bm">+${m} m</span>`
       : `<span class="bt">➤ HEAD START</span><span class="bm off">OFF</span>`;
     document.querySelectorAll<HTMLElement>('.boostToggle').forEach((b) => {
-      b.style.display = d.startLevel > 0 ? '' : 'none';
+      if (b.closest('#upGrid')) {
+        // keep the slot so buying the first level doesn't shift the card
+        b.style.display = '';
+        b.style.visibility = d.startLevel > 0 ? 'visible' : 'hidden';
+      } else b.style.display = d.startLevel > 0 ? '' : 'none';
       b.innerHTML = html;
       b.classList.toggle('on', d.startOn);
     });
     const h = $('bBoostHud');
-    h.innerHTML = `<span class="bi">➤</span><span class="bn">${m}m</span>`;
+    h.innerHTML = `<span class="bi">➤</span><span class="bn">${m} m</span>`;
     h.classList.toggle('on', d.startOn);
     h.setAttribute('aria-pressed', String(d.startOn));
     h.title = d.startOn ? `Head start ON (+${m} m) for the next run` : 'Head start OFF for the next run';
@@ -561,7 +565,7 @@ export class UI {
     $('topScores').innerHTML =
       `<div class="th"><span>TOP SCORES</span><span>›</span></div>` +
       (top.length
-        ? top.map((t, i) => `<div class="r"><i>${i + 1}</i><b>${fmt(t.score)}</b><span>${Math.floor(t.distance)} m</span></div>`).join('')
+        ? top.map((t, i) => `<div class="r"><i>${i + 1}</i><b>${fmt(t.score)}</b><span>${fmtInt(Math.floor(t.distance))} m</span></div>`).join('')
         : '<div class="none">No runs yet</div>');
     this.screens('menu');
   }
@@ -585,14 +589,14 @@ export class UI {
     const v = Math.floor(m);
     if (v !== this.lastDist) {
       this.lastDist = v;
-      this.distV.textContent = String(v);
+      this.distV.textContent = fmtInt(v);
     }
   }
   setCoins(c: number): void {
     const v = Math.floor(c);
     if (v !== this.lastCoins) {
       this.lastCoins = v;
-      this.coinsV.textContent = String(v);
+      this.coinsV.textContent = fmtInt(v);
     }
   }
   resetHud(): void {
@@ -633,13 +637,18 @@ export class UI {
     $('bAgain').textContent = 'PLAY AGAIN';
     $('sumNew').style.display = s.newBest ? 'block' : 'none';
     const rows: Array<[string, string, string]> = [
-      ['DISTANCE', `${Math.floor(s.distance)} m`, 'cyan'],
+      ['DISTANCE', `${fmtInt(Math.floor(s.distance))} m`, 'cyan'],
       ['PEAK ARMY', fmt(s.peak), 'green'],
-      ['ENEMIES KILLED', String(s.kills), 'red'],
+      ['ENEMIES KILLED', fmtInt(s.kills), 'red'],
       ...(s.start > 0 ? ([['HEAD START', `+${s.start} m`, 'orange']] as Array<[string, string, string]>) : []),
       ['SCORE', fmt(s.score), 'gold big'],
-      ['COINS EARNED', `+${s.coins - s.armyBonus}`, 'gold'],
-      ...(s.armyBonus > 0 ? ([['ARMY BONUS', `+${s.armyBonus}`, 'purple']] as Array<[string, string, string]>) : []),
+      ['COINS', `+${fmtInt(s.coins - s.armyBonus)}`, 'gold'],
+      ...(s.armyBonus > 0
+        ? ([
+            ['LARGE ARMY BONUS', `+${fmtInt(s.armyBonus)}`, 'purple'],
+            ['TOTAL COINS', `+${fmtInt(s.coins)}`, 'gold big2'],
+          ] as Array<[string, string, string]>)
+        : []),
     ];
     $('sumGrid').innerHTML = rows
       .map(([k, v, tone], i) => `<div class="k" style="--d:${i * 0.09}s">${k}</div><div class="v ${tone}" style="--d:${i * 0.09 + 0.05}s">${v}</div>`)
@@ -681,7 +690,7 @@ export class UI {
         <div class="pips">${pips}</div>
         <small>Level ${lvl}/${START_MAX_LEVEL}${maxed ? '' : `  •  next: ${startMeters(next)} m`}</small>
         <button data-up="start" ${!canStart ? 'disabled' : ''}>${maxed ? 'MAXED' : `UPGRADE ${coinHtml(startCost(next))}`}</button>
-        ${lvl > 0 ? '<button class="ghost boostToggle"></button>' : ''}
+        <button class="ghost boostToggle" ${lvl > 0 ? '' : 'style="visibility:hidden" tabindex="-1" aria-hidden="true"'}></button>
       </div>`;
     document.querySelectorAll<HTMLButtonElement>('#upGrid .boostToggle').forEach((b) => {
       b.onclick = () => {
@@ -714,7 +723,7 @@ export class UI {
   // ------------------------------------------------------------- skins
   showSkins(fresh = true): void {
     const d = this.save();
-    $('skinCoins').innerHTML = `Coins: ${coinHtml(d.coins)}  •  cosmetics only`;
+    $('skinCoins').innerHTML = `Coins: ${coinHtml(d.coins)}`;
     const mk = (kind: 'skin' | 'trail') => {
       const list = kind === 'skin' ? SKINS : TRAILS;
       const owned = kind === 'skin' ? d.ownedSkins : d.ownedTrails;
@@ -732,7 +741,7 @@ export class UI {
                   : 'linear-gradient(90deg,#1fe06c,#ffc21a,#ff3d4d)';
           const label = eq === it.id ? 'EQUIPPED' : has ? 'EQUIP' : `BUY ${coinHtml(it.cost)}`;
           const dis = eq === it.id || (!has && d.coins < it.cost) ? 'disabled' : '';
-          return `<div class="card ${eq === it.id ? 'eq' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<small>${has ? 'Owned' : `${coinHtml(it.cost)} coins`}</small><button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
+          return `<div class="card ${eq === it.id ? 'eq' : ''} ${!has ? 'locked' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<small>${eq === it.id ? 'Equipped' : has ? 'Owned' : 'Locked'}</small><button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
         })
         .join('');
     };
@@ -767,11 +776,13 @@ export class UI {
       ? d.scores
           .map(
             (s, i) =>
-              `<tr><td>${i + 1}</td><td>${fmt(s.score)}</td><td>${Math.floor(s.distance)} m</td><td>${fmt(s.peak)}</td><td>${s.kills}</td></tr>`,
+              `<tr><td>${i + 1}</td><td>${fmt(s.score)}</td><td>${fmtInt(Math.floor(s.distance))} m</td><td>${fmt(s.peak)}</td><td>${fmtInt(s.kills)}</td></tr>`,
           )
           .join('')
-      : '<tr><td colspan="5" style="text-align:center;padding:20px">No runs yet. Go set one!</td></tr>';
-    $('scoreTable').innerHTML = `<table><tr><th>#</th><th>SCORE</th><th>DIST</th><th>PEAK</th><th>KILLS</th></tr>${rows}</table>`;
+      : '';
+    $('scoreTable').innerHTML = d.scores.length
+      ? `<table><tr><th>#</th><th>SCORE</th><th>DIST</th><th>PEAK</th><th>KILLS</th></tr>${rows}</table>`
+      : '<div class="learn emptyScores">No runs yet. Play a run to set a score!</div>';
     this.screens('scores');
   }
 }

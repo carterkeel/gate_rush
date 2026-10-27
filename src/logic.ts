@@ -101,6 +101,11 @@ export function formatLargeNumber(n: number): string {
   return str + SUFFIX[g];
 }
 export const fmt = formatLargeNumber;
+/** Whole numbers with thousands separators (1,234,567); very large values fall back to the suffix form. */
+export function fmtInt(n: number): string {
+  if (!Number.isFinite(n) || n >= 1e6) return formatLargeNumber(n);
+  return Math.round(n).toLocaleString('en-US');
+}
 
 /** Round to 3 significant digits so the abbreviated label (e.g. "12.3K") is exactly the number used. */
 export function niceRound(n: number): number {
