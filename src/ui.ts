@@ -636,7 +636,7 @@ export class UI {
       if (state.at) {
         const w = this.combat.offsetWidth || 160;
         const x = Math.max(w / 2 + 8, Math.min(window.innerWidth - w / 2 - 8, state.at.x));
-        const y = Math.max(70, state.at.y - 6);
+        const y = Math.max(86, state.at.y - 6);
         this.combat.style.left = `${x}px`;
         this.combat.style.top = `${y}px`;
       }
