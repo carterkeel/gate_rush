@@ -81,7 +81,17 @@ export class UI {
       $('rStatus').className = 'rStatus';
       this.screens('report');
     };
-    $('bPrivacy').onclick = () => window.open('https://carterkeel.github.io/gate_rush/privacy.html', '_blank', 'noopener');
+    let privFrom = 'settings';
+    const openPrivacy = (f: string) => {
+      privFrom = f;
+      this.screens('privacy');
+    };
+    $('bPrivacy').onclick = () => openPrivacy('settings');
+    $('rPrivacy').onclick = (e) => {
+      e.preventDefault();
+      openPrivacy('report');
+    };
+    $('bPrivacyBack').onclick = () => this.screens(privFrom);
     $('bReportBack').onclick = () => this.screens('settings');
     this.bindReport();
     $('bSettingsBack').onclick = () => (from === 'pause' ? this.screens('pause') : this.showMenu());
@@ -192,7 +202,7 @@ export class UI {
 
   private screens(on: string | null): void {
     requestAnimationFrame(() => this.fitScreens());
-    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'report', 'upgrades', 'intel']) {
+    for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'report', 'privacy', 'upgrades', 'intel']) {
       const el = $(id);
       const t = this.screenTimers.get(id);
       if (t) {

@@ -622,10 +622,31 @@
       <label><span>YOUR NAME <em>(OPTIONAL)</em></span><input id="rName" name="name" type="text" maxlength="60" autocomplete="off" /></label>
       <label><span>YOUR EMAIL <em>(OPTIONAL, SO WE CAN REPLY)</em></span><input id="rEmail" name="email" type="email" maxlength="120" inputmode="email" autocomplete="off" /></label>
       <p id="rStatus" class="rStatus" role="status" aria-live="polite"></p>
-      <p class="rNote">Reports are sent through Web3Forms. <a href="https://carterkeel.github.io/gate_rush/privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
+      <p class="rNote">Reports are sent through Web3Forms. <a id="rPrivacy" href="#" role="button">Privacy policy</a></p>
     </form>
     <button id="bReportSend" class="warn">SEND REPORT</button>
     <div class="stickyBack"><button id="bReportBack" class="ghost">BACK</button></div>
+  </div>
+
+  <div id="privacy" class="screen">
+    <h2>PRIVACY POLICY</h2>
+    <div class="learn controls privacy policy">
+      <p class="pdate">Last updated October 27, 2026</p>
+      <h3>THE SHORT VERSION</h3>
+      <p>The game has no accounts, no ads and no analytics. Your progress stays on your device. The only time anything leaves your device is when you choose to send a bug report.</p>
+      <h3>STORED ON YOUR DEVICE</h3>
+      <p>Your gold, skins, trails, upgrades, settings, tutorial progress and top scores are saved in your device's local storage so the game can remember them. This data is never sent to us. Clearing the app's data or your browser data removes it.</p>
+      <h3>BUG REPORTS</h3>
+      <p>If you use Settings, then Report a bug, we receive what you type: your message, and your name and email if you choose to enter them. The report also includes details that help us fix the problem: whether you are on the web or the Android app, your screen size, your best run, and your device and browser description.</p>
+      <p>Reports are delivered by Web3Forms, a form service that passes them to the developer by email. We use them only to find and fix bugs and, if you gave an email, to reply to you. We keep them as long as needed for that and do not sell or share them. To have a report deleted, open an issue at github.com/carterkeel/gate_rush/issues.</p>
+      <h3>WEBSITE HOSTING</h3>
+      <p>The web version is hosted on GitHub Pages. Like any web host, GitHub may log technical data such as your IP address when you load the page.</p>
+      <h3>CHILDREN</h3>
+      <p>The game is not directed at children under 13, and we do not knowingly collect personal information from them. If you believe a child has sent us personal information, contact us and we will delete it.</p>
+      <h3>CHANGES</h3>
+      <p>If this policy changes, the date above will change with it.</p>
+    </div>
+    <div class="stickyBack"><button id="bPrivacyBack" class="ghost">BACK</button></div>
   </div>
 
   <div id="tutDone" class="screen">
@@ -718,4 +739,13 @@
   .privacy div { align-items:flex-start; } .privacy span { font-size:min(3.8vw,14px); line-height:1.35; font-weight:600; opacity:.92; }
   #bPrivacy { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2L4 5.2v6c0 5 3.4 8.6 8 10.3 4.6-1.7 8-5.3 8-10.3v-6z' fill='black'/%3E%3C/svg%3E"); }
   #bPrivacy::before { content:''; display:inline-block; width:1.15em; height:1.15em; margin-right:.6em; vertical-align:-.2em; background:currentColor; -webkit-mask:var(--ic) center/contain no-repeat; mask:var(--ic) center/contain no-repeat; }
+</style>
+<style>
+  .policy { display:block; padding:14px 16px 16px; }
+  .policy div, .policy p, .policy h3 { display:block; }
+  .policy h3 { margin:16px 0 6px; font-size:12px; letter-spacing:3px; font-weight:800; opacity:.7; text-align:left; }
+  .policy p { margin:0 0 8px; font-size:min(3.8vw,14px); line-height:1.45; font-weight:600; opacity:.92; text-align:left; font-family:system-ui,sans-serif; }
+  .policy .pdate { opacity:.55; font-size:12px; letter-spacing:1px; margin:0; }
+  .policy h3:first-of-type { margin-top:12px; }
+  #privacy.screen.ovf .stickyBack { position:static; width:auto; margin:0; padding:0; background:none; }
 </style>
