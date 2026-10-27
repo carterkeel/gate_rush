@@ -433,6 +433,8 @@
   @keyframes coinGlint { 0%,100% { filter:brightness(1); transform:scale(1); } 50% { filter:brightness(1.35); transform:scale(1.12); } }
   .goldBox .coin { width:22px; height:22px; }
   .goldBox .coin::after { font-size:15px; }
+  /* no skip-tutorial shortcut showing through the pause menu (or any other screen) */
+  #app:has(.screen.on) #dock #tutTag { display:none !important; }
 </style>
 </head>
 <body>
