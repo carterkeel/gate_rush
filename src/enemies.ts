@@ -185,6 +185,22 @@ export class CombatSim {
     const byHp = Number.isFinite(hp) && Number.isFinite(max) && max > 0 ? Math.min(1, hp / max) : alive / n;
     return Math.max(0, Math.min(1, 0.5 * byHp + 0.5 * (alive / n)));
   }
+  /** World point just above the heads of the surviving enemies (centre of the formation, over its rearmost row). */
+  get headAnchor(): { x: number; y: number; z: number } | null {
+    let zMin = Infinity;
+    let xs = 0;
+    let n = 0;
+    for (const e of this.enemies) {
+      if (e.hp <= 0) continue;
+      if (e.z < zMin) zMin = e.z;
+      xs += e.x;
+      n++;
+    }
+    if (!n) return null;
+    let top = 0;
+    for (const e of this.enemies) if (e.hp > 0 && e.z < zMin + 2.5) top = Math.max(top, e.scale);
+    return { x: xs / n, y: top * 1.9 + 0.9, z: zMin };
+  }
   get hasBoss(): boolean {
     return this.enemies.some((e) => e.kind === 'boss' && e.hp > 0);
   }

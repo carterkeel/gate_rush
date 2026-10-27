@@ -1012,13 +1012,22 @@ export class Game {
       this.fx.burst(new THREE.Vector3(this.army.x, 2, -this.playerS - 14), 0xffe27a, 150, 10);
     }
 
-    const label = zone && zone.boss ? 'BOSS FIGHT' : 'ENEMIES';
     this.ui.setCombat({
       boss: !!(zone && zone.boss),
-      text: `${label}\n${fmt(r.remainingHp)} HP  ·  ${r.timeLeft.toFixed(1)}s`,
+      text: `${zone && zone.boss ? 'BOSS  ' : ''}${fmt(r.remainingHp)} HP`,
       frac: this.combat.progressLeft,
+      at: this.enemyBarAt(),
     });
     if (r.done) this.endCombat(r.remainingHp);
+  }
+
+  /** Screen position (px) just above the enemies' heads, where the health bar floats. */
+  private enemyBarAt(): { x: number; y: number } | null {
+    const a = this.combat.headAnchor;
+    if (!a) return null;
+    const v = new THREE.Vector3(a.x, a.y, a.z).project(this.world.camera);
+    if (v.z > 1) return null;
+    return { x: (v.x * 0.5 + 0.5) * window.innerWidth, y: (-v.y * 0.5 + 0.5) * window.innerHeight };
   }
 
   private endCombat(remaining: number): void {

@@ -627,12 +627,19 @@ export class UI {
     if (text) this.hint.textContent = text;
     this.hint.classList.toggle('on', !!text);
   }
-  setCombat(state: { text: string; frac: number; boss?: boolean; tone?: 'ok' | 'tight' | 'danger' } | null): void {
+  setCombat(state: { text: string; frac: number; boss?: boolean; tone?: 'ok' | 'tight' | 'danger'; at?: { x: number; y: number } | null } | null): void {
     this.combat.classList.toggle('on', !!state);
     if (state) {
       for (const t of ['ok', 'tight', 'danger']) this.combat.classList.toggle(t, state.tone === t);
       this.combat.classList.toggle('boss', !!state.boss);
       $('combatT').textContent = state.text;
+      if (state.at) {
+        const w = this.combat.offsetWidth || 160;
+        const x = Math.max(w / 2 + 8, Math.min(window.innerWidth - w / 2 - 8, state.at.x));
+        const y = Math.max(70, state.at.y - 6);
+        this.combat.style.left = `${x}px`;
+        this.combat.style.top = `${y}px`;
+      }
       ($('combatBar') as HTMLElement).style.width = `${Math.max(0, Math.min(1, state.frac)) * 100}%`;
     }
   }

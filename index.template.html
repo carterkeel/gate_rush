@@ -314,7 +314,7 @@
   .grid { gap:14px; }
 
   /* ---- route bar: a line that slides towards you; ticks are gate sets, the skull is the next fight ---- */
-  #route { position:absolute; left:6px; top:calc(max(10px, var(--sat)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 58px); width:58px; display:none; flex-direction:column; align-items:center; font-family:system-ui,sans-serif; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
+  #route { position:absolute; left:6px; top:calc(max(10px, var(--sat)) + min(6.2vw,30px) * 1.75 + min(5.2vw,24px) * 2.4 + 44px); width:58px; display:none; flex-direction:column; align-items:center; font-family:system-ui,sans-serif; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
   #route.on { display:flex; animation: hudIn .5s ease backwards; }
   .rLabel { font-size:8px; letter-spacing:1.5px; font-weight:800; opacity:.7; }
   .rNeed { white-space:nowrap; font-weight:900; font-size:14px; line-height:1.1; color:#fff; font-variant-numeric:tabular-nums; margin-bottom:2px; }
@@ -364,7 +364,7 @@
   #combat { width:min(calc(100vw - 156px),320px); bottom:max(20px, env(safe-area-inset-bottom)); }
   #hud:has(#hint.on) #combat { bottom:calc(max(26px, env(safe-area-inset-bottom)) + 90px); }
   /* #14 route bar shrinks on short screens */
-  .rTrack { height:clamp(48px, min(30vh,250px, calc(100vh - 480px)), 250px); }
+  .rTrack { height:clamp(48px, min(30vh,250px, calc(100vh - 570px)), 250px); }
   @media (max-height:500px) { #route { display:none !important; } }
   /* #31 consistent edge margins */
   #route { left:12px; } #bPause { right:12px; } .rLabel { font-size:10px; }
@@ -464,9 +464,7 @@
   @keyframes tagShine { from { background-position:160% 0; } to { background-position:-100% 0; } }
   @media (max-height:800px) { #tagline { margin:-6px 0 10px; font-size:min(4.4vw,18px); } }
   /* ---- boss / fight health panel: button-style, shiny animated red, upper half of the screen ---- */
-  #combat { top:max(10px, var(--sat)) !important; bottom:auto !important; left:106px !important; transform:none !important; width:min(calc(100vw - 212px),300px) !important; padding:6px 8px 8px; border-radius:14px; background:linear-gradient(#5a6788,#3b4766); border:2px solid #1f2740; box-shadow:0 4px 0 #1f2740, 0 8px 14px rgba(0,0,0,.35); -webkit-backdrop-filter:none; backdrop-filter:none; -webkit-text-stroke:0; font-family:system-ui,'Arial Black',sans-serif; font-weight:800; font-size:13px; letter-spacing:2px; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.4); }
-  #hud:has(#hint.on) #combat { top:max(10px, var(--sat)) !important; bottom:auto !important; }
-  @media (min-width:640px) { #combat { left:50% !important; transform:translateX(-50%) !important; } }
+  #combat { padding:6px 8px 8px; border-radius:14px; background:linear-gradient(#5a6788,#3b4766); border:2px solid #1f2740; box-shadow:0 4px 0 #1f2740, 0 8px 14px rgba(0,0,0,.35); -webkit-backdrop-filter:none; backdrop-filter:none; -webkit-text-stroke:0; font-family:system-ui,'Arial Black',sans-serif; font-weight:800; font-size:13px; letter-spacing:2px; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.4); }
   #combat.boss { background:linear-gradient(#a23a4c,#5e1a28); border-color:#3a0a14; box-shadow:0 4px 0 #3a0a14, 0 0 18px rgba(255,61,77,.55), 0 8px 14px rgba(0,0,0,.35); animation:bossGlow 1.1s ease-in-out infinite; }
   @keyframes bossGlow { 0%,100% { box-shadow:0 4px 0 #3a0a14, 0 0 10px rgba(255,61,77,.35), 0 8px 14px rgba(0,0,0,.35); } 50% { box-shadow:0 4px 0 #3a0a14, 0 0 26px rgba(255,61,77,.85), 0 8px 14px rgba(0,0,0,.35); } }
   #combatT { font-size:11px; line-height:1.25; letter-spacing:1px; white-space:pre-line; }
@@ -646,4 +644,14 @@
   #tutDone .row { gap:20px; }
   @media (max-height:800px) { #menu { gap:16px; } .screen { gap:16px; } #summary { gap:14px; } }
   @media (max-height:700px) { .screen { gap:14px; } #menu { gap:12px; } }
+</style>
+
+<style>
+  /* enemy health: just the shiny red bar, floating over the enemies' heads (position set from the game each frame) */
+  #hud #combat, #hud:has(#hint.on) #combat { position:absolute !important; bottom:auto !important; left:50%; top:30%; transform:translate(-50%,-100%) !important; width:min(40vw,170px) !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important; animation:none !important; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  #hud #combat.boss { width:min(52vw,230px) !important; }
+  #combat .bar { height:16px; margin-top:0; position:relative; box-shadow:0 3px 0 #1f2740, 0 4px 10px rgba(0,0,0,.45); }
+  #combat.boss .bar { height:20px; border-color:#3a0a14; box-shadow:0 3px 0 #3a0a14, 0 0 16px rgba(255,61,77,.7); }
+  #combatT { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); z-index:3; font-size:10px; line-height:1; letter-spacing:1px; font-weight:900; text-align:center; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.8); pointer-events:none; white-space:nowrap; }
+  #combat.boss #combatT { font-size:12px; }
 </style>
