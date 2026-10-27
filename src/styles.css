@@ -512,3 +512,9 @@ th { background:rgba(255,255,255,.08); font-size:12px; letter-spacing:1px; opaci
 /* bug report button is red */
 .screen button#bReport { background:linear-gradient(#ff6b77,#d42a3b); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), 0 5px 0 #8a1120, 0 9px 14px rgba(0,0,0,.4); }
 .screen button#bReport:active { box-shadow:inset 0 2px 0 rgba(255,255,255,.22), 0 1px 0 #8a1120, 0 3px 6px rgba(0,0,0,.4); }
+
+/* ---- top-left back arrow on menus that have a BACK button (same action, no scrolling needed) ---- */
+.screen:has(> .topBack) { justify-content:flex-start; }
+.screen:has(> .topBack)::before { flex:0 0 0; }
+.screen button.topBack { position:sticky; z-index:5; align-self:flex-start; top:max(12px, var(--sat)); margin:0 0 -12px -2px; width:54px; height:44px; min-width:0; padding:0; border-radius:14px; display:grid; place-items:center; }
+.screen button.topBack::before { content:''; width:22px; height:22px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4.5L7.5 12l7.5 7.5' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4.5L7.5 12l7.5 7.5' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }

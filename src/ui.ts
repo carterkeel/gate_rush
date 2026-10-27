@@ -94,6 +94,8 @@ export class UI {
     $('bPrivacyBack').onclick = () => this.screens(privFrom);
     $('bReportBack').onclick = () => this.screens('settings');
     this.bindReport();
+    // top-left back arrows simply press the screen's own BACK button
+    document.querySelectorAll<HTMLButtonElement>('.topBack').forEach((b) => (b.onclick = (e) => $(b.dataset.back!).onclick?.call(b, e)));
     $('bSettingsBack').onclick = () => (from === 'pause' ? this.screens('pause') : this.showMenu());
     const bind = (id: string, outId: string, get: () => number, set: (v: number) => void, preview: boolean) => {
       const el = $(id) as HTMLInputElement;
