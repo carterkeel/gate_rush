@@ -627,8 +627,10 @@ export class UI {
     if (text) this.hint.textContent = text;
     this.hint.classList.toggle('on', !!text);
   }
+  private barPos: { x: number; y: number } | null = null;
   setCombat(state: { text: string; frac: number; boss?: boolean; tone?: 'ok' | 'tight' | 'danger'; at?: { x: number; y: number } | null } | null): void {
     this.combat.classList.toggle('on', !!state);
+    if (!state) this.combat.classList.remove('placed');
     if (state) {
       for (const t of ['ok', 'tight', 'danger']) this.combat.classList.toggle(t, state.tone === t);
       this.combat.classList.toggle('boss', !!state.boss);
@@ -637,8 +639,12 @@ export class UI {
         const w = this.combat.offsetWidth || 160;
         const x = Math.max(w / 2 + 8, Math.min(window.innerWidth - w / 2 - 8, state.at.x));
         const y = Math.max(86, state.at.y - 6);
-        this.combat.style.left = `${x}px`;
-        this.combat.style.top = `${y}px`;
+        // heavy smoothing: the bar glides to its spot and ignores camera shake
+        if (!this.barPos || !this.combat.classList.contains('placed')) this.barPos = { x, y };
+        else this.barPos = { x: this.barPos.x + (x - this.barPos.x) * 0.08, y: this.barPos.y + (y - this.barPos.y) * 0.08 };
+        this.combat.classList.add('placed');
+        this.combat.style.left = `${this.barPos.x.toFixed(1)}px`;
+        this.combat.style.top = `${this.barPos.y.toFixed(1)}px`;
       }
       ($('combatBar') as HTMLElement).style.width = `${Math.max(0, Math.min(1, state.frac)) * 100}%`;
     }

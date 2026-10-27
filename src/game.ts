@@ -291,6 +291,8 @@ export class Game {
     this.instakill = false;
     this.instaT = -1;
     this.ui.setPower(null);
+    this.ui.setHint(null); // no tutorial hint may linger into a normal run
+    this.barAnchor = null;
     this.bestHl = null;
     this.trailT = 0;
     this.overT = 0;
@@ -977,6 +979,7 @@ export class Game {
       this.lossShown += r.armyLoss;
       if (after <= 0) {
         this.army.setCount(0);
+        this.barAnchor = null;
         this.combat.active = false;
         this.ui.setCombat(null);
         this.inCombat = false;
@@ -1022,8 +1025,11 @@ export class Game {
   }
 
   /** Screen position (px) just above the enemies' heads, where the health bar floats. */
+  private barAnchor: { x: number; y: number; z: number } | null = null;
   private enemyBarAt(): { x: number; y: number } | null {
-    const a = this.combat.headAnchor;
+    // fixed for the whole fight (taken from the full formation when it starts), so the bar stays put while enemies fall
+    if (!this.barAnchor) this.barAnchor = this.combat.headAnchor;
+    const a = this.barAnchor;
     if (!a) return null;
     const v = new THREE.Vector3(a.x, a.y, a.z).project(this.world.camera);
     if (v.z > 1) return null;
@@ -1031,6 +1037,7 @@ export class Game {
   }
 
   private endCombat(remaining: number): void {
+    this.barAnchor = null;
     this.combat.active = false;
     this.ui.setCombat(null);
     sound.setMode('run');
