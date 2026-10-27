@@ -70,7 +70,8 @@ export class UI {
     let from: 'menu' | 'pause' = 'menu';
     const open = (f: 'menu' | 'pause') => {
       from = f;
-      $('bTutorial').style.display = f === 'menu' ? '' : 'none';
+      $('bTutorial').style.display = f === 'menu' && this.save().tutorialDone ? '' : 'none';
+      $('bTutorial').textContent = 'REPLAY TUTORIAL';
       this.screens('settings');
     };
     $('bSettings').onclick = () => open('menu');
@@ -466,7 +467,6 @@ export class UI {
   }
 
   showPause(info: string): void {
-    $('pauseInfo').textContent = info;
     this.screens('pause');
   }
 
@@ -640,15 +640,8 @@ export class UI {
       ['DISTANCE', `${fmtInt(Math.floor(s.distance))} m`, 'cyan'],
       ['PEAK ARMY', fmt(s.peak), 'green'],
       ['ENEMIES KILLED', fmtInt(s.kills), 'red'],
-      ...(s.start > 0 ? ([['HEAD START', `+${s.start} m`, 'orange']] as Array<[string, string, string]>) : []),
       ['SCORE', fmt(s.score), 'gold big'],
-      ['GOLD', `+${fmtInt(s.coins - s.armyBonus)}`, 'gold'],
-      ...(s.armyBonus > 0
-        ? ([
-            ['LARGE ARMY BONUS', `+${fmtInt(s.armyBonus)}`, 'purple'],
-            ['TOTAL GOLD', `+${fmtInt(s.coins)}`, 'gold big2'],
-          ] as Array<[string, string, string]>)
-        : []),
+      ['GOLD', `+${fmtInt(s.coins)}`, 'gold'],
     ];
     $('sumGrid').innerHTML = rows
       .map(([k, v, tone], i) => `<div class="k" style="--d:${i * 0.09}s">${k}</div><div class="v ${tone}" style="--d:${i * 0.09 + 0.05}s">${v}</div>`)
@@ -680,15 +673,15 @@ export class UI {
       <div class="card up ${d.speedUnlocked ? 'eq' : ''}">
         <div class="upIcon">2×</div>
         <b>DOUBLE SPEED</b>
-        <small>${d.speedUnlocked ? 'Unlocked: use the 2× button in a run' : 'Unlock a 2× run-speed button. Faster, harder, same rules.'}</small>
-        <button data-up="speed" ${d.speedUnlocked || !canSpeed ? 'disabled' : ''}>${d.speedUnlocked ? 'UNLOCKED' : `UNLOCK ${coinHtml(SPEED_COST)}`}</button>
+        <small>${d.speedUnlocked ? 'Use the 2× button during a run.' : 'Unlock a 2× run-speed button. Faster, harder, same rules.'}</small>
+        ${d.speedUnlocked ? '' : `<button data-up="speed" ${!canSpeed ? 'disabled' : ''}>UNLOCK ${coinHtml(SPEED_COST)}</button>`}
       </div>
       <div class="card up ${lvl > 0 ? 'eq' : ''}">
         <div class="upIcon">➤</div>
         <b>HEAD START</b>
-        <small>${lvl > 0 ? `Begin each run at ${startMeters(lvl)} m with an army to match.` : 'Skip the early game: start further along, with an army to match.'}</small>
+        <small>Skip the early game: start further along, with an army to match.</small>
         <div class="pips">${pips}</div>
-        <small>Level ${lvl}/${START_MAX_LEVEL}${maxed ? '' : `  •  next: ${startMeters(next)} m`}</small>
+        <small>${maxed ? 'Max level' : `Next level: ${startMeters(next)} m`}</small>
         <button data-up="start" ${!canStart ? 'disabled' : ''}>${maxed ? 'MAXED' : `UPGRADE ${coinHtml(startCost(next))}`}</button>
         <button class="ghost boostToggle" ${lvl > 0 ? '' : 'style="visibility:hidden" tabindex="-1" aria-hidden="true"'}></button>
       </div>`;
@@ -741,7 +734,7 @@ export class UI {
                   : 'linear-gradient(90deg,#1fe06c,#ffc21a,#ff3d4d)';
           const label = eq === it.id ? 'EQUIPPED' : has ? 'EQUIP' : `BUY ${coinHtml(it.cost)}`;
           const dis = eq === it.id || (!has && d.coins < it.cost) ? 'disabled' : '';
-          return `<div class="card ${eq === it.id ? 'eq' : ''} ${!has ? 'locked' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<small>${eq === it.id ? 'Equipped' : has ? 'Owned' : 'Locked'}</small><button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
+          return `<div class="card ${eq === it.id ? 'eq' : ''} ${!has ? 'locked' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
         })
         .join('');
     };

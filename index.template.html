@@ -486,7 +486,7 @@
   <div id="skins" class="screen">
     <h2>SKINS</h2>
     <div class="goldBox" id="skinCoins"></div>
-    <h2 class="sub">UNIT SKINS (COSMETIC)</h2>
+    <h2 class="sub">UNITS</h2>
     <div class="grid" id="skinGrid"></div>
     <h2 class="sub">GATE TRAILS</h2>
     <div class="grid" id="trailGrid"></div>
@@ -501,13 +501,10 @@
 
   <div id="pause" class="screen">
     <div id="pauseIcon" aria-label="Paused"><i></i><i></i></div>
-    <div class="tag" id="pauseInfo"></div>
     <button id="bResume">RESUME</button>
     <button id="bRestart" class="warn">RESTART</button>
-    <button class="ghost boostToggle" style="display:none"></button>
     <button id="bPauseSettings" class="ghost">SETTINGS</button>
     <button id="bQuit" class="ghost">QUIT TO MENU</button>
-    <div class="tag kbd">Esc or P also resumes</div>
   </div>
 
   <div id="intel" class="screen">
@@ -529,7 +526,7 @@
       <div class="kbd"><b>← →</b>Arrow keys or A / D on a keyboard</div>
       <div><b>❚❚</b><span>Pause with the button<span class="kbd">, Esc or P</span></span></div>
     </div>
-    <button id="bTutorial" class="alt">PLAY TUTORIAL</button>
+    <button id="bTutorial" class="alt">REPLAY TUTORIAL</button>
     <div id="devBox" style="display:none">
       <h2 class="sub">DEV MENU</h2>
       <button id="devToggle" class="ghost">DEV MODE: OFF</button>
@@ -544,10 +541,7 @@
 
   <div id="tutDone" class="screen">
     <h2 id="tutTitle">TUTORIAL<br />COMPLETE!</h2>
-    <div class="sub">NOW YOU KNOW THE RULES</div>
     <div class="learn">
-      <div><b class="g">+ ×</b>Green gates grow your army</div>
-      <div><b class="r">− ÷</b>Red gates shrink it, so dodge them</div>
       <div><b class="y">?</b>Yellow gates chain steps, so do the math</div>
       <div><b class="y">⇆</b>Split lanes: the center divides your army</div>
       <div><b class="y">⏱</b>Timed gates close, so choose fast</div>

@@ -370,7 +370,6 @@ export class Game {
         ['DISTANCE', `${Math.max(0, Math.round(f.s - this.playerS))} m`],
         ['ENEMIES', `${f.enemies.length}`],
         ['ENEMY POWER', fmt(Math.round(hp))],
-        ['YOUR ARMY', fmt(A)],
         ['ARMY NEEDED', fmt(need)],
       ],
       note: word,
