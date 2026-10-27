@@ -9,6 +9,7 @@ import { CombatSim } from './enemies';
 import { SetView, TONE_COLOR } from './gateView';
 import { UI } from './ui';
 import type { RunSummary } from './ui';
+import { formationDepth } from './combatModel';
 import { Track, projectArmy, bestResult, headStartTrack } from './track';
 import { TutorialSource } from './tutorial';
 import { sound } from './audio';
@@ -638,7 +639,7 @@ export class Game {
         const half = CFG.splitZoneLength / 2;
         const gates = item.type === 'gates';
         const zoneFrom = item.s - (gates && item.split ? half : 0) - 1.4;
-        const zoneTo = item.s + (gates ? (item.split ? half : 0) + 1.4 : CFG.combatStopGap);
+        const zoneTo = item.s + (gates ? (item.split ? half : 0) + 1.4 : CFG.combatStopGap + formationDepth(item.enemies));
         if (gates) {
           this.setsSinceCoins++;
           if (this.setsSinceCoins >= this.coinEvery) {
@@ -1015,7 +1016,7 @@ export class Game {
     this.ui.setCombat({
       boss: !!(zone && zone.boss),
       text: `${label}\n${fmt(r.remainingHp)} HP  ·  ${r.timeLeft.toFixed(1)}s`,
-      frac: r.remainingHp / Math.max(1, this.combat.totalHp),
+      frac: this.combat.progressLeft,
     });
     if (r.done) this.endCombat(r.remainingHp);
   }

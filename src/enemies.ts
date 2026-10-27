@@ -167,6 +167,24 @@ export class CombatSim {
     for (const e of this.enemies) r += Math.max(0, e.hp);
     return r;
   }
+  /** How much of the fight is left, 1 → 0. Half by enemy count, half by hit points, so the bar keeps moving even when one boss holds most of the HP, and always hits 0 when everything is dead. */
+  get progressLeft(): number {
+    const n = this.enemies.length;
+    if (n === 0) return 0;
+    let alive = 0;
+    let hp = 0;
+    let max = 0;
+    for (const e of this.enemies) {
+      if (e.hp > 0) {
+        alive++;
+        hp += e.hp;
+      }
+      max += e.max;
+    }
+    if (alive === 0) return 0;
+    const byHp = Number.isFinite(hp) && Number.isFinite(max) && max > 0 ? Math.min(1, hp / max) : alive / n;
+    return Math.max(0, Math.min(1, 0.5 * byHp + 0.5 * (alive / n)));
+  }
   get hasBoss(): boolean {
     return this.enemies.some((e) => e.kind === 'boss' && e.hp > 0);
   }

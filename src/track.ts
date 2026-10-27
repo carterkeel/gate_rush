@@ -7,7 +7,7 @@ import { addGate, clamp, genSimple, genTypeA, genTypeB, hasNonDisastrous, target
 import type { SimpleCategory } from './gateGen';
 import { genTypeC, genTypeD } from './gateGenSpecial';
 import { balancedFight } from './fightGen';
-import { simulateFight } from './combatModel';
+import { simulateFight, formationDepth } from './combatModel';
 
 /** Best achievable army size after crossing a set, assuming the player picks the best gate for `army`. */
 export function bestResult(set: GateSet, army: number): { result: number; index: number } {
@@ -68,6 +68,12 @@ export class Track {
     this.bonusEvery = this.rng.int(4, 7);
   }
 
+  /** After a head start jump: the first fight is always at least `minSets` gate sets away, wherever the jump landed. */
+  restAfterJump(minSets = 5): void {
+    this.setsSinceCombat = 0;
+    this.nextCombatAfter = this.rng.int(minSets, minSets + 2);
+  }
+
   next(ref: number): TrackItem {
     ref = Math.max(1, ref);
     if (this.setsSinceCombat >= this.nextCombatAfter) return this.makeCombat(ref);
@@ -79,7 +85,8 @@ export class Track {
     const stop = this.cursor + 18;
     this.fights++;
     const f = balancedFight(ref, stop, this.fights, this.rng);
-    this.cursor = stop + CFG.combatStopGap;
+    // the next gate set starts beyond the whole enemy formation (plus a margin), so nothing clips into it
+    this.cursor = stop + CFG.combatStopGap + formationDepth(f.enemies) + 6;
     this.setsSinceCombat = 0;
     this.nextCombatAfter = this.rng.int(CFG.combatEveryMin, CFG.combatEveryMax);
     this.prevKind = 'combat';
@@ -230,5 +237,6 @@ function oneHeadStart(meters: number): { track: Track; army: number } {
     else A = Math.max(1, bestResult(it, A).result);
   }
   t.cursor = meters;
+  t.restAfterJump(5);
   return { track: t, army: Math.max(1, Math.floor(A * 0.9)) };
 }

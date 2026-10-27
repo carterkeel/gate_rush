@@ -275,10 +275,15 @@ export class Army {
       const r = hash01(i + 911);
       const t = r < colossus ? 2 : r < colossus + knights ? 1 : 0;
       const us = unitScale * SCALE[t];
-      const bob = Math.abs(Math.sin(time * freq + ph)) * bobAmp * us;
+      // every unit bounces at its own pace and height, with the odd extra-high hop, so the crowd looks alive
+      const fm = 0.78 + 0.5 * hash01(i + 313);
+      const am = 0.6 + 1.1 * hash01(i + 577);
+      const w = time * freq * fm + ph;
+      const hop = Math.max(0, Math.sin(time * (0.9 + 1.3 * hash01(i + 71)) + ph * 3.1) - 0.72) * 2.6;
+      const bob = Math.abs(Math.sin(w)) * bobAmp * am * us * (1 + hop * (running ? 1.4 : 0.3));
       const px = Math.max(-CFG.halfWidth + 0.25, Math.min(CFG.halfWidth - 0.25, this.curX[i]));
       this.tmpP.set(px, bob, this.curZ[i]); // slots are already centred on the anchor
-      this.tmpE.set(Math.sin(time * freq + ph) * 0.05, 0, lean);
+      this.tmpE.set(Math.sin(w) * 0.05 * am, 0, lean + Math.sin(w * 0.5 + ph) * 0.04);
       this.tmpQ.setFromEuler(this.tmpE);
       sc.set(us, us, us);
       this.tmpM.compose(this.tmpP, this.tmpQ, sc);
