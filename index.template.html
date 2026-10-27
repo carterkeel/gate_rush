@@ -449,6 +449,9 @@
   .card.up > small:first-of-type { min-height:2.6em; }
   /* #54 smaller tutorial hint on short phones */
   @media (max-height:700px) { #dock #hint { font-size:13px; padding:8px 10px; line-height:1.25; } #dock { gap:6px; } }
+  /* in-run gold: same coin + shining number as the menus, without the box */
+  #coins.goldBox { width:auto; padding:0; border:0; background:none; border-radius:0; justify-content:flex-start; -webkit-text-stroke:0; text-shadow:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
+  #coins.goldBox b { font-size:18px; font-weight:800; }
 </style>
 </head>
 <body>
@@ -461,7 +464,7 @@
   <div id="hud">
     <div id="dist" class="stat"><small>DISTANCE</small><span id="distV">0</span> m</div>
     <button id="army" class="stat" aria-label="Army size and next fight info"><small>ARMY</small><span id="armyV">1</span></button>
-    <div id="coins" class="stat"><small>GOLD</small><span id="coinsV">0</span></div>
+    <div id="coins" class="stat goldBox"><i class="coin"></i><b id="coinsV">0</b></div>
     <button id="bPause" class="ghost" aria-label="Pause" title="Pause">❚❚</button>
     <button id="bInstaHud" class="ghost" aria-label="Use instakill on the next fight" aria-pressed="false" style="display:none"></button>
     <button id="bDoubleHud" class="ghost" aria-label="Use x2 army" style="display:none"></button>
