@@ -518,8 +518,3 @@ th { background:rgba(255,255,255,.08); font-size:12px; letter-spacing:1px; opaci
 .screen:has(> .topBack)::before { display:none; }
 .screen button.topBack { position:sticky; z-index:5; align-self:flex-start; top:0; margin:0 0 -12px 0; width:54px; height:44px; min-width:0; padding:0; border-radius:14px; display:grid; place-items:center; }
 .screen button.topBack::before { content:''; width:22px; height:22px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4.5L7.5 12l7.5 7.5' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4.5L7.5 12l7.5 7.5' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
-
-/* wipe transition when going back */
-#wipe { position:fixed; inset:0; z-index:9999; pointer-events:none; visibility:hidden; overflow:hidden; }
-#wipe.on { visibility:visible; pointer-events:auto; }
-#wipe i { position:absolute; top:-5%; bottom:-5%; left:-20%; width:140%; transform:translateX(100%) skewX(-14deg); background:linear-gradient(90deg,#35e98a 0,#35e98a 9px,#fff 9px,#fff 12px,#141a2c 12px,#0b0f1c 100%); box-shadow:-14px 0 40px rgba(53,233,138,.55); will-change:transform; }

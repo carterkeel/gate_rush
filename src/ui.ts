@@ -94,44 +94,8 @@ export class UI {
     $('bPrivacyBack').onclick = () => this.screens(privFrom);
     $('bReportBack').onclick = () => this.screens('settings');
     this.bindReport();
-    // every way of going back (top-left arrow or bottom BACK) plays a wipe, then runs the screen's own BACK action
-    const backIds = ['bUpBack', 'bSkinsBack', 'bScoresBack', 'bSettingsBack', 'bReportBack', 'bPrivacyBack'];
-    const wipeEl = document.createElement('div');
-    wipeEl.id = 'wipe';
-    wipeEl.innerHTML = '<i></i>';
-    document.body.appendChild(wipeEl);
-    const band = wipeEl.firstElementChild as HTMLElement;
-    const still = matchMedia('(prefers-reduced-motion: reduce)');
-    let wiping = false;
-    const wipe = async (go: () => void) => {
-      if (wiping) return;
-      if (still.matches || !band.animate) return go();
-      wiping = true;
-      wipeEl.classList.add('on');
-      const sk = 'skewX(-14deg)';
-      try {
-        await band.animate([{ transform: `translateX(100%) ${sk}` }, { transform: `translateX(0) ${sk}` }], { duration: 230, easing: 'cubic-bezier(.5,0,.8,.4)', fill: 'forwards' }).finished;
-        go();
-        await band.animate([{ transform: `translateX(0) ${sk}` }, { transform: `translateX(-105%) ${sk}` }], { duration: 300, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'forwards' }).finished;
-      } finally {
-        wipeEl.classList.remove('on');
-        band.getAnimations().forEach((a) => a.cancel());
-        wiping = false;
-      }
-    };
-    document.addEventListener(
-      'click',
-      (e) => {
-        const b = (e.target as Element).closest('button');
-        const id = b && (b.dataset.back || (backIds.includes(b.id) ? b.id : ''));
-        if (!id) return;
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        const t = $(id);
-        void wipe(() => t.onclick?.call(t, e));
-      },
-      true,
-    );
+    // top-left back arrows simply press the screen's own BACK button
+    document.querySelectorAll<HTMLButtonElement>('.topBack').forEach((b) => (b.onclick = (e) => $(b.dataset.back!).onclick?.call(b, e)));
     $('bSettingsBack').onclick = () => (from === 'pause' ? this.screens('pause') : this.showMenu());
     const bind = (id: string, outId: string, get: () => number, set: (v: number) => void, preview: boolean) => {
       const el = $(id) as HTMLInputElement;
