@@ -7,7 +7,7 @@ import { opE } from '../src/logic';
 import { SKINS } from '../src/storage';
 const w = window as any;
 
-w.renderIcon = (opts: { size: number; camY: number; camBack: number; lookY: number; lookAhead: number; gateAhead: number; army: number; fov: number; s: number }): string => {
+w.renderIcon = (opts: { size: number; camY: number; camBack: number; lookY: number; lookAhead: number; gateAhead: number; army: number; fov: number; s: number; armyOnly?: boolean }): string => {
   const canvas = document.createElement('canvas');
   document.body.appendChild(canvas);
   const world = new World(canvas);
@@ -18,7 +18,9 @@ w.renderIcon = (opts: { size: number; camY: number; camBack: number; lookY: numb
   const S = opts.s;
   world.reset(S);
   for (let i = 0; i < 120; i++) world.update(S, i * 0.05, 0.05);
+  const before = new Set(world.scene.children);
   const army = new Army(world.scene);
+  const armyObjs = world.scene.children.filter((c) => !before.has(c));
   army.setSkin(SKINS[0]);
   army.setCount(opts.army);
   army.mesh.position.set(0, 0, -S);
@@ -28,6 +30,11 @@ w.renderIcon = (opts: { size: number; camY: number; camBack: number; lookY: numb
   for (const v of [mkSet(-5.2, 0, 'mul', 4), mkSet(0, 5.2, 'div', 2)]) {
     v.update(2, 0, 1);
     world.scene.add(v.root);
+  }
+  if (opts.armyOnly) {
+    world.scene.background = new THREE.Color(0xff00ff);
+    world.scene.fog = null;
+    for (const c of world.scene.children) c.visible = armyObjs.includes(c);
   }
   const cam = world.camera;
   cam.position.set(0, opts.camY, -S + opts.camBack);
