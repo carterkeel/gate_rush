@@ -415,7 +415,8 @@ th { background:rgba(255,255,255,.08); font-size:12px; letter-spacing:1px; opaci
   filter:drop-shadow(2px 0 0 #05070d) drop-shadow(-2px 0 0 #05070d) drop-shadow(0 2px 0 #05070d) drop-shadow(0 -2px 0 #05070d) drop-shadow(0 6px 8px rgba(0,0,0,.55));
   animation: tagPop .75s cubic-bezier(.2,1.5,.4,1) .4s backwards, tagShine 2.8s linear 1.2s infinite; }
 @keyframes tagPop { 0% { opacity:0; transform:perspective(500px) rotateX(10deg) rotate(-3deg) scale(.3) translateY(14px); } 55% { opacity:1; transform:perspective(500px) rotateX(10deg) rotate(-3deg) scale(1.14); } 100% { opacity:1; transform:perspective(500px) rotateX(10deg) rotate(-3deg) scale(1); } }
-@keyframes tagShine { from { background-position:160% 0; } to { background-position:-100% 0; } }
+/* one full tile period (2.6 widths / 1.6 = 1.625) so the repeating gradient loops seamlessly; the tail holds still as the pause between shines */
+@keyframes tagShine { 0% { background-position:160% 0; } 60%,100% { background-position:-2.5% 0; } }
 @media (max-height:800px) { #tagline { margin:-6px 0 10px; font-size:min(4.4vw,18px); } }
 /* ---- enemy health: just a shiny red bar floating over the enemies' heads (left/top are set from the game each frame) ---- */
 #combat { position:absolute; left:50%; top:30%; transform:translate(-50%,-100%); width:min(40vw,170px); display:none; text-align:center; color:#fff; font-family:system-ui,'Arial Black',sans-serif; font-weight:800; font-size:13px; letter-spacing:2px; text-shadow:0 1px 0 rgba(0,0,0,.4); }
@@ -516,5 +517,5 @@ th { background:rgba(255,255,255,.08); font-size:12px; letter-spacing:1px; opaci
 /* ---- top-left back arrow on menus that have a BACK button (same action, no scrolling needed) ---- */
 .screen:has(> .topBack) { justify-content:flex-start; padding-top:max(14px, var(--sat)); }
 .screen:has(> .topBack)::before { display:none; }
-.screen button.topBack { position:sticky; z-index:5; align-self:flex-start; top:0; margin:0 0 -12px 0; width:54px; height:44px; min-width:0; padding:0; border-radius:14px; display:grid; place-items:center; }
+.screen button.topBack { position:relative; z-index:5; align-self:flex-start; margin:0 0 -12px 0; width:54px; height:44px; min-width:0; padding:0; border-radius:14px; display:grid; place-items:center; }
 .screen button.topBack::before { content:''; width:22px; height:22px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4.5L7.5 12l7.5 7.5' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4.5L7.5 12l7.5 7.5' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }

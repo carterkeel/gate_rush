@@ -661,6 +661,7 @@ export class UI {
     $('menuCoins').innerHTML = `<i class="coin"></i><b>${fmtInt(this.save().coins)}</b>`;
     $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'START TUTORIAL';
     const top = this.save().scores.slice(0, 3);
+    $('topScores').style.display = top.length ? '' : 'none';
     $('topScores').innerHTML =
       `<div class="th"><span>TOP SCORES</span><span>›</span></div>` +
       (top.length
