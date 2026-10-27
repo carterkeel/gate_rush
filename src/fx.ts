@@ -88,9 +88,22 @@ export class Fx {
     const el = document.createElement('div');
     el.className = `popup ${cls}`;
     el.textContent = text;
-    el.style.left = `${((v.x + 1) / 2) * 100}%`;
-    el.style.top = `${((1 - v.y) / 2) * 100}%`;
     this.overlay.appendChild(el);
+    // keep the whole call-out on screen: shrink it if it is wider than the screen, and nudge it in from the edges
+    const vw = this.overlay.clientWidth || window.innerWidth;
+    const vh = this.overlay.clientHeight || window.innerHeight;
+    let w = el.offsetWidth * 1.25; // pop overshoot + tilt
+    const room = vw - 16;
+    if (w > room) {
+      const fs = parseFloat(getComputedStyle(el).fontSize) || 40;
+      el.style.fontSize = `${Math.max(12, (fs * room) / w).toFixed(1)}px`;
+      w = el.offsetWidth * 1.25;
+    }
+    const half = Math.min(w / 2, vw / 2 - 8);
+    const x = Math.max(half + 8, Math.min(vw - half - 8, ((v.x + 1) / 2) * vw));
+    const y = Math.max(56, Math.min(vh - 56, ((1 - v.y) / 2) * vh));
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
     setTimeout(() => el.remove(), 1300);
   }
 

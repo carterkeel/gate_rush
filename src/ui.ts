@@ -615,8 +615,15 @@ export class UI {
   flashBanner(text: string, ms = 1400): void {
     this.banner.textContent = text;
     this.banner.className = /TRY AGAIN|BOSS|TITAN|ENEM/.test(text) ? 'red' : /GO!|ARMY|TUTORIAL/.test(text) ? 'green' : 'yellow';
+    this.banner.style.fontSize = '';
     void this.banner.offsetWidth;
     this.banner.classList.add('on');
+    // never let a long call-out run off a narrow screen: shrink it to fit (allowing for the pop overshoot)
+    const avail = (this.banner.clientWidth || window.innerWidth * 0.9) / 1.2;
+    if (this.banner.scrollWidth > avail) {
+      const fs = parseFloat(getComputedStyle(this.banner).fontSize) || 40;
+      this.banner.style.fontSize = `${Math.max(14, (fs * avail) / this.banner.scrollWidth).toFixed(1)}px`;
+    }
     window.clearTimeout(this.bannerTimer);
     window.clearTimeout(this.bannerFade);
     // fade out before removing, so a call-out never just vanishes
