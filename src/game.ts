@@ -237,6 +237,8 @@ export class Game {
     const tag = (e.target as HTMLElement | null)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return; // typing in a form must not steer, pause or resume
     if (down && !e.repeat && (e.code === 'Escape' || e.code === 'KeyP')) {
+      // Settings / bug report opened from the pause screen: keys must not silently resume the game
+      if (this.mode === 'paused' && (document.getElementById('settings')?.classList.contains('on') || document.getElementById('report')?.classList.contains('on'))) return;
       if (this.mode === 'run') this.pause();
       else if (this.mode === 'paused') this.resume();
       return;
