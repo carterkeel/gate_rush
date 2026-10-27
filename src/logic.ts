@@ -85,7 +85,7 @@ export function formatLargeNumber(n: number): string {
   if (Number.isNaN(n)) return '0';
   if (n < 0) return '-' + formatLargeNumber(-n);
   if (!Number.isFinite(n)) return 'MAX';
-  if (n < 10000) return String(Math.round(n));
+  if (n < 10000) return Math.round(n).toLocaleString('en-US');
   const e = Math.floor(Math.log10(n));
   let g = Math.floor(e / 3);
   if (g >= SUFFIX.length) return sci(n);

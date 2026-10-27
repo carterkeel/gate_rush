@@ -96,7 +96,7 @@ const STEPS: Factory[] = [
     refArmy: 0,
     critical: 0,
     lossFrac: 0,
-    hint: 'Enemies shoot back and a titan guards them! Your units fire on their own. Hold the line!',
+    hint: 'Enemies shoot back and a titan guards them! Your units fire on their own.',
   }),
 ];
 

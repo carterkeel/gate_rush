@@ -33,16 +33,16 @@ npm run typecheck
 npm run sim         # fairness simulation of the gate and fight generators
 ```
 
-## Coins
-Coins are earned by distance, by picking up the spinning coins laid between gate sets, and by playing the best gate. They buy skins, trails and upgrades.
+## Gold
+Gold is earned by distance, by picking up the spinning coins laid between gate sets, and by playing the best gate. They buy skins, trails and upgrades.
 
 ## Bonus gates and power-ups
-Rarely, one gate in a set pays something other than army: **+100 coins**, an **instakill** that wipes out the next fight (enemies, titans and bosses), or a saved **×2 army**. Taking one costs you that set's army growth, so it is a real choice.
+Rarely, one gate in a set pays something other than army: **+100 gold**, an **instakill** that wipes out the next fight (enemies, titans and bosses), or a saved **×2 army**. Taking one costs you that set's army growth, so it is a real choice.
 
-When a run ends, your **largest army** is converted into a bonus: 1 coin per million units, shown as a stack of units turning into coins.
+When a run ends, your **largest army** is converted into a bonus: 1 gold per million units, shown as a stack of units turning into gold.
 
 ## Upgrades
-Bought with coins on the Upgrades screen: **Double Speed** (1000 coins) unlocks the 2× button, and **Head Start** (15 levels, 100 m up to 800 m, each level costs about 30 % more) lets a run begin further along with an army sized for that distance. A head start does not add to score or coins; only what you run and the army you grow beyond the gift count.
+Bought with gold on the Upgrades screen: **Double Speed** (1000 gold) unlocks the 2× button, and **Head Start** (15 levels, 100 m up to 800 m, each level costs about 30 % more) lets a run begin further along with an army sized for that distance. A head start does not add to score or coins; only what you run and the army you grow beyond the gift count.
 
 ## Sound
 All sound effects and the music loop are synthesised with the Web Audio API (no audio files). Music and sound-effect volume have separate sliders under Settings (on the main menu and the pause screen); the choice is stored under `gate-rush-audio`.
@@ -51,7 +51,7 @@ All sound effects and the music loop are synthesised with the Web Audio API (no 
 Characters (Footman, Orc Warband and the red orc enemies) and weapons are Kenney's CC0 "Mini Dungeon" models, baked into static vertex-coloured geometry (`tools/bake.py`, `tools/build_models.py`, output in `src/modelData.ts`). See `THIRD_PARTY_NOTICES.md`.
 
 ## Save data
-Coins, skins, trails, high scores and the tutorial flag are stored in the browser's `localStorage`
+Gold, skins, trails, high scores and the tutorial flag are stored in the browser's `localStorage`
 under the key `gate-rush-save-v1`. They stay on that device and browser; clearing site data resets them.
 
 ## Notes

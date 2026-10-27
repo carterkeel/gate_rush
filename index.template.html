@@ -435,6 +435,20 @@
   .goldBox .coin::after { font-size:15px; }
   /* no skip-tutorial shortcut showing through the pause menu (or any other screen) */
   #app:has(.screen.on) #dock #tutTag { display:none !important; }
+  /* ---- QA round 3 ---- */
+  /* #46 back buttons sit on a fading backdrop so content never shows through them */
+  #bSettingsBack, #bUpBack, #bIntelResume, #bSkinsBack, #bScoresBack { position:static !important; }
+  .stickyBack { position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; width:calc(100% + 28px); margin:0 -14px; padding:22px 0 8px; background:linear-gradient(rgba(7,10,20,0), rgba(7,10,20,.94) 38%); pointer-events:none; }
+  .stickyBack button { pointer-events:auto; }
+  /* #49 panels dark enough to read over the frozen scene */
+  .screen { background:linear-gradient(rgba(6,9,18,.74),rgba(6,9,18,.86)); -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px); }
+  /* #45 menu fits 720px-tall windows */
+  @media (max-height:800px) { #menu h1 { font-size:min(21vw,13vh,112px); margin-bottom:6px; } #menu { gap:10px; } #menu button { padding-top:12px; padding-bottom:12px; } }
+  /* #51 / #52 status chips instead of dead primary buttons; stable card heights */
+  .status { box-sizing:border-box; width:100%; max-width:260px; padding:9px 8px; border-radius:10px; text-align:center; font-weight:800; letter-spacing:1.5px; font-size:min(3.4vw,12px); color:#7dffb0; background:rgba(31,224,108,.1); border:1px solid rgba(31,224,108,.45); }
+  .card.up > small:first-of-type { min-height:2.6em; }
+  /* #54 smaller tutorial hint on short phones */
+  @media (max-height:700px) { #dock #hint { font-size:13px; padding:8px 10px; line-height:1.25; } #dock { gap:6px; } }
 </style>
 </head>
 <body>
@@ -480,7 +494,7 @@
     <h2>UPGRADES</h2>
     <div class="goldBox" id="upCoins"></div>
     <div class="upgrid" id="upGrid"></div>
-    <button id="bUpBack" class="ghost">BACK</button>
+    <div class="stickyBack"><button id="bUpBack" class="ghost">BACK</button></div>
   </div>
 
   <div id="skins" class="screen">
@@ -490,13 +504,13 @@
     <div class="grid" id="skinGrid"></div>
     <h2 class="sub">GATE TRAILS</h2>
     <div class="grid" id="trailGrid"></div>
-    <button id="bSkinsBack" class="ghost">BACK</button>
+    <div class="stickyBack"><button id="bSkinsBack" class="ghost">BACK</button></div>
   </div>
 
   <div id="scores" class="screen">
     <h2>TOP SCORES</h2>
     <div id="scoreTable"></div>
-    <button id="bScoresBack" class="ghost">BACK</button>
+    <div class="stickyBack"><button id="bScoresBack" class="ghost">BACK</button></div>
   </div>
 
   <div id="pause" class="screen">
@@ -511,7 +525,7 @@
     <h2 id="intelTitle">NEXT FIGHT</h2>
     <div class="sum" id="intelGrid"></div>
     <div class="hl" id="intelHl"></div>
-    <button id="bIntelResume">RESUME</button>
+    <div class="stickyBack"><button id="bIntelResume">RESUME</button></div>
   </div>
 
   <div id="settings" class="screen">
@@ -536,7 +550,7 @@
         <button id="devInf" class="ghost">∞ POWER-UPS: OFF</button>
       </div>
     </div>
-    <button id="bSettingsBack" class="ghost">BACK</button>
+    <div class="stickyBack"><button id="bSettingsBack" class="ghost">BACK</button></div>
   </div>
 
   <div id="tutDone" class="screen">

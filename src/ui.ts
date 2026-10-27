@@ -674,7 +674,7 @@ export class UI {
         <div class="upIcon">2×</div>
         <b>DOUBLE SPEED</b>
         <small>${d.speedUnlocked ? 'Use the 2× button during a run.' : 'Unlock a 2× run-speed button. Faster, harder, same rules.'}</small>
-        ${d.speedUnlocked ? '' : `<button data-up="speed" ${!canSpeed ? 'disabled' : ''}>UNLOCK ${coinHtml(SPEED_COST)}</button>`}
+        ${d.speedUnlocked ? '<div class="status">✓ UNLOCKED</div>' : `<button data-up="speed" ${!canSpeed ? 'disabled' : ''}>UNLOCK ${coinHtml(SPEED_COST)}</button>`}
       </div>
       <div class="card up ${lvl > 0 ? 'eq' : ''}">
         <div class="upIcon">➤</div>
@@ -682,7 +682,7 @@ export class UI {
         <small>Skip the early game: start further along, with an army to match.</small>
         <div class="pips">${pips}</div>
         <small>${maxed ? 'Max level' : `Next level: ${startMeters(next)} m`}</small>
-        <button data-up="start" ${!canStart ? 'disabled' : ''}>${maxed ? 'MAXED' : `UPGRADE ${coinHtml(startCost(next))}`}</button>
+        ${maxed ? '<div class="status">✓ MAXED</div>' : `<button data-up="start" ${!canStart ? 'disabled' : ''}>UPGRADE ${coinHtml(startCost(next))}</button>`}
         <button class="ghost boostToggle" ${lvl > 0 ? '' : 'style="visibility:hidden" tabindex="-1" aria-hidden="true"'}></button>
       </div>`;
     document.querySelectorAll<HTMLButtonElement>('#upGrid .boostToggle').forEach((b) => {
@@ -734,7 +734,7 @@ export class UI {
                   : 'linear-gradient(90deg,#1fe06c,#ffc21a,#ff3d4d)';
           const label = eq === it.id ? 'EQUIPPED' : has ? 'EQUIP' : `BUY ${coinHtml(it.cost)}`;
           const dis = eq === it.id || (!has && d.coins < it.cost) ? 'disabled' : '';
-          return `<div class="card ${eq === it.id ? 'eq' : ''} ${!has ? 'locked' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}<button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button></div>`;
+          return `<div class="card ${eq === it.id ? 'eq' : ''} ${!has ? 'locked' : ''}"><div class="sw" style="background:${sw}"></div>${it.name}${eq === it.id ? '<div class="status">✓ EQUIPPED</div>' : `<button data-k="${kind}" data-id="${it.id}" ${dis}>${label}</button>`}</div>`;
         })
         .join('');
     };

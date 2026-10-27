@@ -596,7 +596,7 @@ export class Game {
         const need = Math.ceil(fightItem.critical * Math.max(fightItem.refArmy, A));
         const missing = Math.max(0, need - A);
         const ratio = A / Math.max(1, need);
-        fight = { boss: fightItem.boss, text: missing > 0 ? fmt(missing) : 'READY', tone: ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger' };
+        fight = { boss: fightItem.boss, text: missing > 0 ? fmt(missing) : '✓', tone: ratio >= 1.25 ? 'ok' : ratio >= 1 ? 'tight' : 'danger' };
       }
     }
     this.ui.setRoute({ ticks, fight });
@@ -795,7 +795,7 @@ export class Game {
     const at = new THREE.Vector3(gx, 3.2, -setS);
     if (b.kind === 'coins') {
       this.bonusCoins += b.amount;
-      this.fx.popup(at, `+${b.amount} COINS!`, 'yellow big');
+      this.fx.popup(at, `+${b.amount} GOLD!`, 'yellow big');
       this.fx.burst(new THREE.Vector3(gx, 1.5, -setS), 0xffc21a, 90, 8);
       for (let i = 0; i < 6; i++) setTimeout(() => sound.coin(i), i * 55);
     } else if (b.kind === 'instakill') {

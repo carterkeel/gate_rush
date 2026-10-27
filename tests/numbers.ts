@@ -15,9 +15,9 @@ const eq = (name: string, got: unknown, want: unknown) => {
 const ok = (name: string, c: boolean) => eq(name, c, true);
 
 // 1. small values
-for (const [n, s] of [[0, '0'], [1, '1'], [10, '10'], [999, '999'], [9999, '9999']] as const) eq(`small ${n}`, f(n), s);
+for (const [n, s] of [[0, '0'], [1, '1'], [10, '10'], [999, '999'], [9999, '9,999']] as const) eq(`small ${n}`, f(n), s);
 // 2. suffix boundaries
-eq('1,000 exact', f(1000), '1000');
+eq('1,000 exact', f(1000), '1,000');
 eq('10,000', f(10000), '10K');
 eq('999,999 carries', f(999_999), '1M');
 eq('1,000,000', f(1e6), '1M');
