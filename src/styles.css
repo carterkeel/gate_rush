@@ -492,6 +492,7 @@ th { background:rgba(255,255,255,.08); font-size:12px; letter-spacing:1px; opaci
 #bPrivacy { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2L4 5.2v6c0 5 3.4 8.6 8 10.3 4.6-1.7 8-5.3 8-10.3v-6z' fill='black'/%3E%3C/svg%3E"); }
 #bTutorial { --ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 12a8 8 0 1 1-2.6-5.9' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M21 2.8v7.4h-7.4z' fill='black'/%3E%3C/svg%3E"); }
 #tutTag::before { margin-right:.5em; vertical-align:-.25em; }
+#bPrivacy::before, #bTutorial::before { filter:none; }
 /* shiny PLAY: a soft light sweep crosses the button every few seconds */
 #menu #bPlay { position:relative; overflow:hidden; isolation:isolate; }
 #menu #bPlay::after { content:''; position:absolute; top:-20%; bottom:-20%; left:-70%; width:45%; transform:skewX(-20deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent); animation:playShine 3.2s ease-in-out 1.2s infinite; pointer-events:none; z-index:2; }

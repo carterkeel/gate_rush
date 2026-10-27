@@ -640,6 +640,9 @@ export class UI {
       this.setRoute(null);
       $('bInstaHud').style.display = 'none';
       $('bDoubleHud').style.display = 'none';
+      // hidden behind the setters' backs: forget their cached state so the next run redraws them
+      delete $('bInstaHud').dataset.s;
+      delete $('bDoubleHud').dataset.s;
       this.packHud();
     }
     this.syncLines();
