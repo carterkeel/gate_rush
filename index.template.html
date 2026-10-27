@@ -455,7 +455,12 @@
   #coins.goldBox { width:auto; padding:0; border:0; background:none; border-radius:0; justify-content:flex-start; -webkit-text-stroke:0; text-shadow:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
   #coins.goldBox b { font-size:18px; font-weight:800; }
   /* subtitle under the logo */
-  #tagline { margin:-12px 0 20px; font-family:Impact,'Arial Black','Helvetica Neue',system-ui,sans-serif; font-weight:900; font-style:italic; font-size:min(5vw,22px); letter-spacing:4px; color:#ffd54f; -webkit-text-stroke:4px #05070d; paint-order:stroke fill; text-shadow:0 3px 0 #7a4a00, 0 8px 14px rgba(0,0,0,.55); transform:perspective(500px) rotateX(10deg) rotate(-3deg); text-align:center; white-space:nowrap; }
+  #tagline { margin:-12px 0 20px; font-family:Impact,'Arial Black','Helvetica Neue',system-ui,sans-serif; font-weight:900; font-style:italic; font-size:min(5vw,22px); letter-spacing:4px; text-align:center; white-space:nowrap; transform:perspective(500px) rotateX(10deg) rotate(-3deg);
+    color:#ffd54f; background:linear-gradient(100deg,#ffb300 0%,#ffd54f 35%,#fffbe6 50%,#ffd54f 65%,#ffb300 100%); background-size:260% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(2px 0 0 #05070d) drop-shadow(-2px 0 0 #05070d) drop-shadow(0 2px 0 #05070d) drop-shadow(0 -2px 0 #05070d) drop-shadow(0 6px 8px rgba(0,0,0,.55));
+    animation: tagPop .75s cubic-bezier(.2,1.5,.4,1) .4s backwards, tagShine 2.8s linear 1.2s infinite; }
+  @keyframes tagPop { 0% { opacity:0; transform:perspective(500px) rotateX(10deg) rotate(-3deg) scale(.3) translateY(14px); } 55% { opacity:1; transform:perspective(500px) rotateX(10deg) rotate(-3deg) scale(1.14); } 100% { opacity:1; transform:perspective(500px) rotateX(10deg) rotate(-3deg) scale(1); } }
+  @keyframes tagShine { from { background-position:160% 0; } to { background-position:-100% 0; } }
   @media (max-height:800px) { #tagline { margin:-6px 0 10px; font-size:min(4.4vw,18px); } }
 </style>
 </head>
