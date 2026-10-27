@@ -616,14 +616,22 @@ export class UI {
     this.banner.textContent = text;
     this.banner.className = /TRY AGAIN|BOSS|TITAN|ENEM/.test(text) ? 'red' : /GO!|ARMY|TUTORIAL/.test(text) ? 'green' : 'yellow';
     this.banner.style.fontSize = '';
+    this.banner.style.animation = 'none'; // measure at full size, not mid pop-in
     void this.banner.offsetWidth;
     this.banner.classList.add('on');
-    // never let a long call-out run off a narrow screen: shrink it to fit (allowing for the pop overshoot)
-    const avail = (this.banner.clientWidth || window.innerWidth * 0.9) / 1.2;
-    if (this.banner.scrollWidth > avail) {
+    // never let a call-out run off a narrow screen: shrink it until its widest line fits, with room for the pop overshoot
+    const avail = (window.innerWidth - 24) / 1.34;
+    const widest = () => {
+      const r = document.createRange();
+      r.selectNodeContents(this.banner);
+      return r.getBoundingClientRect().width;
+    };
+    for (let i = 0; i < 6 && widest() > avail; i++) {
       const fs = parseFloat(getComputedStyle(this.banner).fontSize) || 40;
-      this.banner.style.fontSize = `${Math.max(14, (fs * avail) / this.banner.scrollWidth).toFixed(1)}px`;
+      this.banner.style.fontSize = `${Math.max(12, (fs * avail) / widest() * 0.97).toFixed(1)}px`;
     }
+    void this.banner.offsetWidth;
+    this.banner.style.animation = '';
     window.clearTimeout(this.bannerTimer);
     window.clearTimeout(this.bannerFade);
     // fade out before removing, so a call-out never just vanishes
