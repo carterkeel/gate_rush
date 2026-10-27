@@ -438,7 +438,8 @@
   /* ---- QA round 3 ---- */
   /* #46 back buttons sit on a fading backdrop so content never shows through them */
   #bSettingsBack, #bUpBack, #bIntelResume, #bSkinsBack, #bScoresBack { position:static !important; }
-  .stickyBack { position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; width:calc(100% + 28px); margin:0 -14px; padding:22px 0 8px; background:linear-gradient(rgba(7,10,20,0), rgba(7,10,20,.94) 38%); pointer-events:none; }
+  .stickyBack { display:flex; justify-content:center; pointer-events:none; }
+  .screen.ovf .stickyBack { position:sticky; bottom:calc(-1 * max(16px, env(safe-area-inset-bottom))); z-index:3; width:calc(100% + 28px); margin:0 -14px; padding:22px 0 max(16px, env(safe-area-inset-bottom)); background:linear-gradient(rgba(7,10,20,0), rgba(7,10,20,.94) 38%); }
   .stickyBack button { pointer-events:auto; }
   /* #49 panels dark enough to read over the frozen scene */
   .screen { background:linear-gradient(rgba(6,9,18,.74),rgba(6,9,18,.86)); -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px); }

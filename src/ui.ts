@@ -95,6 +95,7 @@ export class UI {
     };
     bind('musicVol', 'musicOut', () => sound.musicVol, (v) => sound.setMusicVolume(v), false);
     bind('sfxVol', 'sfxOut', () => sound.sfxVol, (v) => sound.setSfxVolume(v), true);
+    window.addEventListener('resize', () => this.fitScreens());
     $('bPause').onclick = () => this.onPause();
     $('bFast').onclick = () => this.onFast();
     $('bBoostHud').onclick = () => this.onBoostHud();
@@ -118,7 +119,15 @@ export class UI {
   }
 
   private screenTimers = new Map<string, number>();
+  /** Screens that scroll get a sticky BACK with a fade; short ones keep it in the normal flow (no dark bar). */
+  private fitScreens(): void {
+    document.querySelectorAll<HTMLElement>('.screen.on').forEach((el) => {
+      el.classList.remove('ovf');
+      if (el.scrollHeight > el.clientHeight + 1) el.classList.add('ovf');
+    });
+  }
   private screens(on: string | null): void {
+    requestAnimationFrame(() => this.fitScreens());
     for (const id of ['menu', 'skins', 'scores', 'summary', 'pause', 'tutDone', 'settings', 'upgrades', 'intel']) {
       const el = $(id);
       const t = this.screenTimers.get(id);
@@ -707,6 +716,7 @@ export class UI {
     });
     this.syncBoost();
     if (fresh) this.screens('upgrades');
+    else this.fitScreens();
   }
 
   // ------------------------------------------------------------- skins
@@ -737,6 +747,7 @@ export class UI {
     $('skinGrid').innerHTML = mk('skin');
     $('trailGrid').innerHTML = mk('trail');
     if (fresh) this.screens('skins');
+    else this.fitScreens();
     document.querySelectorAll<HTMLButtonElement>('#skins button[data-id]').forEach((b) => {
       b.onclick = () => {
         const id = b.dataset.id!;
