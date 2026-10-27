@@ -1,6 +1,6 @@
 # Third-party notices
 
-Gate Rush bundles the following open-source software. Sounds are generated in code and no other assets are used.
+Gate Rush bundles the following open-source software. Sounds are generated in code. The Android app is a thin wrapper built with Capacitor and the standard Android libraries listed below.
 
 ## three.js (MIT)
 
@@ -32,3 +32,17 @@ The soldier and orc character models and the sword, spear and shield props come 
 (https://kenney.nl), released under Creative Commons Zero (CC0 1.0): free for personal, educational and commercial
 use. Crediting Kenney is appreciated but not required. The pack's license text is in
 `assets/kenney/License-Mini-Dungeon.txt`. The models are baked into `src/modelData.ts` by `tools/build_models.py`.
+
+## Capacitor (MIT)
+
+The Android app is packaged with Capacitor (https://capacitorjs.com), Copyright © 2015-present Drifty Co., released under
+the MIT License (same terms as the three.js notice above).
+
+## Android libraries (Apache License 2.0)
+
+The Android app includes AndroidX / Android Jetpack libraries from Google (https://developer.android.com/jetpack),
+licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+
+## Services
+
+Bug reports are delivered with Web3Forms (https://web3forms.com), a hosted service. No Web3Forms code is bundled.

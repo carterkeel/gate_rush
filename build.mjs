@@ -18,5 +18,6 @@ writeFileSync('dist/index.html', html);
 mkdirSync('docs', { recursive: true });
 writeFileSync('docs/index.html', html);
 copyFileSync('assets/favicon.png', 'docs/favicon.png');
+copyFileSync('assets/privacy.html', 'docs/privacy.html');
 copyFileSync('assets/apple-touch-icon.png', 'docs/apple-touch-icon.png');
 console.log(`dist/index.html  ${(html.length / 1024).toFixed(0)} KB`);

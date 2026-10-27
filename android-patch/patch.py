@@ -27,3 +27,4 @@ sv.write_text(t)
 shutil.copytree('android-patch/res', root / 'res', dirs_exist_ok=True)
 bg = root / 'res/values/ic_launcher_background.xml'
 bg.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#141C33</color>\n</resources>\n')
+

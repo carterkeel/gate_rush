@@ -617,6 +617,7 @@
       <label><span>YOUR NAME <em>(OPTIONAL)</em></span><input id="rName" name="name" type="text" maxlength="60" autocomplete="off" /></label>
       <label><span>YOUR EMAIL <em>(OPTIONAL, SO WE CAN REPLY)</em></span><input id="rEmail" name="email" type="email" maxlength="120" inputmode="email" autocomplete="off" /></label>
       <p id="rStatus" class="rStatus" role="status" aria-live="polite"></p>
+      <p class="rNote">Reports are sent through Web3Forms. <a href="https://carterkeel.github.io/gate_rush/privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
     </form>
     <button id="bReportSend" class="warn">SEND REPORT</button>
     <div class="stickyBack"><button id="bReportBack" class="ghost">BACK</button></div>
@@ -692,4 +693,8 @@
 <style>
   /* Settings and the bug report scroll normally: BACK sits at the end of the page, no sticky bar behind it */
   #settings.screen.ovf .stickyBack, #report.screen.ovf .stickyBack { position:static; width:auto; margin:0; padding:0; background:none; }
+</style>
+<style>
+  .rNote { margin:0; text-align:center; font-size:12px; line-height:1.4; letter-spacing:.5px; font-weight:600; opacity:.6; font-family:system-ui,sans-serif; }
+  .rNote a { color:#9bc0ff; }
 </style>
