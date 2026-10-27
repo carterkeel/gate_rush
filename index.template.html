@@ -414,6 +414,17 @@
   /* #33 dev inputs match the panel look */
   .devopts input { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); }
   #devBox { margin-top:6px; }
+  /* gold balance box: same look as the top-scores panel */
+  .goldBox { display:flex; align-items:center; justify-content:center; gap:12px; width:min(78vw,280px); box-sizing:border-box; padding:10px 16px; border-radius:16px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-family:system-ui,sans-serif; }
+  .goldBox span { font-size:11px; letter-spacing:4px; font-weight:700; opacity:.6; }
+  .goldBox b { font-size:18px; font-weight:800; color:#ffd54f; font-variant-numeric:tabular-nums; }
+  /* upgrades: even rhythm between every element and button in a card */
+  .card.up { gap:10px; padding:16px 14px; }
+  .card.up > * { margin:0; }
+  .card.up small { min-height:0; margin:0; }
+  .card.up .pips { margin:0; }
+  .screen .card.up button { max-width:260px; width:100%; }
+  .upgrid { gap:16px; }
 </style>
 </head>
 <body>
@@ -426,7 +437,7 @@
   <div id="hud">
     <div id="dist" class="stat"><small>DISTANCE</small><span id="distV">0</span> m</div>
     <button id="army" class="stat" aria-label="Army size and next fight info"><small>ARMY</small><span id="armyV">1</span></button>
-    <div id="coins" class="stat"><small>COINS</small><span id="coinsV">0</span></div>
+    <div id="coins" class="stat"><small>GOLD</small><span id="coinsV">0</span></div>
     <button id="bPause" class="ghost" aria-label="Pause" title="Pause">❚❚</button>
     <button id="bInstaHud" class="ghost" aria-label="Use instakill on the next fight" aria-pressed="false" style="display:none"></button>
     <button id="bDoubleHud" class="ghost" aria-label="Use x2 army" style="display:none"></button>
@@ -452,19 +463,19 @@
     <button id="bUpgrades" class="alt">UPGRADES</button>
     <button id="bSettings" class="ghost">SETTINGS</button>
     <div id="topScores" role="button" tabindex="0" aria-label="High scores"></div>
-    <div class="tag" id="menuCoins"></div>
+    <div class="goldBox" id="menuCoins"></div>
   </div>
 
   <div id="upgrades" class="screen">
     <h2>UPGRADES</h2>
-    <div class="tag" id="upCoins"></div>
+    <div class="goldBox" id="upCoins"></div>
     <div class="upgrid" id="upGrid"></div>
     <button id="bUpBack" class="ghost">BACK</button>
   </div>
 
   <div id="skins" class="screen">
     <h2>SKINS</h2>
-    <div class="tag" id="skinCoins"></div>
+    <div class="goldBox" id="skinCoins"></div>
     <h2 class="sub">UNIT SKINS (COSMETIC)</h2>
     <div class="grid" id="skinGrid"></div>
     <h2 class="sub">GATE TRAILS</h2>
@@ -514,7 +525,7 @@
       <button id="devToggle" class="ghost">DEV MODE: OFF</button>
       <div id="devOpts" class="devopts">
         <label>STARTING METERS <input id="devMeters" type="number" min="0" max="20000" step="100" value="0" inputmode="numeric" /></label>
-        <label>STARTING COINS <input id="devCoins" type="number" min="0" max="1000000" step="100" value="0" inputmode="numeric" /></label>
+        <label>STARTING GOLD <input id="devCoins" type="number" min="0" max="1000000" step="100" value="0" inputmode="numeric" /></label>
         <button id="devInf" class="ghost">∞ POWER-UPS: OFF</button>
       </div>
     </div>

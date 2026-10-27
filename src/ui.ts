@@ -558,7 +558,7 @@ export class UI {
   showMenu(): void {
     this.syncBoost();
     this.showHud(false);
-    $('menuCoins').innerHTML = `Coins: ${coinHtml(this.save().coins)}`;
+    $('menuCoins').innerHTML = `<span>GOLD</span><b>${fmtInt(this.save().coins)}</b>`;
     $('bPlay').textContent = this.save().tutorialDone ? 'PLAY' : 'PLAY TUTORIAL';
     $('bSkipTut').style.display = this.save().tutorialDone ? 'none' : '';
     const top = this.save().scores.slice(0, 3);
@@ -642,11 +642,11 @@ export class UI {
       ['ENEMIES KILLED', fmtInt(s.kills), 'red'],
       ...(s.start > 0 ? ([['HEAD START', `+${s.start} m`, 'orange']] as Array<[string, string, string]>) : []),
       ['SCORE', fmt(s.score), 'gold big'],
-      ['COINS', `+${fmtInt(s.coins - s.armyBonus)}`, 'gold'],
+      ['GOLD', `+${fmtInt(s.coins - s.armyBonus)}`, 'gold'],
       ...(s.armyBonus > 0
         ? ([
             ['LARGE ARMY BONUS', `+${fmtInt(s.armyBonus)}`, 'purple'],
-            ['TOTAL COINS', `+${fmtInt(s.coins)}`, 'gold big2'],
+            ['TOTAL GOLD', `+${fmtInt(s.coins)}`, 'gold big2'],
           ] as Array<[string, string, string]>)
         : []),
     ];
@@ -672,7 +672,7 @@ export class UI {
     const lvl = d.startLevel;
     const next = lvl + 1;
     const maxed = lvl >= START_MAX_LEVEL;
-    $('upCoins').innerHTML = `Coins: ${coinHtml(d.coins)}`;
+    $('upCoins').innerHTML = `<span>GOLD</span><b>${fmtInt(d.coins)}</b>`;
     const pips = Array.from({ length: START_MAX_LEVEL }, (_, i) => `<i class="${i < lvl ? 'on' : ''}"></i>`).join('');
     const canStart = !maxed && d.coins >= startCost(next);
     const canSpeed = !d.speedUnlocked && d.coins >= SPEED_COST;
@@ -723,7 +723,7 @@ export class UI {
   // ------------------------------------------------------------- skins
   showSkins(fresh = true): void {
     const d = this.save();
-    $('skinCoins').innerHTML = `Coins: ${coinHtml(d.coins)}`;
+    $('skinCoins').innerHTML = `<span>GOLD</span><b>${fmtInt(d.coins)}</b>`;
     const mk = (kind: 'skin' | 'trail') => {
       const list = kind === 'skin' ? SKINS : TRAILS;
       const owned = kind === 'skin' ? d.ownedSkins : d.ownedTrails;
