@@ -425,6 +425,12 @@
   .card.up .pips { margin:0; }
   .screen .card.up button { max-width:260px; width:100%; }
   .upgrid { gap:16px; }
+  .goldBox { gap:8px; }
+  .goldBox span { margin-right:4px; }
+  .goldBox .coin { width:18px; height:18px; margin:0; flex:0 0 auto; animation:coinGlint 2.4s ease-in-out infinite; }
+  .goldBox b { background:linear-gradient(100deg,#ffc21a 0%,#ffd54f 38%,#fffbe0 50%,#ffd54f 62%,#ffc21a 100%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:goldShineText 2.4s linear infinite; }
+  @keyframes goldShineText { from { background-position:150% 0; } to { background-position:-100% 0; } }
+  @keyframes coinGlint { 0%,100% { filter:brightness(1); transform:scale(1); } 50% { filter:brightness(1.35); transform:scale(1.12); } }
 </style>
 </head>
 <body>
