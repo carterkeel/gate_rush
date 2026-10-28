@@ -38,25 +38,6 @@ jobs:
           npx cap add android
           python3 android-patch/patch.py
           npx cap sync android
-      - name: Build signed release bundle for Google Play (only when signing secrets are set)
-        if: env.HAS_KEYSTORE == 'true'
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
-          export KEYSTORE_FILE="$RUNNER_TEMP/upload.jks"
-          python3 android-patch/sign.py
-          cd android && ./gradlew bundleRelease --no-daemon
-          cp app/build/outputs/bundle/release/app-release.aab ../gate-rush.aab
-      - name: Upload the release bundle
-        if: hashFiles('gate-rush.aab') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: gate-rush-aab
-          path: gate-rush.aab
       - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
@@ -82,3 +63,23 @@ jobs:
           cp gate-rush.apk "gate-rush-${TAG}.apk"
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "${GITHUB_SHA}" --title "Gate Rush ${TAG#v}" --notes "Gate Rush: Multiply & Conquer ${TAG#v}. Android APK attached (debug-signed build for sideloading and testing; the Google Play version is the signed bundle)."
           gh release upload "$TAG" "gate-rush-${TAG}.apk" --clobber
+      # last, because it edits android/app/build.gradle to read the keystore from env vars that only exist inside this step
+      - name: Build signed release bundle for Google Play (only when signing secrets are set)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          export KEYSTORE_FILE="$RUNNER_TEMP/upload.jks"
+          python3 android-patch/sign.py
+          cd android && ./gradlew bundleRelease --no-daemon
+          cp app/build/outputs/bundle/release/app-release.aab ../gate-rush.aab
+      - name: Upload the release bundle
+        if: hashFiles('gate-rush.aab') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-rush-aab
+          path: gate-rush.aab
