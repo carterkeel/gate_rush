@@ -28,3 +28,10 @@ shutil.copytree('android-patch/res', root / 'res', dirs_exist_ok=True)
 bg = root / 'res/values/ic_launcher_background.xml'
 bg.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#141C33</color>\n</resources>\n')
 
+
+# Google Play (Play Protect / automatic protection) needs minSdk 24 or higher; Capacitor's default is 22
+vg = pathlib.Path('android/variables.gradle')
+t = vg.read_text()
+t, n = re.subn(r'minSdkVersion\s*=\s*\d+', 'minSdkVersion = 24', t)
+assert n == 1, 'minSdkVersion not found in variables.gradle'
+vg.write_text(t)
