@@ -1,30 +1,22 @@
-<b>You've seen the ads.</b> Run through the gates, watch your army explode in size, crush the enemy crowd, and win. Then you install the game and it's something else entirely.
+You've seen the ads. Run through the gates, grow your army, crush the enemy crowd, and win. Then you install the game and it's something else entirely.
 
-<b>Gate Rush: Multiply & Conquer</b> is the game from those ads, and you actually get to play it.
+Gate Rush: Multiply & Conquer is the game from those ads, and you actually get to play it.
 
-<font color="#1fb865"><b>FREE. OPEN SOURCE. NO ADS.</b></font>
-No ads, no pop-ups, no timers, no energy bars, no accounts and no tracking. The whole game is <b>free</b>, and the full source code is <b>open</b> for anyone to read at github.com/carterkeel/gate_rush. Nothing is hidden and nothing is for sale.
+FREE. OPEN SOURCE. NO ADS.
+No ads, no pop-ups, no timers, no accounts and no tracking. The whole game is free, and the full source code is open for anyone to read at github.com/carterkeel/gate_rush.
 
-<font color="#1fb865"><b>HOW TO PLAY</b></font>
-Slide to steer your army down the track. Pick the gates that multiply you, dodge the ones that cut you down, and grow your crowd as big as you can. At the end of every stretch the enemy is waiting, so the bigger your army, the more of them you crush. Reach the boss with enough soldiers and it falls.
+HOW TO PLAY
+Slide to steer your army down the track. Pick the gates that grow your crowd and dodge the ones that shrink it. At the end of every stretch the enemy is waiting, so the bigger your army, the more of them you crush. Reach the boss with enough soldiers and it falls.
 
-<font color="#1fb865"><b>WHAT'S INSIDE</b></font>
-• <b>One-thumb controls</b> that anyone can learn in a minute, with a short tutorial to get you started
-• <b>Gates</b> that add, multiply, subtract and divide, so every choice matters
-• <b>Big crowd-versus-crowd fights</b> with live enemy health bars
-• <b>Boss battles</b> that test how well you built your army
-• <b>Instakill power-up:</b> save one from a purple gate, then wipe out every enemy
-• <b>Double Army power-up:</b> save one from a pink gate and double your crowd on the spot
-• <b>Gold and upgrades:</b> earn gold and spend it on a head start and a 2× speed button
-• <b>Skins and gate trails</b> to make your army your own
-• <b>Top scores</b> to chase your best run
+WHAT'S INSIDE
+• Simple one-thumb controls and a short tutorial
+• Gates that add, multiply, subtract and divide
+• Big crowd-versus-crowd fights and boss battles
+• Instakill and Double Army power-ups
+• Gold to spend on upgrades
+• Skins and gate trails to customize your army
+• Top scores to chase your best run
 
-<font color="#1fb865"><b>NO STRINGS ATTACHED</b></font>
-Your progress is saved on your device only. We don't collect your data. The one exception is the optional bug-report form in Settings, which only sends what you choose to type.
+Your progress is saved on your device only, and we don't collect your data. Found a bug? Use Report a Bug in Settings.
 
-Play it on your commute, in the queue, or on the couch. A run takes a couple of minutes, and it's always fair.
-
-<font color="#1fb865"><b>BUILT IN THE OPEN</b></font>
-Found a bug or have an idea? Use Report a Bug in Settings, or open an issue on GitHub. Your feedback shapes the game.
-
-<b>Download it, run it, and enjoy the game the ads promised.</b>
+Download it and enjoy the game the ads promised.
