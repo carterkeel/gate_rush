@@ -3,7 +3,7 @@ import pathlib, re, shutil
 
 root = pathlib.Path('android/app/src/main')
 shutil.rmtree(root / 'java', ignore_errors=True)
-dest = root / 'java/com/carterkeel/gaterush'
+dest = root / 'java/com/overkeel/gaterush'
 dest.mkdir(parents=True)
 shutil.copy('android-patch/MainActivity.java', dest / 'MainActivity.java')
 

@@ -30,4 +30,4 @@ upload it in Play Console. The version code is the workflow run number, so each 
 - Content rating questionnaire, store listing, screenshots (`assets/screens`), icon (`assets/icon.png`) and banner.
 - Restrict the Web3Forms access key to your domain in the Web3Forms dashboard.
 - Search the trademark databases and both stores for the game name again right before submitting.
-- The package name `com.carterkeel.gaterush` cannot be changed after publishing.
+- The package name `com.overkeel.gaterush` cannot be changed after publishing.
