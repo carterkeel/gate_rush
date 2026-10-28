@@ -71,4 +71,4 @@ under the key `gate-rush-save-v1`. They stay on that device and browser; clearin
 `docs/index.html` is the built game. Rebuild and commit it after source changes.
 
 ## License
-Public domain (The Unlicense, see `LICENSE`): use it however you like, no credit needed. The bundled three.js keeps its own MIT notice in `THIRD_PARTY_NOTICES.md`.
+MIT License (see `LICENSE`): free to use, copy, modify and sell, as long as the copyright notice stays with it. Bundled third-party parts (three.js, Kenney models, Android libraries) keep their own notices in `THIRD_PARTY_NOTICES.md`.
